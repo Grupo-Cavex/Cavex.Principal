@@ -1,3 +1,4 @@
+using Cavex.Principal.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,11 +13,14 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 104857600; 
 });
 
-//builder.Services.AddDbContext<CavexPrincipalContext>(options =>
-// options.UseSqlServer(builder.Configuration.GetConnectionString("CavexPrincipalContext") ?? throw new InvalidOperationException("Connection string 'CavexPrincipalContext' not found.")));
+//builder.Services.AddDbContext<CavexPrincipalContext>(options =>+
+// options.UseSqlServer(builder.Configuration.GetConnectionString("CavexPrincipalContext    ") ?? throw new InvalidOperationException("Connection string 'CavexPrincipalContext' not found.")));
 
 
 // Add services to the container.
+builder.Services.AddApplicationServices();
+builder.Services.AddApiClients(builder.Configuration);
+
 builder.Services.AddControllersWithViews()
     .AddRazorOptions(options =>
     {

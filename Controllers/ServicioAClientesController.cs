@@ -1,4 +1,4 @@
-﻿using Cavex.Principal.Models.ServicioAClientes;
+using Cavex.Principal.Models.ServicioAClientes;
 using Cavex.Principal.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +22,7 @@ namespace Cavex.Principal.Controllers
                 TempData["ErrorMessage"] = response.Message;
             }
 
-            return View(response.Data ?? []);
+            return View(response.Data?.Items ?? []);
         }
 
         public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)

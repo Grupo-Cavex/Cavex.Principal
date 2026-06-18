@@ -1,3 +1,4 @@
+@model Cavex.Principal.Models.ServicioAClientes.ServicioAClienteDto;
 @{
     ViewData["Title"] = "Nuevo Servicio";
     ViewData["HeaderEyebrow"] = "Configuración";
@@ -30,13 +31,21 @@
         <div class="row g-3">
             <div class="col-md-12">
                 <label class="form-label" for="strNombre">Nombre del servicio</label>
-                <input id="strNombre" name="Nombre" class="form-control" placeholder="Ej. Traslado Sencillo" required />
+                <input id="strNombre" name="Nombre" class="form-control no-uppercase" placeholder="Ej. Traslado Sencillo" required />
                 <div class="invalid-feedback" id="nombreFeedback">El nombre del servicio ya existe.</div>
             </div>
             <div class="col-md-12">
                 <label class="form-label" for="strDescripcion">Descripción (Opcional)</label>
-                <textarea id="strDescripcion" name="Descripcion" class="form-control" rows="3" placeholder="Ej. Traslado estándar sin escalas ni asistencia especial" style="resize: none;"></textarea>
+                <textarea id="strDescripcion" name="strDescripcion" class="form-control no-uppercase" rows="3" placeholder="Ej. Traslado estándar sin escalas ni asistencia especial" style="resize: none;"></textarea>
                 <div class="invalid-feedback" id="descripcionFeedback">La descripción contiene caracteres no válidos (solo letras, números y símbolos permitidos).</div>
+            </div>
+            <div class="col-md-12" id="statusContainer">
+                <label class="form-label" for="intIdStatus">Estado del servicio</label>
+                <select id="intIdStatus" name="IdCatStatus" class="form-select">
+                    <option value="1">Activo</option>
+                    <option value="2002">Dar de Baja</option>
+                </select>
+                <div class="invalid-feedback" id="statusFeedback">El estado seleccionado no es válido.</div>
             </div>
         </div>
 

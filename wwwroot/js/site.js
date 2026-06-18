@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const shouldUppercase = (element) => {
+        if (element.classList.contains('no-uppercase') || element.hasAttribute('data-no-uppercase')) return false;
+
         const name = (element.getAttribute('name') || element.id || '').toLowerCase();
         const type = (element.getAttribute('type') || '').toLowerCase();
 

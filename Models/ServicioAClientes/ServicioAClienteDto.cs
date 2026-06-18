@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.ServicioAClientes
 {
@@ -12,6 +12,9 @@ namespace Cavex.Principal.Models.ServicioAClientes
 
         [Required(ErrorMessage = "La descripcion es obligatoria.")]
         [StringLength(250, ErrorMessage = "La descripcion no puede superar los 250 caracteres.")]
-        public string Descripcion { get; set; } = string.Empty;
+        public string strDescripcion { get; set; } = string.Empty;
+
+        // Campo Agregado para coincidir con back (ejemplo)
+        public int IdCatStatus { get; set; } = 1;
     }
 }

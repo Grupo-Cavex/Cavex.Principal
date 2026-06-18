@@ -1,24 +1,15 @@
-// Datos de Servicios realistas para pruebas
-let services = [
-    { id: 1, nombre: "Traslado Sencillo", descripcion: "Servicio estándar de traslado de personal o pacientes sin requerimientos especiales.", activo: true },
-    { id: 2, nombre: "Traslado con Asistencia", descripcion: "Servicio de traslado que incluye asistencia de camilleros o personal especializado.", activo: true },
-    { id: 3, nombre: "Traslado en Ambulancia Básica", descripcion: "Traslado médico no urgente con personal técnico en urgencias médicas a bordo.", activo: true },
-    { id: 4, nombre: "Traslado en Ambulancia de Terapia Intensiva", descripcion: "Servicio crítico para pacientes estables o inestables con equipo de soporte vital avanzado y médico a bordo.", activo: true },
-    { id: 5, nombre: "Traslado de Custodia y Seguridad", descripcion: "Traslado de ejecutivos o personal sensible con escolta entrenada y vehículo blindado opcional.", activo: true },
-];
-    
-let nextId = 16;
+let services = [];
 let editingId = null;
 
 // Variables de paginación y filtros
 let currentPage = 1;
-let pageSize = 5;
+let pageSize = 10;
 let statusFilter = 'todos';
 let searchQuery = '';
 
-// Renderizado inicial de la tabla
+// Renderizado inicial de la tabla cargando datos del servidor
 document.addEventListener('DOMContentLoaded', () => {
-    renderServices();
+    loadServicesFromServer();
     
     // Aplicacion en tiempo real utilizando las funciones globales de site.js
     const nombreInput = document.getElementById('strNombre');
@@ -64,6 +55,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+function loadServicesFromServer() {
+    fetch('/Servicios/GetServices')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("HTTP error " + response.status);
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log("Respuesta de GetServices:", result);
+            if (result.success) {
+                if (result.data && Array.isArray(result.data)) {
+                    services = result.data.map(item => ({
+                        id: item.id,
+                        nombre: item.strValor,
+                        descripcion: item.strDescripcion,
+                        idCatStatus: item.idCatStatus,
+                        activo: item.idCatStatus === 1
+                    }));
+                } else {
+                    services = [];
+                }
+                renderServices();
+            } else {
+                console.error("Error al cargar servicios desde base de datos:", result.message);
+                alert("No se pudieron cargar los servicios: " + (result.message || "Error desconocido de API"));
+                services = [];
+                renderServices();
+            }
+        })
+        .catch(err => {
+            console.error("Error en petición:", err);
+            alert("Error al cargar servicios: " + err.message);
+            services = [];
+            renderServices();
+        });
+}
 
 // Función para renderizar los servicios
 function renderServices() {
@@ -167,15 +196,6 @@ function renderServices() {
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 text-primary"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                     Editar
                                 </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center ${s.activo ? 'text-danger' : 'text-success'}" type="button" onclick="toggleServiceStatus(${s.id})">
-                                    ${actionStatusIcon}
-                                    <span>${actionStatusText}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <button class="dropdown-item d-flex align-items-center text-danger" type="button" onclick="deleteService(${s.id})">
@@ -313,9 +333,22 @@ function handleFormSubmit(e) {
         return;
     }
 
+    // Validar expresión regular: nada de números, emojis o símbolos raros
+    const regexLettersOnly = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+    if (!regexLettersOnly.test(nombre)) {
+        nombreInput.classList.add('is-invalid');
+        nombreInput.classList.remove('is-valid');
+        const feedback = document.getElementById('nombreFeedback');
+        if (feedback) {
+            feedback.textContent = 'El nombre solo debe contener letras y espacios (sin números, símbolos ni emojis).';
+        }
+        nombreInput.focus();
+        return;
+    }
+
     // Validar si ya existe otro servicio con el mismo nombre (ignora mayúsculas/minúsculas)
-    const nombreLower = nombre.toLowerCase();
-    const existeDuplicado = services.some(s => s.nombre.toLowerCase() === nombreLower && s.id !== editingId);
+    const nombreLower = nombre.toLowerCase().trim();
+    const existeDuplicado = services.some(s => s.nombre.toLowerCase().trim() === nombreLower && s.id !== editingId);
     
     if (existeDuplicado) {
         nombreInput.classList.add('is-invalid');
@@ -334,26 +367,43 @@ function handleFormSubmit(e) {
         descInput.classList.add('is-valid');
     }
 
-    if (editingId !== null) {
-        // Modo Edición
-        const index = services.findIndex(s => s.id === editingId);
-        if (index !== -1) {
-            services[index].nombre = nombre;
-            services[index].descripcion = descripcion;
-        }
-    } else {
-        // Modo Creación
-        services.unshift({
-            id: nextId++,
-            nombre: nombre,
-            descripcion: descripcion,
-            activo: true
-        });
-        currentPage = 1;
-    }
+    const url = editingId === null ? '/Servicios/SaveService' : '/Servicios/UpdateService';
+    const statusVal = editingId === null ? 1 : parseInt(document.getElementById('intIdStatus').value);
 
-    resetForm();
-    renderServices();
+    const payload = {
+        id: editingId || 0,
+        strValor: nombre,
+        strDescripcion: descripcion,
+        idCatStatus: statusVal
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(editingId === null ? "Servicio agregado exitosamente." : "Servicio actualizado exitosamente.");
+            resetForm();
+            loadServicesFromServer();
+        } else {
+            nombreInput.classList.add('is-invalid');
+            nombreInput.classList.remove('is-valid');
+            const feedback = document.getElementById('nombreFeedback');
+            if (feedback) {
+                feedback.textContent = result.message || 'Error al guardar el servicio.';
+            }
+            alert("No se pudo guardar el servicio: " + (result.message || "Intente de nuevo."));
+        }
+    })
+    .catch(err => {
+        console.error("Error al guardar el servicio:", err);
+        alert("Ocurrió un error al intentar guardar el servicio.");
+    });
 }
 
 // Cargar datos en el formulario para edición
@@ -366,6 +416,12 @@ function editService(id) {
     document.getElementById('strNombre').value = service.nombre;
     document.getElementById('strDescripcion').value = service.descripcion || '';
 
+    // Cargar el valor del Estatus en el Drop List
+    const statusField = document.getElementById('intIdStatus');
+    if (statusField) {
+        statusField.value = service.idCatStatus;
+    }
+
     // Cambiar estados del formulario
     document.getElementById('formTitle').textContent = 'Editar servicio';
     document.getElementById('formSubtitle').textContent = 'Modifica los detalles del servicio seleccionado.';
@@ -377,29 +433,28 @@ function editService(id) {
     document.getElementById('strNombre').focus();
 }
 
-// Alternar estado activo/baja del servicio
-function toggleServiceStatus(id) {
-    const index = services.findIndex(s => s.id === id);
-    if (index !== -1) {
-        services[index].activo = !services[index].activo;
-        renderServices();
-    }
-}
-
 // Eliminar servicio
 function deleteService(id) {
     if (confirm("¿Estás seguro de que deseas eliminar este servicio?")) {
-        const index = services.findIndex(s => s.id === id);
-        if (index !== -1) {
-            services.splice(index, 1);
-            
-            // Si el servicio eliminado era el que se estaba editando, resetear el formulario
-            if (editingId === id) {
-                resetForm();
+        fetch('/Servicios/DeleteService?id=' + id, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert("Servicio eliminado exitosamente.");
+                if (editingId === id) {
+                    resetForm();
+                }
+                loadServicesFromServer();
+            } else {
+                alert("No se pudo eliminar el servicio: " + result.message);
             }
-            
-            renderServices();
-        }
+        })
+        .catch(err => {
+            console.error("Error al eliminar el servicio:", err);
+            alert("Ocurrió un error al intentar eliminar el servicio.");
+        });
     }
 }
 
@@ -408,6 +463,12 @@ function resetForm() {
     editingId = null;
     clearValidation();
     document.getElementById('formServicio').reset();
+
+    // Restablecer el valor del Estatus a Activo (1)
+    const statusField = document.getElementById('intIdStatus');
+    if (statusField) {
+        statusField.value = "1";
+    }
 
     // Restaurar textos originales
     document.getElementById('formTitle').textContent = 'Registrar servicio';
