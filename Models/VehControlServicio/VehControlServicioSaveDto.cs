@@ -4,8 +4,7 @@ namespace Cavex.Principal.Models.VehControlServicio
 {
     public class VehControlServicioSaveDto
     {
-        public string? StrUrlComprobantePago { get; set; }
-
+    
         [Required(ErrorMessage = "El vehiculo es obligatorio.")]
         [Display(Name = "Vehiculo")]
         public int IdVehDatosGenerales { get; set; }
@@ -25,9 +24,19 @@ namespace Cavex.Principal.Models.VehControlServicio
 
         [Required(ErrorMessage = "El encargado es obligatorio.")]
         [Display(Name = "Encargado")]
-        public int IdEmpEmpleado { get; set; } = 0; 
+        public int IdEmpEmpleado { get; set; } = 0;
 
+        [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
+        [Display(Name = "Descripcion")]
+        public string? StrDescripcion { get; set; }
 
+        [Required(ErrorMessage = "El encargado es obligatorio.")]
+        [Display(Name = "Encargado")]
+        public int IdVehCatResponsable { get; set; } = 0;
+
+        [Required(ErrorMessage = "El estatus es obligatorio.")]
+        [Display(Name = "Status")]
+        public int IdVehCatStatus { get; set; } = 0;
     }
 }
 
