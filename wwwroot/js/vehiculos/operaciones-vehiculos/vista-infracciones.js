@@ -4,12 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarVistaInfracciones();
 });
 
-// Arreglo temporal de vehículos cargado desde la BD para la vista previa lateral
+// Arreglo temporal de vehÃ­culos cargado desde la BD para la vista previa lateral
 let listaVehiculosInfracciones = [];
-// Variable global para almacenar el comprobante de infracción seleccionado
+// Variable global para almacenar el comprobante de infracciÃ³n seleccionado
 let comprobanteArchivoSeleccionado = null;
 
-// Inicializa la configuración de la pantalla de infracciones
+// Inicializa la configuraciÃ³n de la pantalla de infracciones
 function inicializarVistaInfracciones() {
     const form = document.getElementById("infraccionVehiculoForm");
     if (!form) return;
@@ -25,7 +25,7 @@ function inicializarVistaInfracciones() {
     
     inicializarContadores();
 
-    // Eventos de validación en tiempo real para todos los inputs
+    // Eventos de validaciÃ³n en tiempo real para todos los inputs
     form.querySelectorAll("input:not([type='file']):not([type='hidden']), select, textarea").forEach(campo => {
         ["input", "change"].forEach(evento => campo.addEventListener(evento, () => {
             const teniaError = campo.classList.contains("is-invalid");
@@ -46,7 +46,7 @@ function inicializarVistaInfracciones() {
     });
 
 
-    // Envío del formulario al backend para registrar la infracción
+    // EnvÃ­o del formulario al backend para registrar la infracciÃ³n
     form.addEventListener("submit", async event => {
         event.preventDefault();
         
@@ -61,7 +61,7 @@ function inicializarVistaInfracciones() {
         }
 
         Swal.fire({
-            title: "Registrando infracción...",
+            title: "Registrando infracciÃ³n...",
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
@@ -76,7 +76,7 @@ function inicializarVistaInfracciones() {
         const fechaPagoInput = document.getElementById("infraccion-dteFechaPago").value;
         const formaPagoInput = document.getElementById("infraccion-idVehFormaPago").value;
 
-        // Construcción con FormData para soportar multipart upload del archivo comprobante
+        // ConstrucciÃ³n con FormData para soportar multipart upload del archivo comprobante
         const formData = new FormData();
         formData.append("Id", editModeInfraccionId || 0);
         formData.append("IdVehDatosGenerales", parseInt(document.getElementById("infraccion-idVehDatosGenerales").value, 10));
@@ -116,7 +116,7 @@ function inicializarVistaInfracciones() {
                 Swal.fire({
                     icon: "error",
                     title: "Error al registrar",
-                    text: result.message || "No fue posible registrar la infracción.",
+                    text: result.message || "No fue posible registrar la infracciÃ³n.",
                     confirmButtonColor: "var(--teal-cavex)"
                 });
                 return;
@@ -124,8 +124,8 @@ function inicializarVistaInfracciones() {
 
             Swal.fire({
                 icon: "success",
-                title: editModeInfraccionId ? "Infracción actualizada" : "Infracción registrada",
-                text: editModeInfraccionId ? "Los datos de la infracción han sido actualizados exitosamente." : "Los datos de la infracción han sido registrados exitosamente.",
+                title: editModeInfraccionId ? "InfracciÃ³n actualizada" : "InfracciÃ³n registrada",
+                text: editModeInfraccionId ? "Los datos de la infracciÃ³n han sido actualizados exitosamente." : "Los datos de la infracciÃ³n han sido registrados exitosamente.",
                 confirmButtonColor: "var(--teal-cavex)"
             }).then(() => {
                 resetearFormularioInfraccion();
@@ -135,8 +135,8 @@ function inicializarVistaInfracciones() {
             Swal.close();
             Swal.fire({
                 icon: "error",
-                title: "Error de conexión",
-                text: "No se pudo establecer comunicación con el servidor. ¡Intenta de nuevo!",
+                title: "Error de conexiÃ³n",
+                text: "No se pudo establecer comunicaciÃ³n con el servidor. Â¡Intenta de nuevo!",
                 confirmButtonColor: "var(--teal-cavex)"
             });
         }
@@ -145,20 +145,20 @@ function inicializarVistaInfracciones() {
     actualizarVistaPreviaInfraccion();
 }
 
-// Datos globales para vinculación vehículo-chofer
+// Datos globales para vinculaciÃ³n vehÃ­culo-chofer
 let listaEmpleadosInfracciones = [];
 let asignacionesActivasInfracciones = [];
 
-// Carga catálogos de vehículos, empleados, formas de pago y estatus del servidor
+// Carga catÃ¡logos de vehÃ­culos, empleados, formas de pago y estatus del servidor
 async function cargarCatalogosInfracciones() {
     try {
         const [vehRes, empRes, asigRes] = await Promise.all([
-            fetch("/Vehiculos/GetVehiculos").then(r => r.json()),
+            obtenerVehiculosActivosDropdown(),
             fetch("/Empleado/GetEmpleadosDropdown").then(r => r.json()),
             fetch("/Asignaciones/GetAsignacionesActivas").then(r => r.json()).catch(() => ({ success: false }))
         ]);
 
-        // Asignaciones activas para vinculación y filtrado
+        // Asignaciones activas para vinculaciÃ³n y filtrado
         if (asigRes.success && asigRes.data) {
             asignacionesActivasInfracciones = asigRes.data;
         }
@@ -175,12 +175,12 @@ async function cargarCatalogosInfracciones() {
                 .filter(id => !isNaN(id) && id > 0)
         );
 
-        // 1. Cargar solo vehículos asignados
+        // 1. Cargar solo vehÃ­culos asignados
         const selectVeh = document.getElementById("infraccion-idVehDatosGenerales");
         if (selectVeh && vehRes.success && vehRes.data) {
-            listaVehiculosInfracciones = vehRes.data;
-            selectVeh.innerHTML = '<option value="">Seleccionar vehículo asignado...</option>';
-            vehRes.data.forEach(v => {
+            listaVehiculosInfracciones = vehRes.data.items || [];
+            selectVeh.innerHTML = '<option value="">Seleccionar vehÃ­culo asignado...</option>';
+            listaVehiculosInfracciones.forEach(v => {
                 const vId = Number(v.id ?? v.Id);
                 if (vehIdAsignados.has(vId)) {
                     const opt = document.createElement("option");
@@ -211,7 +211,7 @@ async function cargarCatalogosInfracciones() {
             });
         }
 
-        // Vinculación bidireccional segura
+        // VinculaciÃ³n bidireccional segura
         let isVinculandoInfraccion = false;
 
         selectVeh?.addEventListener("change", () => {
@@ -292,10 +292,10 @@ async function cargarCatalogosInfracciones() {
             actualizarVistaPreviaInfraccion();
         });
     } catch (err) {
-        console.error("Error al cargar catálogos de infracciones:", err);
+        console.error("Error al cargar catÃ¡logos de infracciones:", err);
     }
 
-    // 3. Cargar catálogos (Forma de pago, Estatus)
+    // 3. Cargar catÃ¡logos (Forma de pago, Estatus)
     fetch("/Vehiculos/GetVehiculoCatalogos")
         .then(res => res.json())
         .then(result => {
@@ -313,7 +313,7 @@ async function cargarCatalogosInfracciones() {
                     });
                 }
 
-                // Estatus de la infracción
+                // Estatus de la infracciÃ³n
                 const selectStatus = document.getElementById("infraccion-idVehCatStatus");
                 if (selectStatus && result.data.idVehCatStatus) {
                     selectStatus.innerHTML = '<option value="">Seleccionar...</option>';
@@ -357,7 +357,7 @@ function inicializarEstatusInfraccion() {
     });
 }
 
-// Habilita o deshabilita los campos de pago según el estatus de la infracción
+// Habilita o deshabilita los campos de pago segÃºn el estatus de la infracciÃ³n
 function toggleCamposPago(requerido) {
     const monto = document.getElementById("infraccion-mnyMontoPagado");
     const fecha = document.getElementById("infraccion-dteFechaPago");
@@ -393,7 +393,7 @@ function toggleCamposPago(requerido) {
     }
 }
 
-// Configura el cargador del archivo comprobante (Drag & Drop + Selección manual)
+// Configura el cargador del archivo comprobante (Drag & Drop + SelecciÃ³n manual)
 function inicializarCargaComprobante() {
     const area = document.getElementById("infraccionComprobanteArea");
     const input = document.getElementById("infraccionComprobanteArchivo");
@@ -403,7 +403,7 @@ function inicializarCargaComprobante() {
         event.stopPropagation();
     });
 
-    // Al hacer clic en el área, abre el explorador de archivos si no está deshabilitado y no se clica en Quitar
+    // Al hacer clic en el Ã¡rea, abre el explorador de archivos si no estÃ¡ deshabilitado y no se clica en Quitar
     area.addEventListener("click", event => {
         if (input.disabled) return;
         if (event.target.closest("#btnQuitarComprobanteInfraccion")) {
@@ -426,7 +426,7 @@ function inicializarCargaComprobante() {
         }
     });
 
-    // Añade clase visual al arrastrar archivos sobre el área
+    // AÃ±ade clase visual al arrastrar archivos sobre el Ã¡rea
     area.addEventListener("dragover", event => {
         if (input.disabled) return;
         event.preventDefault();
@@ -444,7 +444,7 @@ function inicializarCargaComprobante() {
         area.classList.remove("is-drag-over");
     });
 
-    // Procesa el archivo soltado en el área
+    // Procesa el archivo soltado en el Ã¡rea
     area.addEventListener("drop", event => {
         if (input.disabled) return;
         event.preventDefault();
@@ -461,21 +461,21 @@ function inicializarCargaComprobante() {
     });
 }
 
-// Valida el formato y tamaño del archivo comprobante (por extensión)
+// Valida el formato y tamaÃ±o del archivo comprobante (por extensiÃ³n)
 function procesarArchivoComprobante(archivo) {
     const limBytes = 5 * 1024 * 1024;
     const extensionesPermitidas = ["jpg", "jpeg", "png", "webp", "pdf"];
 
     limpiarErrorComprobante();
 
-    // Extrae y valida la extensión del archivo para máxima compatibilidad
+    // Extrae y valida la extensiÃ³n del archivo para mÃ¡xima compatibilidad
     const ext = archivo.name.split('.').pop().toLowerCase();
     if (!extensionesPermitidas.includes(ext)) {
         mostrarErrorComprobante("El archivo debe ser PDF, JPG, PNG o WEBP.");
         return;
     }
     if (archivo.size > limBytes) {
-        mostrarErrorComprobante("El archivo supera el límite de 5 MB.");
+        mostrarErrorComprobante("El archivo supera el lÃ­mite de 5 MB.");
         return;
     }
 
@@ -608,17 +608,17 @@ function actualizarVistaPreviaInfraccion() {
     // Buscar placa
     const vehId = val("infraccion-idVehDatosGenerales");
     const veh = listaVehiculosInfracciones.find(v => String(v.id) === vehId);
-    const placaText = veh ? veh.strPlaca : "—";
+    const placaText = veh ? veh.strPlaca : "â€”";
 
     const setText = (id, str) => {
         const el = document.getElementById(id);
-        if (el) el.textContent = str || "—";
+        if (el) el.textContent = str || "â€”";
     };
 
     setText("previewInfraccionVehiculo", txt("infraccion-idVehDatosGenerales") || "Sin seleccionar");
     setText("previewInfraccionPlaca", placaText);
     setText("previewInfraccionEmpleado", txt("infraccion-idEmpEmpleado") || "Sin seleccionar");
-    setText("previewInfraccionFecha", val("infraccion-dteFechaInfraccion") || "—");
+    setText("previewInfraccionFecha", val("infraccion-dteFechaInfraccion") || "â€”");
     setText("previewInfraccionMotivo", val("infraccion-strMotivo") || "Sin capturar");
 
     const montoVal = parseFloat(val("infraccion-mnyMontoPagado")) || 0;
@@ -631,7 +631,7 @@ function actualizarVistaPreviaInfraccion() {
     setText("previewInfraccionComprobante", hasFile ? name : "Sin archivo");
 }
 
-// Realiza validación de campos obligatorios requeridos
+// Realiza validaciÃ³n de campos obligatorios requeridos
 function validarFormularioInfraccion(form) {
     const obligatorios = ["infraccion-idVehDatosGenerales", "infraccion-idEmpEmpleado", "infraccion-dteFechaInfraccion", "infraccion-idVehCatStatus", "infraccion-strMotivo"];
     
@@ -655,14 +655,14 @@ function validarFormularioInfraccion(form) {
     return valido;
 }
 
-// Realiza validación lógica individual por campo
+// Realiza validaciÃ³n lÃ³gica individual por campo
 function validarCampoInfraccion(campo) {
     const original = String(campo.value || "");
     const valor = original.trim();
     let mensaje = "";
 
     if (campo.required && !valor) {
-        mensaje = campo.tagName === "SELECT" ? "Selecciona una opción." : "Este campo es obligatorio.";
+        mensaje = campo.tagName === "SELECT" ? "Selecciona una opciÃ³n." : "Este campo es obligatorio.";
     }
 
     if (!mensaje) {
@@ -674,7 +674,7 @@ function validarCampoInfraccion(campo) {
                 const rawVal = valor.replace(/,/g, "");
                 const num = Number(rawVal);
                 if (isNaN(num) || num < 0 || num > 999999) {
-                    mensaje = "Monto pagado no válido.";
+                    mensaje = "Monto pagado no vÃ¡lido.";
                 }
                 break;
             }
@@ -709,7 +709,7 @@ function limpiarErrorCampo(campo) {
     }
 }
 
-// ─── CRUD Actions y Renderizado ───
+// â”€â”€â”€ CRUD Actions y Renderizado â”€â”€â”€
 let listaInfracciones = [];
 let editModeInfraccionId = null;
 
@@ -744,7 +744,7 @@ function renderInfraccionesTable() {
         const v = listaVehiculosInfracciones.find(veh => Number(veh.id ?? veh.Id) === vehIdTarget);
         const marca = (window.obtenerNombreMarcaVehiculo && v) ? window.obtenerNombreMarcaVehiculo(v) : (v ? (v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || "Desconocida") : "Desconocida");
         const modelo = v ? (v.strModelo || v.StrModelo || "Desconocido") : "Desconocido";
-        const placa = v ? (v.strPlaca || v.StrPlaca || "—") : "—";
+        const placa = v ? (v.strPlaca || v.StrPlaca || "â€”") : "â€”";
         const brandModel = `${marca} ${modelo}`;
 
         const empIdTarget = Number(inf.idEmpEmpleado ?? inf.IdEmpEmpleado);
@@ -838,13 +838,13 @@ function verDetalleInfraccion(id) {
     }
 
     Swal.fire({
-        title: "Detalle de Infracción",
+        title: "Detalle de InfracciÃ³n",
         html: `
             <div class="text-start fs-6" style="line-height: 1.6;">
-                <p><strong>Vehículo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
-                <p><strong>Placa:</strong> ${v ? v.strPlaca : "—"}</p>
+                <p><strong>VehÃ­culo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
+                <p><strong>Placa:</strong> ${v ? v.strPlaca : "â€”"}</p>
                 <p><strong>Chofer Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha Infracción:</strong> ${inf.dteFechaInfraccion ? new Date(inf.dteFechaInfraccion).toLocaleDateString("es-MX") : "—"}</p>
+                <p><strong>Fecha InfracciÃ³n:</strong> ${inf.dteFechaInfraccion ? new Date(inf.dteFechaInfraccion).toLocaleDateString("es-MX") : "â€”"}</p>
                 <p><strong>Estatus:</strong> <span class="badge ${inf.idVehCatStatus === 2 ? "bg-success" : "bg-warning text-dark"}">${statusText}</span></p>
                 <p><strong>Motivo:</strong> ${escapeHtml(inf.strMotivo)}</p>
                 <p><strong>Monto Pagado:</strong> ${inf.mnyMontoPagado ? `$${Number(inf.mnyMontoPagado).toLocaleString("es-MX", { minimumFractionDigits: 2 })}` : "$0.00"}</p>
@@ -918,13 +918,13 @@ function editarInfraccion(id) {
 
 function eliminarInfraccion(id) {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Este registro de infracción será eliminado permanentemente.",
+        title: "Â¿EstÃ¡s seguro?",
+        text: "Este registro de infracciÃ³n serÃ¡ eliminado permanentemente.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {
@@ -938,10 +938,10 @@ function eliminarInfraccion(id) {
                 const res = await response.json();
                 Swal.close();
                 if (res.success) {
-                    Swal.fire("Eliminado", "La infracción ha sido eliminada.", "success");
+                    Swal.fire("Eliminado", "La infracciÃ³n ha sido eliminada.", "success");
                     cargarInfraccionesList();
                 } else {
-                    Swal.fire("Error", res.message || "No se pudo eliminar la infracción.", "error");
+                    Swal.fire("Error", res.message || "No se pudo eliminar la infracciÃ³n.", "error");
                 }
             } catch (err) {
                 Swal.close();
@@ -1004,4 +1004,5 @@ function formatCurrencyInput(input) {
         input.value = integerPart;
     }
 }
+
 

@@ -373,20 +373,34 @@ function initializeCustomSelects() {
 function closeAllOpenDropdowns(e) {
     if (e && e.type === 'click') {
         const clickedWrapper = e.target.closest('.custom-select-wrapper');
+
         document.querySelectorAll('.custom-select-options.show').forEach(container => {
             if (!clickedWrapper || !clickedWrapper.contains(container)) {
                 container.classList.remove('show');
+
                 if (container.previousSibling && container.previousSibling.classList) {
                     container.previousSibling.classList.remove('active');
                 }
             }
         });
+
         return;
     }
 
-    // Al hacer scroll, cerrar desplegables flotantes
+    if (e && e.type === 'scroll') {
+        const target = e.target;
+
+        if (
+            target instanceof Element &&
+            target.closest('.custom-select-options, .custom-select-items-list')
+        ) {
+            return;
+        }
+    }
+
     document.querySelectorAll('.custom-select-options.show').forEach(container => {
         container.classList.remove('show');
+
         if (container.previousSibling && container.previousSibling.classList) {
             container.previousSibling.classList.remove('active');
         }
@@ -394,7 +408,9 @@ function closeAllOpenDropdowns(e) {
 
     document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
         menu.classList.remove('show');
+
         const toggleBtn = menu.closest('.dropdown')?.querySelector('[data-bs-toggle="dropdown"].show');
+
         if (toggleBtn) {
             toggleBtn.classList.remove('show');
             toggleBtn.setAttribute('aria-expanded', 'false');
@@ -553,6 +569,55 @@ async function populateSelectOptions(selectId, url, valueField = 'id', textField
 window.populateSelectOptions = populateSelectOptions;
 
 // ── PREVENCIÓN GLOBAL DE PÉRDIDA DE DATOS EN FORMULARIOS ──
+
+
+// Helper comun para dropdowns de vehiculos activos.
+// Consume el endpoint nuevo basado en VehiculoListadoDto y pagina en bloques de 10
+// para respetar la regla del backend sin regresar a los servicios anteriores.
+async function obtenerVehiculosActivosDropdown(options = {}) {
+    const pageSize = Math.min(Math.max(Number(options.pageSize) || 10, 1), 10);
+    const items = [];
+    let pageIndex = 1;
+    let totalCount = null;
+
+    while (totalCount === null || items.length < totalCount) {
+        const params = new URLSearchParams({
+            pageIndex: pageIndex.toString(),
+            pageSize: pageSize.toString(),
+            idVehCatStatus: "1"
+        });
+
+        const response = await fetch(`/Vehiculos/GetVehiculosDropdown?${params}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            return {
+                success: false,
+                message: result.message || "No fue posible cargar el catalogo de vehiculos.",
+                data: { items }
+            };
+        }
+
+        const data = result.data || {};
+        const pageItems = Array.isArray(data.items) ? data.items : [];
+        items.push(...pageItems);
+        totalCount = Number(data.totalCount ?? items.length);
+
+        if (pageItems.length === 0) break;
+        pageIndex += 1;
+    }
+
+    return {
+        success: true,
+        data: {
+            pageIndex: 1,
+            pageSize,
+            totalCount: totalCount ?? items.length,
+            items
+        }
+    };
+}
+window.obtenerVehiculosActivosDropdown = obtenerVehiculosActivosDropdown;
 window.globalFormIsDirty = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -571,7 +636,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Resetear la bandera cuando cualquier formulario sea enviado
     document.addEventListener('submit', (event) => {
-        window.globalFormIsDirty = false;
+        
+window.globalFormIsDirty = false;
     });
 
     // Interceptar clic en enlaces "Cancelar", "Volver" o botones con clase cancel-trigger/btn-outline-cavex
@@ -597,12 +663,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     cancelButtonText: "Permanecer aquí"
                 }).then(result => {
                     if (result.isConfirmed) {
-                        window.globalFormIsDirty = false;
+                        
+window.globalFormIsDirty = false;
                         window.location.href = targetUrl;
                     }
                 });
             } else if (confirm("Tienes cambios sin guardar. ¿Estás seguro de que deseas salir? Los datos ingresados se borrarán.")) {
-                window.globalFormIsDirty = false;
+                
+window.globalFormIsDirty = false;
                 window.location.href = targetUrl;
             }
         }

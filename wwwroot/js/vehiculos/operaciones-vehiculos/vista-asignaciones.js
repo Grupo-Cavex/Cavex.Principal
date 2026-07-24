@@ -1,14 +1,14 @@
 "use strict";
 
-// ─── State ────────────────────────────────────────────────────────────────────
-// ─── State ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let listaVehiculosAsignacion = [];
 let listaEmpleadosAsignacion = [];
 let asignacionesActivas = [];
 let listaMarcasVehiculos = [];
 let editModeId = null;
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener("DOMContentLoaded", () => {
     inicializarVistaAsignaciones();
 });
@@ -21,7 +21,7 @@ function inicializarVistaAsignaciones() {
     inicializarFechaAsignacion();
     inicializarFormatoKilometraje();
 
-    // Validación en tiempo real
+    // ValidaciÃ³n en tiempo real
     form.querySelectorAll("input:not([type='hidden']), select").forEach(campo => {
         ["input", "change"].forEach(evt => campo.addEventListener(evt, () => {
             const teniaError = campo.classList.contains("is-invalid");
@@ -56,7 +56,7 @@ function inicializarVistaAsignaciones() {
         }
 
         Swal.fire({
-            title: editModeId ? "Actualizando asignación..." : "Registrando asignación...",
+            title: editModeId ? "Actualizando asignaciÃ³n..." : "Registrando asignaciÃ³n...",
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
@@ -90,7 +90,7 @@ function inicializarVistaAsignaciones() {
                 Swal.fire({
                     icon: "error",
                     title: "Error",
-                    text: result.message || "No fue posible guardar la asignación.",
+                    text: result.message || "No fue posible guardar la asignaciÃ³n.",
                     confirmButtonColor: "var(--teal-cavex)"
                 });
                 return;
@@ -98,7 +98,7 @@ function inicializarVistaAsignaciones() {
 
             Swal.fire({
                 icon: "success",
-                title: editModeId ? "Asignación actualizada" : "Asignación registrada",
+                title: editModeId ? "AsignaciÃ³n actualizada" : "AsignaciÃ³n registrada",
                 text: result.message || "Guardado exitoso.",
                 confirmButtonColor: "var(--teal-cavex)"
             }).then(() => {
@@ -109,8 +109,8 @@ function inicializarVistaAsignaciones() {
             Swal.close();
             Swal.fire({
                 icon: "error",
-                title: "Error de conexión",
-                text: "No se pudo establecer comunicación con el servidor.",
+                title: "Error de conexiÃ³n",
+                text: "No se pudo establecer comunicaciÃ³n con el servidor.",
                 confirmButtonColor: "var(--teal-cavex)"
             });
         }
@@ -119,35 +119,35 @@ function inicializarVistaAsignaciones() {
     actualizarVistaPreviaAsignacion();
 }
 
-// ─── Carga de catálogos ───────────────────────────────────────────────────────
+// â”€â”€â”€ Carga de catÃ¡logos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function cargarCatalogosAsignacion() {
     try {
-        // Cargar vehículos, empleados, asignaciones y catálogos de marcas en paralelo
+        // Cargar vehÃ­culos, empleados, asignaciones y catÃ¡logos de marcas en paralelo
         const [vehRes, empRes, asigRes, catRes] = await Promise.all([
-            fetch("/Vehiculos/GetVehiculos").then(r => r.json()),
+            obtenerVehiculosActivosDropdown(),
             fetch("/Empleado/GetEmpleadosDropdown").then(r => r.json()),
             fetch("/Asignaciones/GetAsignacionesActivas").then(r => r.json()).catch(() => ({ success: false })),
             fetch("/Vehiculos/GetVehiculoCatalogos").then(r => r.json()).catch(() => ({ success: false }))
         ]);
 
-        // Guardar catálogos maestros completos para la tabla y vistas previas
-        if (vehRes.success && vehRes.data) listaVehiculosAsignacion = vehRes.data;
+        // Guardar catÃ¡logos maestros completos para la tabla y vistas previas
+        if (vehRes.success && vehRes.data) listaVehiculosAsignacion = vehRes.data.items || [];
         if (empRes.success && empRes.data) listaEmpleadosAsignacion = empRes.data;
         if (asigRes.success && asigRes.data) asignacionesActivas = asigRes.data;
         if (catRes.success && catRes.data && catRes.data.idVehCatMarcaVehiculo) {
             listaMarcasVehiculos = catRes.data.idVehCatMarcaVehiculo;
         }
 
-        // Renderizar la tabla con la información completa
+        // Renderizar la tabla con la informaciÃ³n completa
         renderAsignacionesTable();
 
         // Poblar los dropdowns con unidades y choferes disponibles
         poblarDropdownVehiculos();
         poblarDropdownEmpleados();
 
-        // Los dropdowns son convertidos automáticamente por el componente global custom-select de CAVEX (site.js)
+        // Los dropdowns son convertidos automÃ¡ticamente por el componente global custom-select de CAVEX (site.js)
 
-        // Eventos de vinculación bidireccional
+        // Eventos de vinculaciÃ³n bidireccional
         selectVeh?.addEventListener("change", () => {
             mostrarInfoVehiculo();
             vincularChoferDesdeVehiculo("asignacion-idVehDatosGenerales", "asignacion-idEmpEmpleado");
@@ -160,11 +160,11 @@ async function cargarCatalogosAsignacion() {
             actualizarVistaPreviaAsignacion();
         });
     } catch (err) {
-        console.error("Error al cargar catálogos de asignación:", err);
+        console.error("Error al cargar catÃ¡logos de asignaciÃ³n:", err);
     }
 }
 
-// ─── Fecha automática ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Fecha automÃ¡tica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function inicializarFechaAsignacion() {
     const fechaInput = document.getElementById("asignacion-dteFechaAsigncion");
     const fechaVisual = document.getElementById("asignacionFechaVisual");
@@ -185,7 +185,7 @@ function inicializarFechaAsignacion() {
     }
 }
 
-// ─── Formato comas kilometraje ────────────────────────────────────────────────
+// â”€â”€â”€ Formato comas kilometraje â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function formatoConComas(valor) {
     const clean = String(valor).replace(/[^0-9]/g, "");
     if (!clean) return "";
@@ -226,7 +226,7 @@ function calcularKilometrajeTotal() {
     }
 }
 
-// Controla la bandera de vinculación activa para prevenir loops infinitos
+// Controla la bandera de vinculaciÃ³n activa para prevenir loops infinitos
 let isVinculandoAsignacion = false;
 
 function vincularChoferDesdeVehiculo(vehSelectId, empSelectId) {
@@ -271,7 +271,7 @@ function vincularVehiculoDesdeChofer(empSelectId, vehSelectId) {
     }
 }
 
-// ─── Info Cards ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Info Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function mostrarInfoVehiculo() {
     // No longer displaying vehicle mini-card details
 }
@@ -280,28 +280,28 @@ function mostrarInfoEmpleado() {
     // No longer displaying employee mini-card details
 }
 
-// ─── Vista previa lateral ─────────────────────────────────────────────────────
+// â”€â”€â”€ Vista previa lateral â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function actualizarVistaPreviaAsignacion() {
     const vehId = parseInt(document.getElementById("asignacion-idVehDatosGenerales")?.value, 10);
     const empId = parseInt(document.getElementById("asignacion-idEmpEmpleado")?.value, 10);
 
-    const v = listaVehiculosAsignacion.find(v => v.id === vehId);
-    const e = listaEmpleadosAsignacion.find(e => e.id === empId);
+    const v = listaVehiculosAsignacion.find(v => Number(v.id ?? v.Id) === vehId);
+    const e = listaEmpleadosAsignacion.find(e => Number(e.id ?? e.Id) === empId);
 
-    setText("previewAsignacionVehiculo", v ? `${v.strModelo} (${v.intAnio})` : "Sin seleccionar");
-    setText("previewAsignacionPlaca", v ? v.strPlaca : "—");
+    setText("previewAsignacionVehiculo", v ? `${v.strModelo || v.StrModelo || "Vehiculo"} (${v.intAnio || v.IntAnio || ""})` : "Sin seleccionar");
+    setText("previewAsignacionPlaca", v ? (v.strPlaca || v.StrPlaca || "-") : "-");
 
     if (e) {
-        const nombre = e.strNombre + " " + e.strApellidoPaterno + (e.strApellidoMaterno ? " " + e.strApellidoMaterno : "");
-        setText("previewAsignacionEmpleado", nombre);
-        setText("previewAsignacionArea", e.strAreaLaboral || e.empAreaLaboral?.strNombre || "—");
+        const nombre = `${e.strNombre || e.StrNombre || ""} ${e.strApellidoPaterno || e.StrApellidoPaterno || ""} ${e.strApellidoMaterno || e.StrApellidoMaterno || ""}`.trim();
+        setText("previewAsignacionEmpleado", nombre || "Sin seleccionar");
+        setText("previewAsignacionArea", e.strAreaLaboral || e.StrAreaLaboral || e.empAreaLaboral?.strNombre || "-");
     } else {
         setText("previewAsignacionEmpleado", "Sin seleccionar");
-        setText("previewAsignacionArea", "—");
+        setText("previewAsignacionArea", "-");
     }
 
     const fecha = document.getElementById("asignacion-dteFechaAsigncion")?.value;
-    setText("previewAsignacionFecha", fecha ? new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }) : "—");
+    setText("previewAsignacionFecha", fecha ? new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }) : "-");
 
     const kmInicial = (document.getElementById("asignacion-decKilometrajeInicial")?.value || "0").replace(/,/g, "");
     const kmFinal = (document.getElementById("asignacion-decKilometrajeFinal")?.value || "").replace(/,/g, "");
@@ -312,7 +312,7 @@ function actualizarVistaPreviaAsignacion() {
     setText("previewAsignacionKmTotal", (parseFloat(kmTotal) || 0).toLocaleString("es-MX") + " km");
 }
 
-// ─── Validación ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ ValidaciÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function validarFormularioAsignacion(form) {
     const ids = ["asignacion-idVehDatosGenerales", "asignacion-idEmpEmpleado", "asignacion-decKilometrajeInicial"];
     let valido = true;
@@ -333,12 +333,12 @@ function validarCampoAsignacion(campo) {
     let mensaje = "";
 
     if (campo.required && !valor) {
-        mensaje = campo.tagName === "SELECT" ? "Selecciona una opción." : "Este campo es obligatorio.";
+        mensaje = campo.tagName === "SELECT" ? "Selecciona una opciÃ³n." : "Este campo es obligatorio.";
     }
 
     if (!mensaje && valor && campo.id.includes("Kilometraje") && !campo.readOnly) {
         const num = parseFloat(valor.replace(/,/g, ""));
-        if (isNaN(num) || num < 0) mensaje = "Captura un kilometraje válido.";
+        if (isNaN(num) || num < 0) mensaje = "Captura un kilometraje vÃ¡lido.";
     }
 
     if (mensaje) {
@@ -358,7 +358,7 @@ function validarCampoAsignacion(campo) {
     return true;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function setText(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
@@ -376,46 +376,49 @@ function limpiarErrorCampo(campo) {
 }
 
 function obtenerNombreMarca(v) {
-    if (!v) return "—";
-    if (v.strVehCatMarcaVehiculo && v.strVehCatMarcaVehiculo !== "—") return v.strVehCatMarcaVehiculo;
-    if (v.strMarca && v.strMarca !== "—") return v.strMarca;
-    if (v.strMarcaVehiculo && v.strMarcaVehiculo !== "—") return v.strMarcaVehiculo;
+    if (!v) return "-";
+    if (v.strVehCatMarcaVehiculo && v.strVehCatMarcaVehiculo !== "-") return v.strVehCatMarcaVehiculo;
+    if (v.StrVehCatMarcaVehiculo && v.StrVehCatMarcaVehiculo !== "-") return v.StrVehCatMarcaVehiculo;
+    if (v.strMarca && v.strMarca !== "-") return v.strMarca;
+    if (v.StrMarca && v.StrMarca !== "-") return v.StrMarca;
+    if (v.strMarcaVehiculo && v.strMarcaVehiculo !== "-") return v.strMarcaVehiculo;
+    if (v.StrMarcaVehiculo && v.StrMarcaVehiculo !== "-") return v.StrMarcaVehiculo;
     if (v.idVehCatMarcaVehiculo && listaMarcasVehiculos.length > 0) {
-        const m = listaMarcasVehiculos.find(item => Number(item.id) === Number(v.idVehCatMarcaVehiculo));
-        if (m && (m.strValor || m.nombre)) return m.strValor || m.nombre;
+        const m = listaMarcasVehiculos.find(item => Number(item.id ?? item.Id) === Number(v.idVehCatMarcaVehiculo));
+        if (m && (m.strValor || m.StrValor || m.nombre)) return m.strValor || m.StrValor || m.nombre;
     }
-    return "—";
+    return "-";
 }
 
-// Dibuja la tabla de asignaciones de vehículos en pantalla
+// Dibuja la tabla de asignaciones de vehÃ­culos en pantalla
 function renderAsignacionesTable() {
     const tbody = document.getElementById("asignacionesTableBody");
     if (!tbody) return;
 
-    // Si la lista está vacía, mostramos un renglón informativo con colspan 6
+    // Si la lista estÃ¡ vacÃ­a, mostramos un renglÃ³n informativo con colspan 6
     if (!asignacionesActivas || asignacionesActivas.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron asignaciones registradas.</td></tr>';
         return;
     }
 
-    // Mapeamos cada asignación a un renglón (tr) de la tabla
+    // Mapeamos cada asignaciÃ³n a un renglÃ³n (tr) de la tabla
     tbody.innerHTML = asignacionesActivas.map(a => {
-        // Buscamos los datos completos del vehículo vinculado
+        // Buscamos los datos completos del vehÃ­culo vinculado
         const v = listaVehiculosAsignacion.find(veh => Number(veh.id) === Number(a.idVehDatosGenerales));
-        let marca = v ? obtenerNombreMarca(v) : "—";
-        if (marca === "—" && a.strVehDatosGenerales) {
-            const parts = a.strVehDatosGenerales.split(/[·\-]/);
+        let marca = v ? obtenerNombreMarca(v) : "â€”";
+        if (marca === "â€”" && a.strVehDatosGenerales) {
+            const parts = a.strVehDatosGenerales.split(/[Â·\-]/);
             if (parts.length > 0 && parts[0].trim()) marca = parts[0].trim();
         }
-        const modelo = v ? (v.strModelo || "—") : (a.strVehDatosGenerales || "—");
-        const anio = v ? String(v.intAnio || "—") : "—";
-        const placa = v ? (v.strPlaca || "—") : "—";
+        const modelo = v ? (v.strModelo || "â€”") : (a.strVehDatosGenerales || "â€”");
+        const anio = v ? String(v.intAnio || "â€”") : "â€”";
+        const placa = v ? (v.strPlaca || "â€”") : "â€”";
         
         // Buscamos los datos completos del empleado vinculado
         const emp = listaEmpleadosAsignacion.find(e => Number(e.id) === Number(a.idEmpEmpleado));
-        const empleadoName = emp ? (emp.strNombre + " " + emp.strApellidoPaterno + (emp.strApellidoMaterno ? " " + emp.strApellidoMaterno : "")).trim() : (a.strEmpEmpleado || "—");
+        const empleadoName = emp ? (emp.strNombre + " " + emp.strApellidoPaterno + (emp.strApellidoMaterno ? " " + emp.strApellidoMaterno : "")).trim() : (a.strEmpEmpleado || "â€”");
 
-        // Construimos el HTML del renglón con las 6 columnas solicitadas
+        // Construimos el HTML del renglÃ³n con las 6 columnas solicitadas
         return `
             <tr>
                 <td>${escapeHtml(marca)}</td>
@@ -424,7 +427,7 @@ function renderAsignacionesTable() {
                 <td><span class="badge bg-light text-dark border">${escapeHtml(placa)}</span></td>
                 <td>${escapeHtml(empleadoName)}</td>
                 <td class="text-end">
-                    <!-- Botón de Acciones dropdown estándar -->
+                    <!-- BotÃ³n de Acciones dropdown estÃ¡ndar -->
                     <div class="dropdown actions-dropdown d-inline-block">
                         <button class="btn-action-trigger btn-sm" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                             <span>Acciones</span>
@@ -456,7 +459,7 @@ function renderAsignacionesTable() {
         `;
     }).join("");
 
-    // Inicializamos dinámicamente cada trigger de dropdown mediante Bootstrap Popper
+    // Inicializamos dinÃ¡micamente cada trigger de dropdown mediante Bootstrap Popper
     tbody.querySelectorAll('.btn-action-trigger').forEach(el => {
         new bootstrap.Dropdown(el, {
             popperConfig: (defaultConfig) => {
@@ -479,14 +482,14 @@ function verDetalleAsignacion(id) {
     const marcaNombre = obtenerNombreMarca(v);
 
     Swal.fire({
-        title: "Detalle de Asignación",
+        title: "Detalle de AsignaciÃ³n",
         html: `
             <div class="text-start fs-6" style="line-height: 1.6;">
                 <p><strong>Marca:</strong> ${marcaNombre}</p>
-                <p><strong>Vehículo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
-                <p><strong>Placa:</strong> ${v ? v.strPlaca : "—"}</p>
+                <p><strong>VehÃ­culo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
+                <p><strong>Placa:</strong> ${v ? v.strPlaca : "â€”"}</p>
                 <p><strong>Empleado Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha de Asignación:</strong> ${a.dteFechaAsigncion ? new Date(a.dteFechaAsigncion).toLocaleDateString("es-MX") : "—"}</p>
+                <p><strong>Fecha de AsignaciÃ³n:</strong> ${a.dteFechaAsigncion ? new Date(a.dteFechaAsigncion).toLocaleDateString("es-MX") : "â€”"}</p>
                 <p><strong>Kilometraje Inicial:</strong> ${Number(a.decKilometrajeInicial).toLocaleString("es-MX")} km</p>
                 <p><strong>Kilometraje Final:</strong> ${a.decKilometrajeFinal ? Number(a.decKilometrajeFinal).toLocaleString("es-MX") + " km" : "Sin cerrar"}</p>
                 <p><strong>Kilometraje Total Recorrido:</strong> ${a.decKilometrajeTotal ? Number(a.decKilometrajeTotal).toLocaleString("es-MX") + " km" : "En curso"}</p>
@@ -506,7 +509,9 @@ function poblarDropdownVehiculos(currentVehId = null) {
             .filter(id => !isNaN(id) && id > 0)
     );
 
-    selectVeh.innerHTML = '<option value="">Seleccionar vehículo disponible...</option>';
+    selectVeh.innerHTML = '<option value="">Seleccionar vehiculo disponible...</option>';
+    let totalDisponibles = 0;
+
     listaVehiculosAsignacion.forEach(v => {
         const vId = Number(v.id ?? v.Id);
         const isAssigned = vehIdAsignados.has(vId);
@@ -516,11 +521,21 @@ function poblarDropdownVehiculos(currentVehId = null) {
             const opt = document.createElement("option");
             opt.value = String(vId);
             const marcaNombre = obtenerNombreMarca(v);
-            const marcaDisplay = marcaNombre !== "—" ? marcaNombre + " " : "";
-            opt.textContent = `${v.strPlaca || v.StrPlaca || '—'} - ${marcaDisplay}${v.strModelo || v.StrModelo || ''} (${v.intAnio || v.IntAnio || ''})`.trim();
+            const marcaDisplay = marcaNombre !== "-" ? marcaNombre + " " : "";
+            opt.textContent = `${v.strPlaca || v.StrPlaca || "-"} - ${marcaDisplay}${v.strModelo || v.StrModelo || ""} (${v.intAnio || v.IntAnio || ""})`.trim();
             selectVeh.appendChild(opt);
+            totalDisponibles += 1;
         }
     });
+
+    if (totalDisponibles === 0) {
+        const opt = document.createElement("option");
+        opt.value = "__no_disponibles";
+        opt.textContent = "No hay vehiculos disponibles";
+        opt.disabled = true;
+        selectVeh.appendChild(opt);
+    }
+
     selectVeh.addEventListener("change", () => {
         const vId = Number(selectVeh.value);
         const v = listaVehiculosAsignacion.find(veh => Number(veh.id ?? veh.Id) === vId);
@@ -537,8 +552,6 @@ function poblarDropdownVehiculos(currentVehId = null) {
             }
         }
     });
-
-    selectVeh.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 function poblarDropdownEmpleados(currentEmpId = null) {
@@ -577,7 +590,7 @@ function editarAsignacion(id) {
 
     editModeId = id;
 
-    // Repoblar los dropdowns permitiendo el vehículo y chofer asignados a esta asignación que se edita
+    // Repoblar los dropdowns permitiendo el vehÃ­culo y chofer asignados a esta asignaciÃ³n que se edita
     poblarDropdownVehiculos(a.idVehDatosGenerales);
     poblarDropdownEmpleados(a.idEmpEmpleado);
 
@@ -606,13 +619,13 @@ function editarAsignacion(id) {
 
 function eliminarAsignacion(id) {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta asignación de vehículo será eliminada permanentemente.",
+        title: "Â¿EstÃ¡s seguro?",
+        text: "Esta asignaciÃ³n de vehÃ­culo serÃ¡ eliminada permanentemente.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {
@@ -626,10 +639,10 @@ function eliminarAsignacion(id) {
                 const res = await response.json();
                 Swal.close();
                 if (res.success) {
-                    Swal.fire("Eliminado", "La asignación ha sido eliminada.", "success");
+                    Swal.fire("Eliminado", "La asignaciÃ³n ha sido eliminada.", "success");
                     cargarCatalogosAsignacion();
                 } else {
-                    Swal.fire("Error", res.message || "No se pudo eliminar la asignación.", "error");
+                    Swal.fire("Error", res.message || "No se pudo eliminar la asignaciÃ³n.", "error");
                 }
             } catch (err) {
                 Swal.close();
@@ -656,6 +669,7 @@ function resetearFormularioAsignacion() {
 function escapeHtml(text) {
     return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
 
 
 
