@@ -14,7 +14,7 @@ namespace Cavex.Principal.Models.VehAsignacionVehiculos
 
         [Required(ErrorMessage = "La fecha de asignacion es obligatoria.")]
         [Display(Name = "Fecha de asignacion")]
-        public DateOnly DteFechaAsigncion { get; set; }
+        public DateTime DteFechaAsigncion { get; set; }
 
         [Required(ErrorMessage = "El kilometraje inicial es obligatorio.")]
         [Display(Name = "Kilometraje inicial")]
@@ -25,5 +25,9 @@ namespace Cavex.Principal.Models.VehAsignacionVehiculos
 
         [Display(Name = "Kilometraje total")]
         public decimal? DecKilometrajeTotal { get; set; }
+
+        [Required(ErrorMessage = "El status es obligatorio.")]
+        [Display(Name = "Status")]
+        public int IdVehCatStatus { get; set; }
     }
 }

@@ -93,7 +93,7 @@ namespace Cavex.Principal.Controllers
             }
         }
 
-        [HttpPost("/IngresoTaller/SaveIngresoTaller")]
+       /* [HttpPost("/IngresoTaller/SaveIngresoTaller")]
         public async Task<IActionResult> SaveIngresoTaller(
             [FromForm] VehControlServicioSaveDto model,
             IFormFile? ComprobanteArchivo,
@@ -130,7 +130,7 @@ namespace Cavex.Principal.Controllers
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
-        }
+        }*/
 
         [HttpPost("/IngresoTaller/DeleteIngresoTaller")]
         public async Task<IActionResult> DeleteIngresoTaller(int id, CancellationToken cancellationToken)

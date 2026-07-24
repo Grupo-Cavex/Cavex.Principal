@@ -9,7 +9,7 @@ namespace Cavex.Principal.Models.VehCatRefacciones
         [Display(Name = "Nombre")]
         public required string StrValor { get; set; }
 
-        [Display(Name = "Descripcion")]
-        public string? StrDescripcion { get; set; }
+        [Display(Name = "Precio")]
+        public decimal MnyPrecio { get; set; }
     }
 }

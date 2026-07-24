@@ -10,8 +10,8 @@ namespace Cavex.Principal.Models.VehCatRefacciones
         public string StrValor { get; set; } = string.Empty;
 
 
-        [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
-        [Display(Name = "Descripcion")]
-        public string? StrDescripcion { get; set; } = string.Empty;
+        [Required(ErrorMessage = "El costo de la refaccion de obra es obligatorio.")]
+        [Display(Name = "Costo Refaccion")]
+        public decimal MnyPrecio { get; set; }
     }
 }

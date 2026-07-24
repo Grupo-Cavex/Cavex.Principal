@@ -15,6 +15,10 @@ namespace Cavex.Principal.Models.VehControlLlanta
 
         [Display(Name = "Marca de llanta")]
         public string StrVehCatMarcaLlanta { get; set; } = string.Empty;
+        public int IdVehCatFormaPago { get; set; }
+
+        [Display(Name = "Forma de Pago")]
+        public string StrVehCatFormaPago { get; set; } = string.Empty;
 
         [Display(Name = "Modelo")]
         public string StrModelo { get; set; } = string.Empty;
@@ -47,6 +51,9 @@ namespace Cavex.Principal.Models.VehControlLlanta
 
         [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
+        
+        [Display(Name = "Comprobante de Pago")]
+        public string? StrUrlComptobantePago { get; set; }
 
         public int IdVehCatStatus { get; set; }
 
