@@ -49,6 +49,7 @@ using Cavex.Principal.ApiClients.VehCatResponsableServicio;
 using Cavex.Principal.ApiClients.VehCatTaller;
 using Cavex.Principal.ApiClients.VehCatRefacciones;
 using Cavex.Principal.ApiClients.VehCatGasolineras;
+using Cavex.Principal.ApiClients.VehiculoListado;
 
 namespace Cavex.Principal.Infrastructure.Extensions
 {
@@ -64,6 +65,8 @@ namespace Cavex.Principal.Infrastructure.Extensions
 
             
             services.AddScoped<IVehDatosGeneralesService, VehDatosGeneralesService>();
+            services.AddScoped<IVehiculoListadoService, VehiculoListadoService>();
+
             services.AddScoped<IVehDocumentosVehiculoService, VehDocumentosVehiculoService>();
             services.AddScoped<IVehTarjetaCirculacionService, VehTarjetaCirculacionService>();
             services.AddScoped<IVehTenenciaService, VehTenenciaService>();
@@ -100,6 +103,7 @@ namespace Cavex.Principal.Infrastructure.Extensions
             services.AddScoped<IVehCatRefaccionesService, VehCatRefaccionesService>();
             services.AddScoped<IVehCatGasolinerasService, VehCatGasolinerasService>();
             services.AddScoped<IVehCatTransmisionService, VehCatTransmisionService>();
+
 
             return services;
         }
@@ -180,6 +184,18 @@ namespace Cavex.Principal.Infrastructure.Extensions
             // Veh�culos
 
             services.AddRefitClient<IVehDatosGeneralesApi>(refitSettings)
+                .ConfigureHttpClient((sp, client) =>
+                {
+                    var settings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
+                    client.BaseAddress = new Uri(settings.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds);
+                })
+                .AddPolicyHandler(PollyPolicies.RetryPolicy())
+                .AddPolicyHandler(PollyPolicies.TimeoutPolicy())
+                .AddPolicyHandler(PollyPolicies.CircuitBreakerPolicy());
+
+            //Esta es la Api que se utiliza para mostrar el listado de vehiculos en la vista de Vehiculos/Index
+            services.AddRefitClient<IVehiculoListadoApi>(refitSettings)
                 .ConfigureHttpClient((sp, client) =>
                 {
                     var settings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;

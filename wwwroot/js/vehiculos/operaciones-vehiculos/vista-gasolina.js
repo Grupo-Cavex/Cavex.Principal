@@ -139,7 +139,7 @@ function inicializarVistaGasolina() {
 async function cargarCatalogosGasolina() {
     try {
         const [vehRes, empRes, asigRes] = await Promise.all([
-            fetch("/Vehiculos/GetVehiculos").then(r => r.json()),
+            obtenerVehiculosActivosDropdown(),
             fetch("/Empleado/GetEmpleadosDropdown").then(r => r.json()),
             fetch("/Asignaciones/GetAsignacionesActivas").then(r => r.json()).catch(() => ({ success: false }))
         ]);
@@ -163,15 +163,19 @@ async function cargarCatalogosGasolina() {
 
         // 1. Cargar solo vehículos asignados
         const selectVeh = document.getElementById("gasolina-idVehDatosGenerales");
+
         if (selectVeh && vehRes.success && vehRes.data) {
-            listaVehiculosGasolina = vehRes.data;
+            listaVehiculosGasolina = vehRes.data.items || [];
+
             selectVeh.innerHTML = '<option value="">Seleccionar vehículo asignado...</option>';
-            vehRes.data.forEach(v => {
+
+            listaVehiculosGasolina.forEach(v => {
                 const vId = Number(v.id ?? v.Id);
+
                 if (vehIdAsignados.has(vId)) {
                     const opt = document.createElement("option");
                     opt.value = String(vId);
-                    opt.textContent = `${v.strPlaca || v.StrPlaca} - ${v.strModelo || v.StrModelo} (${v.intAnio || v.IntAnio})`;
+                    opt.textContent = `${v.strPlaca || v.StrPlaca} - ${v.strMarca || v.StrMarca} ${v.strModelo || v.StrModelo} (${v.intAnio || v.IntAnio})`;
                     selectVeh.appendChild(opt);
                 }
             });

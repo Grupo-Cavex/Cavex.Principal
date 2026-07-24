@@ -1,4 +1,5 @@
 using Cavex.Principal.Enums;
+using Cavex.Principal.Models.VehiculoListado;
 using Cavex.Principal.Models.VehCatColor;
 using Cavex.Principal.Models.VehCatCapacidad;
 using Cavex.Principal.Models.VehCatMarcaVehiculo;
@@ -21,6 +22,7 @@ namespace Cavex.Principal.Controllers
 {
     public class VehiculosController : Controller
     {
+        private readonly IVehiculoListadoService _vehiculoListadoService;
         private readonly IVehCatColorService _vehCatColorService;
         private readonly IVehCatMarcaVehiculoService _vehCatMarcaVehiculo;
         private readonly IVehCatTipoVehiculoService _vehCatTipoVehiculo;
@@ -40,6 +42,7 @@ namespace Cavex.Principal.Controllers
         private const string VehiculosCatalogosCacheKey = "vehiculos_catalogos_cache";
 
         public VehiculosController(
+            IVehiculoListadoService vehiculoListadoService,
             IVehCatMarcaVehiculoService vehCatMarcaVehiculo, 
             IVehCatColorService vehCatColorService, 
             IVehCatTipoVehiculoService vehCatTipoVehiculo, 
@@ -56,6 +59,7 @@ namespace Cavex.Principal.Controllers
             IWebHostEnvironment webHostEnvironment,
             Microsoft.Extensions.Caching.Memory.IMemoryCache cache)
         {
+            _vehiculoListadoService = vehiculoListadoService;
             _vehCatMarcaVehiculo = vehCatMarcaVehiculo;
             _vehCatColorService = vehCatColorService;
             _vehCatTipoVehiculo = vehCatTipoVehiculo;
@@ -96,24 +100,33 @@ namespace Cavex.Principal.Controllers
 
         #region endpoints de consumo general para la vista (vehiculos y catalogos)
 
-        [HttpGet("/Vehiculos/GetVehiculos")]
-        public async Task<IActionResult> GetVehiculos(CancellationToken cancellationToken)
+        [HttpGet("/Vehiculos/GetVehiculoListado")]
+        public async Task<IActionResult> GetVehiculoListado(
+        int pageIndex = 1,
+        int pageSize = 10,
+        string? search = null,
+        int? idVehCatStatus = null,
+        CancellationToken cancellationToken = default)
         {
             try
             {
-                if (!_cache.TryGetValue(VehiculosCacheKey, out IEnumerable<VehDatosGeneralesDto>? cachedVehiculos) || cachedVehiculos == null)
-                {
-                    var response = await _vehDatosGenerales.ObtenerTodosAsync(cancellationToken);
-                    if (response == null || !response.Success)
-                    {
-                        return Json(new { success = false, message = response?.Message ?? "No fue posible obtener los vehículos." });
-                    }
+                var response = await _vehiculoListadoService.ObtenerTodosAsync(
+                    pageIndex,
+                    pageSize,
+                    search,
+                    idVehCatStatus,
+                    cancellationToken);
 
-                    cachedVehiculos = response.Data?.Items ?? Enumerable.Empty<VehDatosGeneralesDto>();
-                    _cache.Set(VehiculosCacheKey, cachedVehiculos, TimeSpan.FromMinutes(10));
+                if (response == null || !response.Success)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = response?.Message ?? "No fue posible obtener el listado de vehiculos."
+                    });
                 }
 
-                return Json(new { success = true, data = cachedVehiculos });
+                return Json(new { success = true, data = response.Data });
             }
             catch (Exception ex)
             {
@@ -121,15 +134,58 @@ namespace Cavex.Principal.Controllers
             }
         }
 
-        [HttpGet("/Vehiculos/GetVehiculo")]
-        public async Task<IActionResult> GetVehiculo(int id, CancellationToken cancellationToken)
+        [HttpGet("/Vehiculos/GetVehiculosDropdown")]
+        public async Task<IActionResult> GetVehiculosDropdown(
+        int pageIndex = 1,
+        int pageSize = 10,
+        string? search = null,
+        int? idVehCatStatus = null,
+        CancellationToken cancellationToken = default)
         {
-            var response = await _vehDatosGenerales.ObtenerPorIdAsync(id, cancellationToken);
-            if (!response.Success)
+            var response = await _vehiculoListadoService.ObtenerTodosAsync(
+                pageIndex,
+                pageSize,
+                search,
+                idVehCatStatus,
+                cancellationToken);
+
+            if (response == null || !response.Success || response.Data == null)
             {
-                return Json(new { success = false, message = response.Message });
+                return Json(new
+                {
+                    success = false,
+                    message = response?.Message ?? "No fue posible obtener vehiculos."
+                });
             }
-            return Json(new { success = true, data = response.Data });
+
+            return Json(new
+            {
+                success = true,
+                data = response.Data
+            });
+        }
+
+        [HttpGet("/Vehiculos/GetVehiculoListado/{id:int}")]
+        public async Task<IActionResult> GetVehiculoListadoById(
+            int id,
+            CancellationToken cancellationToken)
+        {
+            var response = await _vehiculoListadoService.ObtenerPorIdAsync(id, cancellationToken);
+
+            if (response == null || !response.Success || response.Data == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = response?.Message ?? "No fue posible obtener el vehiculo."
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                data = response.Data
+            });
         }
 
         [HttpPost("/Vehiculos/DeleteVehiculo")]
