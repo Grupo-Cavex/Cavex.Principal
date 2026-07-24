@@ -8,11 +8,11 @@ namespace Cavex.Principal.Models.VehServicioDetalle
         [Display(Name = "Descripcion")]
         public string? StrDescripcion { get; set; }
 
-        [Required(ErrorMessage = "El costo de mano de obra es obligatorio.")]
+        
         [Display(Name = "Costo mano de obra")]
         public decimal? MnyCostoManoObra { get; set; }
 
-        [Required(ErrorMessage = "El costo de refacciones es obligatorio.")]
+       
         [Display(Name = "Costo refacciones")]
         public decimal? MnyCostoRefacciones { get; set; }
 
@@ -52,6 +52,18 @@ namespace Cavex.Principal.Models.VehServicioDetalle
         [Required(ErrorMessage = "La refaccion es obligatoria.")]
         [Display(Name = "Refaccion")]
         public int IdVehCatRefacciones { get; set; }
+    }
+    public class VehCatRefaccionesSaveDto
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El valor no puede superar los 100 caracteres.")]
+        [Display(Name = "Nombre")]
+        public string StrValor { get; set; } = string.Empty;
+
+
+        [Required(ErrorMessage = "El costo de la refaccion de obra es obligatorio.")]
+        [Display(Name = "Costo Refaccion")]
+        public decimal MnyPrecio { get; set; }
     }
 
 }

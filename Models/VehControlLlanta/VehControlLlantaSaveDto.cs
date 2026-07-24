@@ -12,6 +12,10 @@ namespace Cavex.Principal.Models.VehControlLlanta
         [Display(Name = "Marca de llanta")]
         public int IdVehCatMarcaLlanta { get; set; }
 
+        [Required(ErrorMessage = "La forma de pago es obligatoria.")]
+        [Display(Name = "Forma de Pago")]
+        public int IdVehCatFormaPago { get; set; }
+
         [Required(ErrorMessage = "El modelo es obligatorio.")]
         [StringLength(50, ErrorMessage = "El valor no puede superar los 50 caracteres.")]
         [Display(Name = "Modelo")]
@@ -50,6 +54,10 @@ namespace Cavex.Principal.Models.VehControlLlanta
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
         [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
+
+        [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
+        [Display(Name = "Comprobante de Pago")]
+        public string? StrUrlComprobantePago { get; set; }
 
         [Required(ErrorMessage = "El estatus es obligatorio.")]
         [Display(Name = "Estatus")]
