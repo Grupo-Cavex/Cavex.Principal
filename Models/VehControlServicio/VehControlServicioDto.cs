@@ -16,6 +16,11 @@ namespace Cavex.Principal.Models.VehControlServicio
 
         [Display(Name = "Encargado")]
         public string StrEmpEmpleado { get; set; } = string.Empty;
+       
+        public int IdVehCatResponsableServicio { get; set; }
+
+        [Display(Name = "Responsable de servicio")]
+        public string StrVehCatResponsableServicio { get; set; } = string.Empty;
 
         public DateOnly DteFechaInicio { get; set; }
         public DateOnly DteFechaServicio { get; set; }
@@ -49,6 +54,10 @@ namespace Cavex.Principal.Models.VehControlServicio
 
         [Display(Name = "Comprobante de pago")]
         public string? StrUrlComprobantePago { get; set; }
+
+        public int IdVehCatStatus { get; set; }
+        [Display(Name = "Status")]
+        public string StrVehCatStatus { get; set; } = string.Empty;
     }
 }
 

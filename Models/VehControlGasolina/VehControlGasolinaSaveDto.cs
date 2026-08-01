@@ -33,7 +33,7 @@ namespace Cavex.Principal.Models.VehControlGasolina
         public string? StrUrlComprobantePago { get; set; }
 
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
-        [Display(Name = "Evidencias")]
+        [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
 
         [Required(ErrorMessage = "La gasolinera es obligatoria.")]

@@ -1,10 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Cavex.Principal.Models.VehCatMarcaLlanta
+namespace Cavex.Principal.Models.VehRefaccionesUsadas
 {
-
-    public class VehServicioDetalleDto
+    public class VehSubEntidadRefaccionesApiDtos
     {
+
+        public int Id { get; set; }
+
+
+    }
+        public class VehServicioDetalleCreateApiDto
+        {
         public int Id { get; set; }
 
         public int IdVehCatTipoServicio { get; set; }
@@ -36,26 +42,30 @@ namespace Cavex.Principal.Models.VehCatMarcaLlanta
 
         public int IdVehCatResponsableServicio { get; set; }
 
-
-        public string StrVehCatResponsableServicio { get; set; } = string.Empty;
-
-
         public DateTime DteFechaFin { get; set; }
+
+        public int IdVehCatRefacciones { get; set; } 
+        public int IdVehServicioDetalle { get; set; } 
+
     }
-        public class VehRefaccionesUsadasCreateApiDto
+
+    public class VehCatRefaccionesCreateApiDto
     {
-            
-        public int IdVehCatRefacciones { get; set; } // FK a la refaccion usada
-        public int IdVehServicioDetalle { get; set; } // FK al servicio detalle ya creado
-        
-        }
+        public int Id { get; set; }
 
+        public required string StrValor { get; set; }
 
+        public decimal MnyPrecio { get; set; }
+    }
 
+    public class VehRefaccionesUsadasCreateApiDto
+        {
+        public int IdVehServicioDetalle { get; set; }
+        public int IdVehCatRefacciones { get; set; }
+
+       
 
     }
+}
     
-
-
-
 

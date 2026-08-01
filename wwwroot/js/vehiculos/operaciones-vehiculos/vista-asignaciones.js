@@ -9,7 +9,7 @@ let editModeId = null;
 let filtroEstadoAsignaciones = 'todos'; // todos | pendientes | completos
 let busquedaAsignaciones = '';
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener("DOMContentLoaded", () => {
     inicializarVistaAsignaciones();
 
@@ -37,7 +37,7 @@ function inicializarVistaAsignaciones() {
     inicializarFechaAsignacion();
     inicializarFormatoKilometraje();
 
-    // Validación en tiempo real
+    // ValidaciÃ³n en tiempo real
     form.querySelectorAll("input:not([type='hidden']), select").forEach(campo => {
         ["input", "change"].forEach(evt => campo.addEventListener(evt, () => {
             const teniaError = campo.classList.contains("is-invalid");
@@ -72,7 +72,7 @@ function inicializarVistaAsignaciones() {
         }
 
         Swal.fire({
-            title: editModeId ? "Actualizando asignación..." : "Registrando asignación...",
+            title: editModeId ? "Actualizando asignaciÃ³n..." : "Registrando asignaciÃ³n...",
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
@@ -107,7 +107,7 @@ function inicializarVistaAsignaciones() {
                 Swal.fire({
                     icon: "error",
                     title: "Error",
-                    text: result.message || "No fue posible guardar la asignación.",
+                    text: result.message || "No fue posible guardar la asignaciÃ³n.",
                     confirmButtonColor: "var(--teal-cavex)"
                 });
                 return;
@@ -115,7 +115,7 @@ function inicializarVistaAsignaciones() {
 
             Swal.fire({
                 icon: "success",
-                title: editModeId ? "Asignación actualizada" : "Asignación registrada",
+                title: editModeId ? "AsignaciÃ³n actualizada" : "AsignaciÃ³n registrada",
                 text: result.message || "Guardado exitoso.",
                 confirmButtonColor: "var(--teal-cavex)"
             }).then(() => {
@@ -126,8 +126,8 @@ function inicializarVistaAsignaciones() {
             Swal.close();
             Swal.fire({
                 icon: "error",
-                title: "Error de conexión",
-                text: "No se pudo establecer comunicación con el servidor.",
+                title: "Error de conexiÃ³n",
+                text: "No se pudo establecer comunicaciÃ³n con el servidor.",
                 confirmButtonColor: "var(--teal-cavex)"
             });
         }
@@ -136,35 +136,35 @@ function inicializarVistaAsignaciones() {
     actualizarVistaPreviaAsignacion();
 }
 
-// ─── Carga de catálogos ───────────────────────────────────────────────────────
+// â”€â”€â”€ Carga de catÃ¡logos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function cargarCatalogosAsignacion() {
     try {
-        // Cargar vehículos, empleados, asignaciones y catálogos de marcas en paralelo
+        // Cargar vehÃ­culos, empleados, asignaciones y catÃ¡logos de marcas en paralelo
         const [vehRes, empRes, asigRes, catRes] = await Promise.all([
-            fetch("/Vehiculos/GetVehiculos").then(r => r.json()),
+            obtenerVehiculosActivosDropdown(),
             fetch("/Empleado/GetEmpleadosDropdown").then(r => r.json()),
             fetch("/Asignaciones/GetAsignacionesActivas").then(r => r.json()).catch(() => ({ success: false })),
             fetch("/Vehiculos/GetVehiculoCatalogos").then(r => r.json()).catch(() => ({ success: false }))
         ]);
 
-        // Guardar catálogos maestros completos para la tabla y vistas previas
-        if (vehRes.success && vehRes.data) listaVehiculosAsignacion = vehRes.data;
+        // Guardar catÃ¡logos maestros completos para la tabla y vistas previas
+        if (vehRes.success && vehRes.data) listaVehiculosAsignacion = vehRes.data.items || [];
         if (empRes.success && empRes.data) listaEmpleadosAsignacion = empRes.data;
         if (asigRes.success && asigRes.data) asignacionesActivas = asigRes.data;
         if (catRes.success && catRes.data && catRes.data.idVehCatMarcaVehiculo) {
             listaMarcasVehiculos = catRes.data.idVehCatMarcaVehiculo;
         }
 
-        // Renderizar la tabla con la información completa
+        // Renderizar la tabla con la informaciÃ³n completa
         renderAsignacionesTable();
 
         // Poblar los dropdowns con unidades y choferes disponibles
         poblarDropdownVehiculos();
         poblarDropdownEmpleados();
 
-        // Los dropdowns son convertidos automáticamente por el componente global custom-select de CAVEX (site.js)
+        // Los dropdowns son convertidos automÃ¡ticamente por el componente global custom-select de CAVEX (site.js)
 
-        // Eventos de vinculación bidireccional
+        // Eventos de vinculaciÃ³n bidireccional
         selectVeh?.addEventListener("change", () => {
             mostrarInfoVehiculo();
             vincularChoferDesdeVehiculo("asignacion-idVehDatosGenerales", "asignacion-idEmpEmpleado");
@@ -177,11 +177,11 @@ async function cargarCatalogosAsignacion() {
             actualizarVistaPreviaAsignacion();
         });
     } catch (err) {
-        console.error("Error al cargar catálogos de asignación:", err);
+        console.error("Error al cargar catÃ¡logos de asignaciÃ³n:", err);
     }
 }
 
-// ─── Fecha automática ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Fecha automÃ¡tica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function inicializarFechaAsignacion() {
     const fechaInput = document.getElementById("asignacion-dteFechaAsigncion");
     if (!fechaInput) return;
@@ -197,7 +197,7 @@ function inicializarFechaAsignacion() {
     }
 }
 
-// ─── Formato comas kilometraje ────────────────────────────────────────────────
+// â”€â”€â”€ Formato comas kilometraje â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function formatoConComas(valor) {
     const clean = String(valor).replace(/[^0-9]/g, "");
     if (!clean) return "";
@@ -238,7 +238,7 @@ function calcularKilometrajeTotal() {
     }
 }
 
-// Controla la bandera de vinculación activa para prevenir loops infinitos
+// Controla la bandera de vinculaciÃ³n activa para prevenir loops infinitos
 let isVinculandoAsignacion = false;
 
 function vincularChoferDesdeVehiculo(vehSelectId, empSelectId) {
@@ -283,7 +283,7 @@ function vincularVehiculoDesdeChofer(empSelectId, vehSelectId) {
     }
 }
 
-// ─── Info Cards ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Info Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function mostrarInfoVehiculo() {
     // No longer displaying vehicle mini-card details
 }
@@ -292,24 +292,24 @@ function mostrarInfoEmpleado() {
     // No longer displaying employee mini-card details
 }
 
-// ─── Vista previa lateral ─────────────────────────────────────────────────────
+// â”€â”€â”€ Vista previa lateral â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function actualizarVistaPreviaAsignacion() {
     const vehId = parseInt(document.getElementById("asignacion-idVehDatosGenerales")?.value, 10);
     const empId = parseInt(document.getElementById("asignacion-idEmpEmpleado")?.value, 10);
 
-    const v = listaVehiculosAsignacion.find(v => v.id === vehId);
-    const e = listaEmpleadosAsignacion.find(e => e.id === empId);
+    const v = listaVehiculosAsignacion.find(v => Number(v.id ?? v.Id) === vehId);
+    const e = listaEmpleadosAsignacion.find(e => Number(e.id ?? e.Id) === empId);
 
-    setText("previewAsignacionVehiculo", v ? `${v.strModelo} (${v.intAnio})` : "Sin seleccionar");
-    setText("previewAsignacionPlaca", v ? v.strPlaca : "—");
+    setText("previewAsignacionVehiculo", v ? `${v.strModelo || v.StrModelo || "Vehiculo"} (${v.intAnio || v.IntAnio || ""})` : "Sin seleccionar");
+    setText("previewAsignacionPlaca", v ? (v.strPlaca || v.StrPlaca || "-") : "-");
 
     if (e) {
-        const nombre = e.strNombre + " " + e.strApellidoPaterno + (e.strApellidoMaterno ? " " + e.strApellidoMaterno : "");
-        setText("previewAsignacionEmpleado", nombre);
-        setText("previewAsignacionArea", e.strAreaLaboral || e.empAreaLaboral?.strNombre || "—");
+        const nombre = `${e.strNombre || e.StrNombre || ""} ${e.strApellidoPaterno || e.StrApellidoPaterno || ""} ${e.strApellidoMaterno || e.StrApellidoMaterno || ""}`.trim();
+        setText("previewAsignacionEmpleado", nombre || "Sin seleccionar");
+        setText("previewAsignacionArea", e.strAreaLaboral || e.StrAreaLaboral || e.empAreaLaboral?.strNombre || "-");
     } else {
         setText("previewAsignacionEmpleado", "Sin seleccionar");
-        setText("previewAsignacionArea", "—");
+        setText("previewAsignacionArea", "-");
     }
 
     const fecha = document.getElementById("asignacion-dteFechaAsigncion")?.value;
@@ -327,7 +327,7 @@ function actualizarVistaPreviaAsignacion() {
     setText("previewAsignacionKmTotal", (parseFloat(kmTotal) || 0).toLocaleString("es-MX") + " km");
 }
 
-// ─── Validación ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ ValidaciÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function validarFormularioAsignacion(form) {
     const ids = ["asignacion-idVehDatosGenerales", "asignacion-idEmpEmpleado", "asignacion-decKilometrajeInicial"];
     let valido = true;
@@ -348,12 +348,12 @@ function validarCampoAsignacion(campo) {
     let mensaje = "";
 
     if (campo.required && !valor) {
-        mensaje = campo.tagName === "SELECT" ? "Selecciona una opción." : "Este campo es obligatorio.";
+        mensaje = campo.tagName === "SELECT" ? "Selecciona una opciÃ³n." : "Este campo es obligatorio.";
     }
 
     if (!mensaje && valor && campo.id.includes("Kilometraje") && !campo.readOnly) {
         const num = parseFloat(valor.replace(/,/g, ""));
-        if (isNaN(num) || num < 0) mensaje = "Captura un kilometraje válido.";
+        if (isNaN(num) || num < 0) mensaje = "Captura un kilometraje vÃ¡lido.";
     }
 
     if (mensaje) {
@@ -373,7 +373,7 @@ function validarCampoAsignacion(campo) {
     return true;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function setText(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
@@ -400,8 +400,8 @@ function obtenerNombreMarca(v) {
     if (v.strMarca && v.strMarca !== "—" && v.strMarca !== "Desconocida") return v.strMarca;
     if (v.strMarcaVehiculo && v.strMarcaVehiculo !== "—" && v.strMarcaVehiculo !== "Desconocida") return v.strMarcaVehiculo;
     if (v.idVehCatMarcaVehiculo && listaMarcasVehiculos.length > 0) {
-        const m = listaMarcasVehiculos.find(item => Number(item.id) === Number(v.idVehCatMarcaVehiculo));
-        if (m && (m.strValor || m.nombre)) return m.strValor || m.nombre;
+        const m = listaMarcasVehiculos.find(item => Number(item.id ?? item.Id) === Number(v.idVehCatMarcaVehiculo));
+        if (m && (m.strValor || m.StrValor || m.nombre)) return m.strValor || m.StrValor || m.nombre;
     }
     return "—";
 }
@@ -486,7 +486,6 @@ function renderAsignacionesTable() {
             ? `<span class="badge bg-success">Completo</span>`
             : `<span class="badge bg-warning text-dark">Pendiente</span>`;
 
-        // Construimos el HTML del renglón con las 7 columnas solicitadas
         return `
             <tr>
                 <td>${escapeHtml(marca)}</td>
@@ -496,7 +495,6 @@ function renderAsignacionesTable() {
                 <td>${escapeHtml(empleadoName)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-end">
-                    <!-- Botón de Acciones dropdown estándar -->
                     <div class="dropdown actions-dropdown d-inline-block">
                         <button class="btn-action-trigger btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span>Acciones</span>
@@ -570,7 +568,9 @@ function poblarDropdownVehiculos(currentVehId = null) {
             .filter(id => !isNaN(id) && id > 0)
     );
 
-    selectVeh.innerHTML = '<option value="">Seleccionar vehículo disponible...</option>';
+    selectVeh.innerHTML = '<option value="">Seleccionar vehiculo disponible...</option>';
+    let totalDisponibles = 0;
+
     listaVehiculosAsignacion.forEach(v => {
         const vId = Number(v.id ?? v.Id);
         const isAssigned = vehIdAsignados.has(vId);
@@ -580,11 +580,21 @@ function poblarDropdownVehiculos(currentVehId = null) {
             const opt = document.createElement("option");
             opt.value = String(vId);
             const marcaNombre = obtenerNombreMarca(v);
-            const marcaDisplay = marcaNombre !== "—" ? marcaNombre + " " : "";
-            opt.textContent = `${v.strPlaca || v.StrPlaca || '—'} - ${marcaDisplay}${v.strModelo || v.StrModelo || ''} (${v.intAnio || v.IntAnio || ''})`.trim();
+            const marcaDisplay = marcaNombre !== "-" ? marcaNombre + " " : "";
+            opt.textContent = `${v.strPlaca || v.StrPlaca || "-"} - ${marcaDisplay}${v.strModelo || v.StrModelo || ""} (${v.intAnio || v.IntAnio || ""})`.trim();
             selectVeh.appendChild(opt);
+            totalDisponibles += 1;
         }
     });
+
+    if (totalDisponibles === 0) {
+        const opt = document.createElement("option");
+        opt.value = "__no_disponibles";
+        opt.textContent = "No hay vehiculos disponibles";
+        opt.disabled = true;
+        selectVeh.appendChild(opt);
+    }
+
     selectVeh.addEventListener("change", () => {
         const vId = Number(selectVeh.value);
         const v = listaVehiculosAsignacion.find(veh => Number(veh.id ?? veh.Id) === vId);
@@ -601,8 +611,6 @@ function poblarDropdownVehiculos(currentVehId = null) {
             }
         }
     });
-
-    selectVeh.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 function poblarDropdownEmpleados(currentEmpId = null) {
@@ -641,7 +649,7 @@ function editarAsignacion(id) {
 
     editModeId = id;
 
-    // Repoblar los dropdowns permitiendo el vehículo y chofer asignados a esta asignación que se edita
+    // Repoblar los dropdowns permitiendo el vehÃ­culo y chofer asignados a esta asignaciÃ³n que se edita
     poblarDropdownVehiculos(a.idVehDatosGenerales);
     poblarDropdownEmpleados(a.idEmpEmpleado);
 
@@ -691,13 +699,13 @@ function editarAsignacion(id) {
 
 function eliminarAsignacion(id) {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta asignación de vehículo será eliminada permanentemente.",
+        title: "Â¿EstÃ¡s seguro?",
+        text: "Esta asignaciÃ³n de vehÃ­culo serÃ¡ eliminada permanentemente.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {
@@ -711,10 +719,10 @@ function eliminarAsignacion(id) {
                 const res = await response.json();
                 Swal.close();
                 if (res.success) {
-                    Swal.fire("Eliminado", "La asignación ha sido eliminada.", "success");
+                    Swal.fire("Eliminado", "La asignaciÃ³n ha sido eliminada.", "success");
                     cargarCatalogosAsignacion();
                 } else {
-                    Swal.fire("Error", res.message || "No se pudo eliminar la asignación.", "error");
+                    Swal.fire("Error", res.message || "No se pudo eliminar la asignaciÃ³n.", "error");
                 }
             } catch (err) {
                 Swal.close();
@@ -741,6 +749,7 @@ function resetearFormularioAsignacion() {
 function escapeHtml(text) {
     return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
 
 
 

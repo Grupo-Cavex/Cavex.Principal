@@ -26,6 +26,8 @@ namespace Cavex.Principal.Models.VehControlServicio
 
         public int IdVehCatTipoServicio { get; set; }
 
+        [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
+        [Display(Name = "Descripcion")]
         public string? StrDescripcion { get; set; }
 
         public decimal MnyCostoManoObra { get; set; }
@@ -36,13 +38,17 @@ namespace Cavex.Principal.Models.VehControlServicio
 
         public int IdVehCatResponsableServicio { get; set; }
 
+        public int IdVehCatResponsable { get; set; } = 0;
+
         public int IdEmpEmpleadoChofer { get; set; }
 
-        public int IdEmpEmpleado { get; set; }
+        public int IdEmpEmpleado { get; set; } = 0;
 
         public int? IntProximoServicioPorKm { get; set; }
 
         public DateOnly? DteProximoServicioPorFecha { get; set; }
+
+        public int IdVehCatStatus { get; set; } = 0;
     }
 }
 

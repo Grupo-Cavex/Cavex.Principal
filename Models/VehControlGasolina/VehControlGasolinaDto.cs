@@ -31,7 +31,7 @@ namespace Cavex.Principal.Models.VehControlGasolina
         [Display(Name = "Comprobante de pago")]
         public string? StrUrlComprobantePago { get; set; }
 
-        [Display(Name = "Evidencias")]
+        [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
 
         public int IdVehCatGasolineras { get; set; }

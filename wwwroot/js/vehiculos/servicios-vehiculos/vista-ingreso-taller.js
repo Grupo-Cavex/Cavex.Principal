@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 /* ─── Estado global ─────────────────────────────────────────────────────── */
 let _vehiculos = [];         // Catálogo de vehículos asignados para select
@@ -11,13 +11,12 @@ let _tiposServicio = [];     // Catálogo completo de tipos de servicio
 let _formasPago = [];        // Catálogo completo de formas de pago
 let _responsables = [];      // Catálogo de encargados autorizadores
 let _refaccionesCatalogo = [];// Catálogo de refacciones
-let _refaccionesAgregadas = [];// Refacciones agregadas al ticket actual
-let _modoCompleto = false;   // true = switch ON (reporte de taller habilitado)
+let _refaccionesAgregadas = [];// Refacciones agregadas al ticket actuallet _modoCompleto = false;   // true = switch ON (reporte de taller habilitado)
 let _listaHistorial = [];    // Datos completos de la tabla de historial
 let _filtroEstadoHistorial = 'todos'; // todos | incompletos | completos
-let _busquedaHistorial = ''; // Término de búsqueda en tabla
+let _busquedaHistorial = ''; // TÃ©rmino de bÃºsqueda en tabla
 
-/* ─── Init ──────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 document.addEventListener('DOMContentLoaded', () => {
     setFechaHoy();
     cargarCatalogos();
@@ -67,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* ─── Fecha por defecto = hoy ────────────────────────────────────────────── */
+/* â”€â”€â”€ Fecha por defecto = hoy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function setFechaHoy() {
     const hoy = new Date().toISOString().split('T')[0];
     const fechaInput = document.getElementById('mant-dteFechaServicio');
@@ -76,7 +75,7 @@ function setFechaHoy() {
     }
 }
 
-/* ─── Switch toggle ─────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Switch toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function bindSwitch() {
     const switchEl = document.getElementById('switchServicioConcluido');
     if (!switchEl) return;
@@ -87,53 +86,49 @@ function bindSwitch() {
     });
 }
 
-// Función para mostrar u ocultar la sección "Reporte de Taller" según el estado del switch
+// FunciÃ³n para mostrar u ocultar la secciÃ³n "Reporte de Taller" segÃºn el estado del switch
 function toggleCard2(habilitar) {
-    // Obtenemos el contenedor de la sección 2 (Reporte de Taller)
+    // Obtenemos el contenedor de la secciÃ³n 2 (Reporte de Taller)
     const card2     = document.getElementById('card2');
-    // Obtenemos la etiqueta de texto del switch (NO / SÍ)
+    // Obtenemos la etiqueta de texto del switch (NO / SÃ)
     const label     = document.getElementById('switchLabel');
-    // Obtenemos el texto del botón de guardado
+    // Obtenemos el texto del botÃ³n de guardado
     const btnLabel  = document.getElementById('btnGuardarLabel');
     // Obtenemos todos los elementos interactivos dentro de la sección 2
     const inputs2   = card2?.querySelectorAll('input:not([type=hidden]), select, textarea, button');
     const isEditing = parseInt(document.getElementById('mant-id')?.value || '0', 10) > 0;
-
-    // Si el switch está activado en SÍ
+    // Si el switch estÃ¡ activado en SÃ
     if (habilitar) {
-        // Mostramos la sección 2 en la pantalla
+        // Mostramos la secciÃ³n 2 en la pantalla
         if (card2) card2.style.display = 'block';
         // Cambiamos el texto del switch a "SÍ"
         if (label) label.textContent = 'SÍ';
         // Actualizamos el texto del botón principal
-        if (btnLabel) btnLabel.textContent = isEditing ? 'Actualizar reporte de taller' : 'Guardar reporte de taller';
-        // Habilitamos los campos internos para captura
+        if (btnLabel) btnLabel.textContent = isEditing ? 'Actualizar reporte de taller' : 'Guardar reporte de taller';        // Habilitamos los campos internos para captura
         inputs2?.forEach(el => {
             el.disabled = false;
         });
         // Habilitamos la zona de carga de comprobante
         document.getElementById('mantComprobanteArea')?.classList.remove('mant-upload-area--disabled');
     } else {
-        // Si el switch está en NO, ocultamos la sección 2 por completo
+        // Si el switch estÃ¡ en NO, ocultamos la secciÃ³n 2 por completo
         if (card2) card2.style.display = 'none';
         // Cambiamos el texto del switch a "NO"
         if (label) label.textContent = 'NO';
-        if (btnLabel) btnLabel.textContent = isEditing ? 'Actualizar ingreso a taller' : 'Guardar ingreso a taller';
-        inputs2?.forEach(el => el.disabled = true);
+        if (btnLabel) btnLabel.textContent = isEditing ? 'Actualizar ingreso a taller' : 'Guardar ingreso a taller';        inputs2?.forEach(el => el.disabled = true);
         // Deshabilitamos la zona de carga de comprobante
         document.getElementById('mantComprobanteArea')?.classList.add('mant-upload-area--disabled');
     }
 }
 
-/* ─── Cargar catálogos ───────────────────────────────────────────────────── */
+/* â”€â”€â”€ Cargar catÃ¡logos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 async function cargarCatalogos() {
     try {
         const [resVehiculos, resCatalogos, resResponsables, resAsignaciones, resEmpleados] = await Promise.all([
             fetch('/Vehiculos/GetVehiculos').then(r => r.json()).catch(() => ({ success: false })),
             fetch('/IngresoTaller/GetIngresoTallerCatalogos').then(r => r.json()).catch(() => ({ success: false })),
             fetch('/IngresoTaller/ResponsablesServicio/GetResponsables').then(r => r.json()).catch(() => ({ success: false })),
-            fetch('/Asignaciones/GetAsignacionesActivas').then(r => r.json()).catch(() => ({ success: false })),
-            fetch('/Empleado/GetEmpleadosDropdown').then(r => r.json()).catch(() => ({ success: false }))
+            fetch('/Asignaciones/GetAsignacionesActivas').then(r => r.json()).catch(() => ({ success: false })),            fetch('/Empleado/GetEmpleadosDropdown').then(r => r.json()).catch(() => ({ success: false }))
         ]);
 
         // Asignaciones activas
@@ -161,8 +156,7 @@ async function cargarCatalogos() {
 
             poblarSelect('mant-idVehDatosGenerales', _vehiculos, v => ({
                 value: v.id ?? v.Id,
-                text: `${v.strPlaca || v.StrPlaca || '—'} · ${v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || v.StrMarca || ''} ${v.strModelo || v.StrModelo || ''} ${v.intAnio || v.IntAnio || ''}`.trim()
-            }));
+                text: `${v.strPlaca || v.StrPlaca || '—'} · ${v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || v.StrMarca || ''} ${v.strModelo || v.StrModelo || ''} ${v.intAnio || v.IntAnio || ''}`.trim()            }));
         }
 
         // Cargar solo choferes asignados (idéntico a vista-infracciones.js)
@@ -177,8 +171,7 @@ async function cargarCatalogos() {
             }));
         }
 
-        // Catálogos de Ingreso a Taller (Tipos de Servicio, Talleres, Formas de Pago y Refacciones)
-        if (resCatalogos.success && resCatalogos.data) {
+        // Catálogos de Ingreso a Taller (Tipos de Servicio, Talleres, Formas de Pago y Refacciones)        if (resCatalogos.success && resCatalogos.data) {
             if (resCatalogos.data.tiposServicio) {
                 _tiposServicio = resCatalogos.data.tiposServicio;
                 poblarSelect('mant-idVehCatTipoServicio', _tiposServicio, item => ({
@@ -215,12 +208,12 @@ async function cargarCatalogos() {
             }));
         }
 
-        // Los dropdowns son convertidos automáticamente por el componente global custom-select de CAVEX (site.js)
+        // Los dropdowns son convertidos automÃ¡ticamente por el componente global custom-select de CAVEX (site.js)
         bindVinculacionVehiculoEmpleado();
         renderTablaHistorial();
 
     } catch (err) {
-        console.error('Error cargando catálogos:', err);
+        console.error('Error cargando catÃ¡logos:', err);
     }
 }
 
@@ -373,34 +366,32 @@ function actualizarCostoRefaccionesTotal(total) {
     calcularTotal();
 }
 
-/* ─── Selector de vehículo / chofer / kilometraje (Vinculación automática) ─── */
-// Bandera para evitar bucles infinitos durante eventos simulados de cambio
+/* ─── Selector de vehículo / chofer / kilometraje (Vinculación automática) ─── */// Bandera para evitar bucles infinitos durante eventos simulados de cambio
 let isVinculandoIngresoTaller = false;
 
-// Función para inicializar la vinculación automática de campos
+// FunciÃ³n para inicializar la vinculaciÃ³n automÃ¡tica de campos
 function bindVinculacionVehiculoEmpleado() {
-    // Referencia al select de vehículo
+    // Referencia al select de vehÃ­culo
     const selectVeh = document.getElementById('mant-idVehDatosGenerales');
     // Referencia al select de chofer (empleado)
     const selectEmp = document.getElementById('mant-idEmpEmpleadoChofer');
 
-    // Evento al cambiar el vehículo seleccionado
+    // Evento al cambiar el vehÃ­culo seleccionado
     selectVeh?.addEventListener('change', () => {
-        // Si la vinculación está en proceso, prevenimos reentradas
+        // Si la vinculaciÃ³n estÃ¡ en proceso, prevenimos reentradas
         if (isVinculandoIngresoTaller) return;
         // Activamos la bandera de bloqueo temporal
         isVinculandoIngresoTaller = true;
         try {
-            // Obtenemos el ID numérico del vehículo elegido
+            // Obtenemos el ID numÃ©rico del vehÃ­culo elegido
             const vehId = parseInt(selectVeh.value, 10);
             // Referencia al campo donde se ingresa el kilometraje actual
             const kmInput = document.getElementById('mant-decKilometrajeActual');
             
-            // Si se seleccionó un vehículo válido
+            // Si se seleccionÃ³ un vehÃ­culo vÃ¡lido
             if (vehId) {
                 const veh = _vehiculos.find(v => Number(v.id ?? v.Id) === vehId);
-                if (veh && kmInput && !kmInput.value) {
-                    const kmVal = veh.decKilometrajeActual ?? veh.DecKilometrajeActual ?? 0;
+                if (veh && kmInput && !kmInput.value) {                    const kmVal = veh.decKilometrajeActual ?? veh.DecKilometrajeActual ?? 0;
                     // Escribimos el valor formateado con comas en el campo de texto
                     kmInput.value = Number(kmVal).toLocaleString('es-MX');
                 }
@@ -411,8 +402,7 @@ function bindVinculacionVehiculoEmpleado() {
                     if (selectEmp.value !== empIdAsig) {
                         selectEmp.value = empIdAsig;
                         selectEmp.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
+                    }                }
             }
         } finally {
             // Liberamos la bandera para futuros eventos de usuario
@@ -422,32 +412,31 @@ function bindVinculacionVehiculoEmpleado() {
 
     // Evento al cambiar manualmente el chofer seleccionado
     selectEmp?.addEventListener('change', () => {
-        // Prevenimos bucles de eventos entre vehículo y chofer
+        // Prevenimos bucles de eventos entre vehÃ­culo y chofer
         if (isVinculandoIngresoTaller) return;
         // Activamos la bandera de bloqueo temporal
         isVinculandoIngresoTaller = true;
         try {
-            // Obtenemos el ID numérico del empleado elegido
+            // Obtenemos el ID numÃ©rico del empleado elegido
             const empId = parseInt(selectEmp.value, 10);
-            // Si se seleccionó un empleado
+            // Si se seleccionÃ³ un empleado
             if (empId) {
                 const asig = _asignaciones.find(a => Number(a.idEmpEmpleado ?? a.IdEmpEmpleado) === empId);
                 if (asig && selectVeh) {
                     const vehIdAsig = String(asig.idVehDatosGenerales ?? asig.IdVehDatosGenerales);
                     if (selectVeh.value !== vehIdAsig) {
-                        selectVeh.value = vehIdAsig;
-                        selectVeh.dispatchEvent(new Event('change', { bubbles: true }));
+                        selectVeh.value = vehIdAsig;                        selectVeh.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
             }
         } finally {
-            // Liberamos la bandera al finalizar la operación
+            // Liberamos la bandera al finalizar la operaciÃ³n
             isVinculandoIngresoTaller = false;
         }
     });
 }
 
-/* ─── Cálculo en vivo: Total = Mano de Obra + Refacciones ───────────────── */
+/* â”€â”€â”€ CÃ¡lculo en vivo: Total = Mano de Obra + Refacciones â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function bindCostosChange() {
     ['mant-mnyCostoManoObra', 'mant-mnyCostoRefacciones'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', calcularTotal);
@@ -466,7 +455,7 @@ function calcularTotal() {
     }
 }
 
-/* ─── Upload comprobante ─────────────────────────────────────────────────── */
+/* â”€â”€â”€ Upload comprobante â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function bindComprobanteUpload() {
     const area    = document.getElementById('mantComprobanteArea');
     const input   = document.getElementById('mantComprobanteArchivo');
@@ -526,7 +515,7 @@ function formatBytes(bytes) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/* ─── Submit del formulario ──────────────────────────────────────────────── */
+/* â”€â”€â”€ Submit del formulario â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function bindFormSubmit() {
     document.getElementById('formIngresoTaller')?.addEventListener('submit', async e => {
         e.preventDefault();
@@ -614,8 +603,7 @@ async function guardarIngresoTaller() {
             await Swal.fire({
                 icon: 'success',
                 title: editingId > 0 ? '¡Registro actualizado!' : '¡Registro guardado!',
-                text: data.message || (editingId > 0 ? 'El registro se actualizó correctamente.' : 'El ingreso a taller se registró correctamente.'),
-                confirmButtonColor: '#0d233a'
+                text: data.message || (editingId > 0 ? 'El registro se actualizó correctamente.' : 'El ingreso a taller se registró correctamente.'),                confirmButtonColor: '#0d233a'
             });
             resetForm();
             cargarHistorial();
@@ -682,8 +670,7 @@ function resetForm() {
 
 window.resetForm = resetForm;
 
-/* ─── Historial de ingresos a taller ───────────────────────────────────────── */
-async function cargarHistorial() {
+/* ─── Historial de ingresos a taller ───────────────────────────────────────── */async function cargarHistorial() {
     const tbody = document.getElementById('ingresoTallerTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Cargando...</td></tr>';
 
@@ -772,7 +759,7 @@ function renderTablaHistorial() {
     const tbody = document.getElementById('ingresoTallerTableBody');
     if (!tbody) return;
 
-    // Actualizar contadores de pestañas
+    // Actualizar contadores de pestaÃ±as
     const totalCount = _listaHistorial.length;
     const incompletosCount = _listaHistorial.filter(m => !esTicketCompleto(m)).length;
     const completosCount = _listaHistorial.filter(m => esTicketCompleto(m)).length;
@@ -833,9 +820,8 @@ function renderTablaHistorial() {
             </td>
             <td>${escapeHtml(labelTaller)}</td>
             <td>${escapeHtml(labelTipo)}</td>
-            <td>${escapeHtml(labelEnc)}</td>
-            <td>${fechaVal}</td>
-            <td>${kmVal > 0 ? kmVal.toLocaleString('es-MX') + ' km' : '—'}</td>
+            <td>${escapeHtml(labelEnc)}</td>            <td>${fechaVal}</td>
+            <td>${kmVal > 0 ? kmVal.toLocaleString('es-MX') + ' km' : 'â€”'}</td>
             <td><div class="fw-bold">$${Number(total || 0).toFixed(2)}</div></td>
             <td>${estadoBadge}</td>
             <td class="text-end">
@@ -1112,10 +1098,10 @@ async function editarIngresoTaller(id) {
 async function eliminarIngresoTaller(id) {
     const confirm = await Swal.fire({
         icon: 'warning',
-        title: '¿Eliminar registro?',
-        text: 'Esta acción no se puede deshacer.',
+        title: 'Â¿Eliminar registro?',
+        text: 'Esta acciÃ³n no se puede deshacer.',
         showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: 'SÃ­, eliminar',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#c0392b',
         cancelButtonColor: '#0d233a'
@@ -1132,7 +1118,6 @@ async function eliminarIngresoTaller(id) {
     }
 }
 
-/* ─── Utilidades ─────────────────────────────────────────────────────────── */
 function poblarSelect(selectId, items, mapFn) {
     const sel = document.getElementById(selectId);
     if (!sel) return;
@@ -1152,9 +1137,9 @@ function poblarSelect(selectId, items, mapFn) {
 }
 
 function formatFecha(val) {
-    if (!val || val === '0001-01-01T00:00:00' || String(val).startsWith('0001-01-01')) return '—';
+    if (!val || val === '0001-01-01T00:00:00' || String(val).startsWith('0001-01-01')) return 'â€”';
     const d = new Date(val);
-    if (isNaN(d) || d.getFullYear() <= 1900) return '—';
+    if (isNaN(d) || d.getFullYear() <= 1900) return 'â€”';
     return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 

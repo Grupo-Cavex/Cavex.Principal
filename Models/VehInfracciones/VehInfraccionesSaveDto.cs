@@ -37,6 +37,11 @@ namespace Cavex.Principal.Models.VehInfracciones
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
         [Display(Name = "Comprobante de pago")]
         public string? StrUrlComprobantePago { get; set; }
+        
+        [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
+        [Display(Name = "Evidencia")]
+        public string? StrUrlEvidencia { get; set; }
+
 
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
         [Display(Name = "Evidencias")]
