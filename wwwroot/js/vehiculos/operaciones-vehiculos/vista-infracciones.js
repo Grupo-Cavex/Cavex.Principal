@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let listaVehiculosInfracciones = [];
 // Variable global para almacenar el comprobante de infracción seleccionado
 let comprobanteArchivoSeleccionado = null;
+let evidenciaArchivoSeleccionadoInfraccion = null;
 
 // Inicializa la configuración de la pantalla de infracciones
 function inicializarVistaInfracciones() {
@@ -17,6 +18,7 @@ function inicializarVistaInfracciones() {
     cargarCatalogosInfracciones();
     inicializarEstatusInfraccion();
     inicializarCargaComprobante();
+    inicializarCargaEvidencia();
     
     const montoInf = document.getElementById("infraccion-mnyMontoPagado");
     if (montoInf) {
@@ -96,11 +98,16 @@ function inicializarVistaInfracciones() {
         }
         
         formData.append("StrUrlComprobantePago", document.getElementById("infraccion-strUrlComprobantePago").value || "");
+        formData.append("StrUrlEvidencia", document.getElementById("infraccion-strUrlEvidencia")?.value || "");
         formData.append("StrObservaciones", document.getElementById("infraccion-strObservaciones").value || "");
 
         const fileInput = document.getElementById("infraccionComprobanteArchivo");
         if (isPaid && fileInput && fileInput.files.length > 0) {
             formData.append("ComprobanteArchivo", fileInput.files[0]);
+        }
+        const evidenciaInput = document.getElementById("infraccionEvidenciaArchivo");
+        if (evidenciaInput && evidenciaInput.files.length > 0) {
+            formData.append("EvidenciaArchivo", evidenciaInput.files[0]);
         }
 
         try {
@@ -525,9 +532,152 @@ function renderizarPreviaComprobante() {
 window.quitarComprobanteExistenteInfraccion = function() {
     const hidden = document.getElementById("infraccion-strUrlComprobantePago");
     if (hidden) hidden.value = "";
+    limpiarErrorComprobante();
     renderizarPreviaComprobante();
-    actualizarVistaPreviaInfraccion();
-};
+}
+
+function inicializarCargaEvidencia() {
+    const area = document.getElementById("infraccionEvidenciaArea");
+    const input = document.getElementById("infraccionEvidenciaArchivo");
+    if (!area || !input) return;
+
+    input.addEventListener("click", event => {
+        event.stopPropagation();
+    });
+
+    area.addEventListener("click", event => {
+        if (input.disabled) return;
+        if (event.target.closest("#btnQuitarEvidenciaInfraccion")) return;
+        input.click();
+    });
+
+    document.getElementById("btnQuitarEvidenciaInfraccion")?.addEventListener("click", event => {
+        event.stopPropagation();
+        limpiarEvidenciaInfraccion();
+    });
+
+    area.addEventListener("keydown", event => {
+        if (input.disabled) return;
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            input.click();
+        }
+    });
+
+    area.addEventListener("dragover", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.add("is-drag-over");
+    });
+    area.addEventListener("dragenter", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.add("is-drag-over");
+    });
+    area.addEventListener("dragleave", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.remove("is-drag-over");
+    });
+
+    area.addEventListener("drop", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.remove("is-drag-over");
+        const archivo = event.dataTransfer.files?.[0];
+        if (archivo) procesarArchivoEvidenciaInfraccion(archivo);
+    });
+
+    input.addEventListener("change", () => {
+        const archivo = input.files?.[0];
+        if (archivo) procesarArchivoEvidenciaInfraccion(archivo);
+    });
+}
+
+function procesarArchivoEvidenciaInfraccion(archivo) {
+    const limBytes = 5 * 1024 * 1024;
+    const extensionesPermitidas = ["jpg", "jpeg", "png", "webp", "pdf"];
+    limpiarErrorEvidenciaInfraccion();
+
+    const ext = archivo.name.split('.').pop().toLowerCase();
+    if (!extensionesPermitidas.includes(ext)) {
+        mostrarErrorEvidenciaInfraccion("El archivo debe ser PDF, JPG, PNG o WEBP.");
+        return;
+    }
+    if (archivo.size > limBytes) {
+        mostrarErrorEvidenciaInfraccion("El archivo supera el límite de 5 MB.");
+        return;
+    }
+
+    const input = document.getElementById("infraccionEvidenciaArchivo");
+    if (input) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(archivo);
+        input.files = dataTransfer.files;
+    }
+
+    evidenciaArchivoSeleccionadoInfraccion = archivo;
+    renderizarPreviaEvidenciaInfraccion();
+}
+
+function renderizarPreviaEvidenciaInfraccion() {
+    const prompt = document.getElementById("infraccionEvidenciaPrompt");
+    const preview = document.getElementById("infraccionEvidenciaFilePreview");
+    const hidden = document.getElementById("infraccion-strUrlEvidencia");
+    if (!prompt || !preview) return;
+
+    const urlExistente = hidden ? hidden.value : "";
+
+    if (!evidenciaArchivoSeleccionadoInfraccion && !urlExistente) {
+        prompt.style.display = "flex";
+        preview.style.display = "none";
+        return;
+    }
+
+    prompt.style.display = "none";
+    preview.style.display = "flex";
+
+    const nameText = document.getElementById("infraccionEvidenciaFileName");
+    const sizeText = document.getElementById("infraccionEvidenciaFileSize");
+
+    if (urlExistente) {
+        const name = urlExistente.split("/").pop();
+        if (nameText) nameText.textContent = name;
+        if (sizeText) sizeText.textContent = "Evidencia guardada";
+    } else if (evidenciaArchivoSeleccionadoInfraccion) {
+        if (nameText) nameText.textContent = evidenciaArchivoSeleccionadoInfraccion.name;
+        if (sizeText) sizeText.textContent = (evidenciaArchivoSeleccionadoInfraccion.size / 1024 / 1024).toFixed(2) + " MB";
+    }
+}
+
+function limpiarEvidenciaInfraccion() {
+    evidenciaArchivoSeleccionadoInfraccion = null;
+    const input = document.getElementById("infraccionEvidenciaArchivo");
+    if (input) input.value = "";
+    const hidden = document.getElementById("infraccion-strUrlEvidencia");
+    if (hidden) hidden.value = "";
+    limpiarErrorEvidenciaInfraccion();
+    renderizarPreviaEvidenciaInfraccion();
+}
+
+function mostrarErrorEvidenciaInfraccion(msg) {
+    const err = document.getElementById("infraccionEvidenciaArchivoError");
+    if (err) {
+        err.textContent = msg;
+        err.style.display = "block";
+    }
+}
+
+function limpiarErrorEvidenciaInfraccion() {
+    const err = document.getElementById("infraccionEvidenciaArchivoError");
+    if (err) {
+        err.textContent = "";
+        err.style.display = "none";
+    }
+}
 
 window.quitarArchivoComprobanteInfraccion = function() {
     comprobanteArchivoSeleccionado = null;
@@ -618,7 +768,13 @@ function actualizarVistaPreviaInfraccion() {
     setText("previewInfraccionVehiculo", txt("infraccion-idVehDatosGenerales") || "Sin seleccionar");
     setText("previewInfraccionPlaca", placaText);
     setText("previewInfraccionEmpleado", txt("infraccion-idEmpEmpleado") || "Sin seleccionar");
-    setText("previewInfraccionFecha", val("infraccion-dteFechaInfraccion") || "—");
+    const fechaInfVal = val("infraccion-dteFechaInfraccion");
+    let fechaInfFmt = "—";
+    if (fechaInfVal) {
+        const dInf = new Date(fechaInfVal);
+        fechaInfFmt = isNaN(dInf) ? fechaInfVal : dInf.toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+    setText("previewInfraccionFecha", fechaInfFmt);
     setText("previewInfraccionMotivo", val("infraccion-strMotivo") || "Sin capturar");
 
     const montoVal = parseFloat(val("infraccion-mnyMontoPagado")) || 0;
@@ -844,7 +1000,7 @@ function verDetalleInfraccion(id) {
                 <p><strong>Vehículo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
                 <p><strong>Placa:</strong> ${v ? v.strPlaca : "—"}</p>
                 <p><strong>Chofer Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha Infracción:</strong> ${inf.dteFechaInfraccion ? new Date(inf.dteFechaInfraccion).toLocaleDateString("es-MX") : "—"}</p>
+                <p><strong>Fecha Infracción:</strong> ${inf.dteFechaInfraccion ? (isNaN(new Date(inf.dteFechaInfraccion)) ? inf.dteFechaInfraccion : new Date(inf.dteFechaInfraccion).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })) : "—"}</p>
                 <p><strong>Estatus:</strong> <span class="badge ${inf.idVehCatStatus === 2 ? "bg-success" : "bg-warning text-dark"}">${statusText}</span></p>
                 <p><strong>Motivo:</strong> ${escapeHtml(inf.strMotivo)}</p>
                 <p><strong>Monto Pagado:</strong> ${inf.mnyMontoPagado ? `$${Number(inf.mnyMontoPagado).toLocaleString("es-MX", { minimumFractionDigits: 2 })}` : "$0.00"}</p>
@@ -880,7 +1036,15 @@ function editarInfraccion(id) {
     }
     
     if (inf.dteFechaInfraccion) {
-        document.getElementById("infraccion-dteFechaInfraccion").value = inf.dteFechaInfraccion.split("T")[0];
+        const d = new Date(inf.dteFechaInfraccion);
+        if (!isNaN(d)) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            const hh = String(d.getHours()).padStart(2, "0");
+            const min = String(d.getMinutes()).padStart(2, "0");
+            document.getElementById("infraccion-dteFechaInfraccion").value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
     }
     
     document.getElementById("infraccion-idVehCatStatus").value = inf.idVehCatStatus;
@@ -900,6 +1064,14 @@ function editarInfraccion(id) {
         document.getElementById("infraccion-dteFechaPago").value = "";
     }
     document.getElementById("infraccion-idVehFormaPago").value = inf.idVehFormaPago || "";
+    if (inf.strUrlEvidencia) {
+        document.getElementById("infraccion-strUrlEvidencia").value = inf.strUrlEvidencia;
+    } else {
+        document.getElementById("infraccion-strUrlEvidencia").value = "";
+    }
+    evidenciaArchivoSeleccionadoInfraccion = null;
+    renderizarPreviaEvidenciaInfraccion();
+
     document.getElementById("infraccion-strObservaciones").value = inf.strObservaciones || "";
     document.getElementById("infraccion-strObservaciones").dispatchEvent(new Event("input"));
 
@@ -976,6 +1148,7 @@ function resetearFormularioInfraccion() {
         }
     }
     limpiarComprobante();
+    limpiarEvidenciaInfraccion();
     actualizarVistaPreviaInfraccion();
 }
 

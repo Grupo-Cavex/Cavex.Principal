@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehControlGasolina
 {
@@ -10,7 +10,7 @@ namespace Cavex.Principal.Models.VehControlGasolina
 
         [Required(ErrorMessage = "La fecha de carga es obligatoria.")]
         [Display(Name = "Fecha de carga")]
-        public DateOnly DteFechaCarga { get; set; }
+        public DateTime DteFechaCarga { get; set; }
 
         [Required(ErrorMessage = "El monto pagado es obligatorio.")]
         [Display(Name = "Monto pagado")]
@@ -31,6 +31,10 @@ namespace Cavex.Principal.Models.VehControlGasolina
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
         [Display(Name = "Comprobante de pago")]
         public string? StrUrlComprobantePago { get; set; }
+
+        [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
+        [Display(Name = "Evidencias")]
+        public string? StrUrlEvidencia { get; set; }
 
         [Required(ErrorMessage = "La gasolinera es obligatoria.")]
         [Display(Name = "Gasolinera")]

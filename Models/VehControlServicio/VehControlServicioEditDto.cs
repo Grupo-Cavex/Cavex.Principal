@@ -1,10 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehControlServicio
 {
     public class VehControlServicioEditDto : VehControlServicioSaveDto
     {
-        [Required]
-        public int Id { get; set; }
     }
 }
+

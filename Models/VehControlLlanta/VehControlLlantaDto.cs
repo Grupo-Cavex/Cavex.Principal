@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehControlLlanta
 {
@@ -47,6 +47,14 @@ namespace Cavex.Principal.Models.VehControlLlanta
 
         [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
+
+        public int? IdVehFormaPago { get; set; }
+
+        [Display(Name = "Forma de pago")]
+        public string StrVehCatFormaPago { get; set; } = string.Empty;
+
+        [Display(Name = "Comprobante de pago")]
+        public string? StrUrlComprobantePago { get; set; }
 
         public int IdVehCatStatus { get; set; }
 

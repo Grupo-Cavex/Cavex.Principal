@@ -14,7 +14,7 @@ namespace Cavex.Principal.Models.VehInfracciones
 
         [Required(ErrorMessage = "La fecha de infraccion es obligatoria.")]
         [Display(Name = "Fecha de infraccion")]
-        public DateOnly DteFechaInfraccion { get; set; }
+        public DateTime DteFechaInfraccion { get; set; }
 
         [Required(ErrorMessage = "El motivo es obligatorio.")]
         [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
@@ -37,6 +37,10 @@ namespace Cavex.Principal.Models.VehInfracciones
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
         [Display(Name = "Comprobante de pago")]
         public string? StrUrlComprobantePago { get; set; }
+
+        [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
+        [Display(Name = "Evidencias")]
+        public string? StrUrlEvidencia { get; set; }
 
         [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
         [Display(Name = "Observaciones")]

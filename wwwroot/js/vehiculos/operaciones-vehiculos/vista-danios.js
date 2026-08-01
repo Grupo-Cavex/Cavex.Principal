@@ -68,7 +68,6 @@ function inicializarVistaDanios() {
         });
 
         const statusVal = parseInt(document.getElementById("danio-idVehCatStatus").value, 10);
-        const montoInput = document.getElementById("danio-mnyMontoReparacion").value;
         const seguroInput = document.getElementById("danio-idVehSeguro").value;
         const ubicacionVal = document.getElementById("danio-strUbicacion") ? document.getElementById("danio-strUbicacion").value.trim() : "";
         const tieneEvidencias = (typeof evidenciasExistentes !== "undefined" && evidenciasExistentes.length > 0) ||
@@ -82,11 +81,6 @@ function inicializarVistaDanios() {
         formData.append("DteFechaEvento", document.getElementById("danio-dteFechaEvento").value);
         formData.append("StrDescripcion", document.getElementById("danio-strDescripcion").value);
         formData.append("StrUbicacion", document.getElementById("danio-strUbicacion").value || "");
-        
-        if (montoInput) {
-            formData.append("MnyMontoReparacion", parseFloat(montoInput.replace(/,/g, "")));
-        }
-        
         formData.append("BitCubiertoPorSeguro", document.getElementById("danio-bitCubiertoPorSeguro").value === "true");
         
         if (seguroInput) {
@@ -805,7 +799,7 @@ function verDetalleDanio(id) {
                 <p><strong>Vehículo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
                 <p><strong>Placa:</strong> ${v ? v.strPlaca : "—"}</p>
                 <p><strong>Empleado Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha del Evento:</strong> ${d.dteFechaEvento ? new Date(d.dteFechaEvento).toLocaleDateString("es-MX") : "—"}</p>
+                <p><strong>Fecha del Evento:</strong> ${d.dteFechaEvento ? new Date(d.dteFechaEvento).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : "—"}</p>
                 <p><strong>Ubicación:</strong> ${escapeHtml(d.strUbicacion || "No registrada")}</p>
                 <p><strong>Monto Reparación:</strong> ${d.mnyMontoReparacion ? `$${Number(d.mnyMontoReparacion).toLocaleString("es-MX", { minimumFractionDigits: 2 })}` : "No especificado"}</p>
                 <p><strong>Cubierto por seguro:</strong> ${d.bitCubiertoPorSeguro ? "Sí" : "No"}</p>
@@ -842,17 +836,20 @@ function editarDanio(id) {
     }
     
     if (d.dteFechaEvento) {
-        document.getElementById("danio-dteFechaEvento").value = d.dteFechaEvento.split("T")[0];
+        const dateEv = new Date(d.dteFechaEvento);
+        if (!isNaN(dateEv)) {
+            const yyyy = dateEv.getFullYear();
+            const mm = String(dateEv.getMonth() + 1).padStart(2, "0");
+            const dd = String(dateEv.getDate()).padStart(2, "0");
+            const hh = String(dateEv.getHours()).padStart(2, "0");
+            const min = String(dateEv.getMinutes()).padStart(2, "0");
+            document.getElementById("danio-dteFechaEvento").value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
     }
     
     document.getElementById("danio-idVehCatStatus").value = d.idVehCatStatus;
     document.getElementById("danio-strDescripcion").value = d.strDescripcion || "";
     document.getElementById("danio-strUbicacion").value = d.strUbicacion || "";
-    const montoEl = document.getElementById("danio-mnyMontoReparacion");
-    if (montoEl) {
-        montoEl.value = d.mnyMontoReparacion || "";
-        if (montoEl.value) formatCurrencyInput(montoEl);
-    }
 
     const sw = document.getElementById("danioSeguroSwitch");
     if (sw) {

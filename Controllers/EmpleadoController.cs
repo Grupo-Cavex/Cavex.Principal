@@ -163,6 +163,8 @@ namespace Cavex.Principal.Controllers
         public async Task<IActionResult> GetEmpleados(int pagina, string? search, string? status, CancellationToken cancellationToken)
         {
             if (pagina < 1) pagina = 1;
+            if (string.IsNullOrWhiteSpace(search)) search = null;
+
             int? statusVal = null;
             if (status == "activos") statusVal = 1;
             else if (status == "inactivos" || status == "baja") statusVal = 2;
@@ -198,10 +200,26 @@ namespace Cavex.Principal.Controllers
             {
                 return Json(new { success = false, message = response.Message });
             }
+
+            var itemsList = response.Data?.Items?.ToList() ?? new List<EmpEmpleadoDto>();
+            int totalCountVal = response.Data?.TotalCount ?? itemsList.Count;
+
+            // Si la página solicitada excede los registros existentes y devuelve 0 elementos pero hay registros, recuperar página 1
+            if (pagina > 1 && itemsList.Count == 0 && totalCountVal > 0)
+            {
+                pagina = 1;
+                var pageOneResponse = await _service.ObtenerTodosAsync(1, 10, search, statusVal, cancellationToken);
+                if (pageOneResponse.Success && pageOneResponse.Data != null)
+                {
+                    itemsList = pageOneResponse.Data.Items?.ToList() ?? new List<EmpEmpleadoDto>();
+                    totalCountVal = pageOneResponse.Data.TotalCount;
+                }
+            }
+
             return Json(new { 
                 success = true, 
-                data = response.Data?.Items, 
-                totalCount = response.Data?.TotalCount ?? 0,
+                data = itemsList, 
+                totalCount = totalCountVal,
                 pageIndex = pagina,
                 pageSize = 10,
                 totalAllCount = totalAllCountVal,
@@ -235,6 +253,33 @@ namespace Cavex.Principal.Controllers
             {
                 return Json(new { success = false, message = response.Message });
             }
+
+            if (response.Data != null)
+            {
+                string? photoUrl = response.Data.EmpDocumentosLaborales?.StrUrlFotoEmp;
+                if (string.IsNullOrWhiteSpace(photoUrl) || photoUrl == "N/D" || photoUrl == "Foto Empleado")
+                {
+                    string curp = CleanFolderName(response.Data.StrCurp);
+                    string photoFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "empleados", curp, "foto");
+                    if (Directory.Exists(photoFolder))
+                    {
+                        var files = Directory.GetFiles(photoFolder)
+                            .OrderByDescending(f => System.IO.File.GetLastWriteTime(f))
+                            .ToList();
+                        if (files.Any())
+                        {
+                            string latestFile = Path.GetFileName(files.First());
+                            string relPath = $"/uploads/empleados/{curp}/foto/{latestFile}";
+                            if (response.Data.EmpDocumentosLaborales == null)
+                            {
+                                response.Data.EmpDocumentosLaborales = new Models.EmpDocumentosLaborales.EmpDocumentosLaboralesDto();
+                            }
+                            response.Data.EmpDocumentosLaborales.StrUrlFotoEmp = relPath;
+                        }
+                    }
+                }
+            }
+
             return Json(new { success = true, data = response.Data });
         }
 
@@ -380,30 +425,63 @@ namespace Cavex.Principal.Controllers
                 string docsFolder = $"uploads/empleados/{curp}/documentos";
                 string photoFolder = $"uploads/empleados/{curp}/foto";
 
-                // Guardar los archivos si se subieron nuevos
+                // Obtener documentos del empleado existente para preservar las versiones anteriores si no se subieron nuevos archivos
+                var existingEmpResponse = await _service.ObtenerPorIdAsync(id, cancellationToken);
+                var existingDocs = existingEmpResponse?.Success == true ? existingEmpResponse.Data?.EmpDocumentosLaborales : null;
+
+                // Guardar los archivos si se subieron nuevos o conservar la versión existente
                 if (Identificacion != null && Identificacion.Length > 0)
                 {
                     model.DocumentosLaborales.StrUrlIdentificacionOficial = await SaveFileAsync(Identificacion, docsFolder, "identificacion");
                 }
+                else if (string.IsNullOrWhiteSpace(model.DocumentosLaborales.StrUrlIdentificacionOficial) || model.DocumentosLaborales.StrUrlIdentificacionOficial.Contains("/uploads/identificacion.pdf"))
+                {
+                    model.DocumentosLaborales.StrUrlIdentificacionOficial = existingDocs?.StrUrlIdentificacionOficial ?? string.Empty;
+                }
+
                 if (Comprobante != null && Comprobante.Length > 0)
                 {
                     model.DocumentosLaborales.StrUrlComprobanteDomicilio = await SaveFileAsync(Comprobante, docsFolder, "comprobante");
                 }
+                else if (string.IsNullOrWhiteSpace(model.DocumentosLaborales.StrUrlComprobanteDomicilio) || model.DocumentosLaborales.StrUrlComprobanteDomicilio.Contains("/uploads/comprobante.pdf"))
+                {
+                    model.DocumentosLaborales.StrUrlComprobanteDomicilio = existingDocs?.StrUrlComprobanteDomicilio ?? string.Empty;
+                }
+
                 if (Cv != null && Cv.Length > 0)
                 {
                     model.DocumentosLaborales.StrUrlCurriculumVitae = await SaveFileAsync(Cv, docsFolder, "cv");
                 }
+                else if (string.IsNullOrWhiteSpace(model.DocumentosLaborales.StrUrlCurriculumVitae) || model.DocumentosLaborales.StrUrlCurriculumVitae.Contains("/uploads/cv.pdf"))
+                {
+                    model.DocumentosLaborales.StrUrlCurriculumVitae = existingDocs?.StrUrlCurriculumVitae ?? string.Empty;
+                }
+
                 if (Contrato != null && Contrato.Length > 0)
                 {
                     model.DocumentosLaborales.StrUrlContrato = await SaveFileAsync(Contrato, docsFolder, "contrato");
                 }
+                else if (string.IsNullOrWhiteSpace(model.DocumentosLaborales.StrUrlContrato) || model.DocumentosLaborales.StrUrlContrato.Contains("/uploads/contrato.pdf"))
+                {
+                    model.DocumentosLaborales.StrUrlContrato = existingDocs?.StrUrlContrato ?? string.Empty;
+                }
+
                 if (Licencia != null && Licencia.Length > 0)
                 {
                     model.DocumentosLaborales.StrUrlLicencia = await SaveFileAsync(Licencia, docsFolder, "licencia");
                 }
+                else if (string.IsNullOrWhiteSpace(model.DocumentosLaborales.StrUrlLicencia) || model.DocumentosLaborales.StrUrlLicencia.Contains("/uploads/licencia.pdf"))
+                {
+                    model.DocumentosLaborales.StrUrlLicencia = existingDocs?.StrUrlLicencia ?? string.Empty;
+                }
+
                 if (FotoEmpleado != null && FotoEmpleado.Length > 0)
                 {
                     model.DocumentosLaborales.StrUrlFotoEmp = await SaveFileAsync(FotoEmpleado, photoFolder, "foto");
+                }
+                else if (string.IsNullOrWhiteSpace(model.DocumentosLaborales.StrUrlFotoEmp))
+                {
+                    model.DocumentosLaborales.StrUrlFotoEmp = existingDocs?.StrUrlFotoEmp ?? string.Empty;
                 }
 
                 // Limpiar ModelState anterior y forzar validación del nuevo modelo
@@ -542,6 +620,114 @@ namespace Cavex.Principal.Controllers
             }
 
             return Json(new { success = true, message = saveModel.IdCatStatus == 2 ? "Empleado dado de baja exitosamente." : "Empleado activado exitosamente." });
+        }
+
+        [HttpGet("/Empleado/GetHistorialDocumentos")]
+        public async Task<IActionResult> GetHistorialDocumentos(int id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var empResponse = await _service.ObtenerPorIdAsync(id, cancellationToken);
+                if (empResponse == null || !empResponse.Success || empResponse.Data == null)
+                {
+                    return Json(new { success = false, message = "Empleado no encontrado." });
+                }
+
+                var emp = empResponse.Data;
+                string curp = CleanFolderName(emp.StrCurp);
+                string docsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "empleados", curp, "documentos");
+                string photoFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "empleados", curp, "foto");
+
+                var list = new List<object>();
+
+                Action<string, string> scanFolder = (folderPath, relativePrefix) =>
+                {
+                    if (Directory.Exists(folderPath))
+                    {
+                        var files = new DirectoryInfo(folderPath).GetFiles("*.*", SearchOption.AllDirectories)
+                            .OrderByDescending(f => f.LastWriteTime);
+
+                        foreach (var file in files)
+                        {
+                            string relUrl = "/" + Path.Combine(relativePrefix, file.Name).Replace("\\", "/");
+                            string fileLower = file.Name.ToLower();
+
+                            string docType = "Documento General";
+                            if (fileLower.StartsWith("identificacion")) docType = "Identificación Oficial";
+                            else if (fileLower.StartsWith("comprobante")) docType = "Comprobante de Domicilio";
+                            else if (fileLower.StartsWith("cv") || fileLower.StartsWith("curriculum")) docType = "Curriculum Vitae (CV)";
+                            else if (fileLower.StartsWith("contrato")) docType = "Contrato Laboral";
+                            else if (fileLower.StartsWith("licencia")) docType = "Licencia de Conducir";
+                            else if (fileLower.StartsWith("foto")) docType = "Fotografía de Empleado";
+
+                            bool esActual = false;
+                            if (emp.EmpDocumentosLaborales != null)
+                            {
+                                var d = emp.EmpDocumentosLaborales;
+                                if (relUrl.Equals(d.StrUrlIdentificacionOficial, StringComparison.OrdinalIgnoreCase) ||
+                                    relUrl.Equals(d.StrUrlComprobanteDomicilio, StringComparison.OrdinalIgnoreCase) ||
+                                    relUrl.Equals(d.StrUrlCurriculumVitae, StringComparison.OrdinalIgnoreCase) ||
+                                    relUrl.Equals(d.StrUrlContrato, StringComparison.OrdinalIgnoreCase) ||
+                                    relUrl.Equals(d.StrUrlLicencia, StringComparison.OrdinalIgnoreCase) ||
+                                    relUrl.Equals(d.StrUrlFotoEmp, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    esActual = true;
+                                }
+                            }
+
+                            list.Add(new
+                            {
+                                tipo = docType,
+                                nombreArchivo = file.Name,
+                                url = relUrl,
+                                fecha = file.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+                                tamanoMb = (file.Length / 1024.0 / 1024.0).ToString("F2") + " MB",
+                                esActual = esActual
+                            });
+                        }
+                    }
+                };
+
+                scanFolder(docsFolder, $"uploads/empleados/{curp}/documentos");
+                scanFolder(photoFolder, $"uploads/empleados/{curp}/foto");
+
+                // Si no se encontraron archivos físicos en carpeta pero existen URLs registradas en DB
+                if (list.Count == 0 && emp.EmpDocumentosLaborales != null)
+                {
+                    var docs = emp.EmpDocumentosLaborales;
+                    var dbDocs = new[]
+                    {
+                        new { Tipo = "Identificación Oficial", Url = docs.StrUrlIdentificacionOficial },
+                        new { Tipo = "Comprobante de Domicilio", Url = docs.StrUrlComprobanteDomicilio },
+                        new { Tipo = "Curriculum Vitae (CV)", Url = docs.StrUrlCurriculumVitae },
+                        new { Tipo = "Contrato Laboral", Url = docs.StrUrlContrato },
+                        new { Tipo = "Licencia de Conducir", Url = docs.StrUrlLicencia },
+                        new { Tipo = "Fotografía de Empleado", Url = docs.StrUrlFotoEmp }
+                    };
+
+                    foreach (var d in dbDocs)
+                    {
+                        if (!string.IsNullOrWhiteSpace(d.Url) && d.Url != "N/D")
+                        {
+                            list.Add(new
+                            {
+                                tipo = d.Tipo,
+                                nombreArchivo = Path.GetFileName(d.Url),
+                                url = d.Url,
+                                fecha = "Fecha de registro",
+                                tamanoMb = "—",
+                                esActual = true
+                            });
+                        }
+                    }
+                }
+
+                return Json(new { success = true, data = list });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error al obtener el historial de documentos: " + ex.Message });
+            }
         }
     }
 }

@@ -17,7 +17,10 @@ namespace Cavex.Principal.Models.VehAsignacionVehiculos
         public string StrEmpEmpleado { get; set; } = string.Empty;
 
         [Display(Name = "Fecha de asignacion")]
-        public DateOnly DteFechaAsigncion { get; set; }
+        public DateTime DteFechaAsigncion { get; set; }
+
+        [Display(Name = "Fecha de finalizacion")]
+        public DateTime? DteFechaFinalizacion { get; set; }
 
         [Display(Name = "Kilometraje inicial")]
         public decimal DecKilometrajeInicial { get; set; }

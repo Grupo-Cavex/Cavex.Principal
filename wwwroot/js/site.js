@@ -55,12 +55,16 @@ window.obtenerNombreMarcaVehiculo = function(v) {
     if (v.strVehCatMarcaVehiculo && v.strVehCatMarcaVehiculo !== "—" && v.strVehCatMarcaVehiculo !== "Desconocida") return v.strVehCatMarcaVehiculo;
     if (v.StrVehCatMarcaVehiculo && v.StrVehCatMarcaVehiculo !== "—" && v.StrVehCatMarcaVehiculo !== "Desconocida") return v.StrVehCatMarcaVehiculo;
     if (v.strMarca && v.strMarca !== "—" && v.strMarca !== "Desconocida") return v.strMarca;
+    if (v.StrMarca && v.StrMarca !== "—" && v.StrMarca !== "Desconocida") return v.StrMarca;
     if (v.strMarcaVehiculo && v.strMarcaVehiculo !== "—" && v.strMarcaVehiculo !== "Desconocida") return v.strMarcaVehiculo;
 
     const marcaId = Number(v.idVehCatMarcaVehiculo ?? v.IdVehCatMarcaVehiculo);
     if (marcaId && window.listaMarcasVehiculosGlobal && window.listaMarcasVehiculosGlobal.length > 0) {
         const m = window.listaMarcasVehiculosGlobal.find(item => Number(item.id ?? item.Id) === marcaId);
-        if (m) return m.strValor || m.StrValor || m.nombre || m.strDescripcion || "—";
+        if (m) {
+            const nombre = m.strValor || m.StrValor || m.nombre || m.strDescripcion;
+            if (nombre) return nombre;
+        }
     }
     return "—";
 };
@@ -369,22 +373,42 @@ function initializeCustomSelects() {
     });
 }
  
-// Cierra todos los selectores personalizados y dropdowns de acciones cuando el usuario hace click o scroll
+// Cierra todos los selectores personalizados y dropdowns de acciones cuando el usuario hace click o scroll fuera de ellos
 function closeAllOpenDropdowns(e) {
+    if (e && e.type === 'scroll') {
+        const target = e.target;
+        if (target && target.nodeType === 1) {
+            if (
+                target.classList.contains('custom-select-items-list') ||
+                target.classList.contains('custom-select-options') ||
+                target.classList.contains('cavex-select-options-list') ||
+                target.classList.contains('cavex-select-dropdown') ||
+                target.classList.contains('dropdown-menu') ||
+                (typeof target.closest === 'function' && (
+                    target.closest('.custom-select-options') ||
+                    target.closest('.cavex-select-dropdown') ||
+                    target.closest('.dropdown-menu')
+                ))
+            ) {
+                return; // Ignorar evento scroll interno para permitir desplazamiento del desplegable
+            }
+        }
+    }
+
     if (e && e.type === 'click') {
-        const clickedWrapper = e.target.closest('.custom-select-wrapper');
-        document.querySelectorAll('.custom-select-options.show').forEach(container => {
+        const clickedWrapper = e.target.closest('.custom-select-wrapper, .cavex-select-control');
+        document.querySelectorAll('.custom-select-options.show, .cavex-select-dropdown.is-open').forEach(container => {
             if (!clickedWrapper || !clickedWrapper.contains(container)) {
-                container.classList.remove('show');
+                container.classList.remove('show', 'is-open');
                 if (container.previousSibling && container.previousSibling.classList) {
-                    container.previousSibling.classList.remove('active');
+                    container.previousSibling.classList.remove('active', 'is-open');
                 }
             }
         });
         return;
     }
 
-    // Al hacer scroll, cerrar desplegables flotantes
+    // Al hacer scroll en la ventana/contenedor principal, cerrar desplegables flotantes
     document.querySelectorAll('.custom-select-options.show').forEach(container => {
         container.classList.remove('show');
         if (container.previousSibling && container.previousSibling.classList) {
@@ -450,8 +474,8 @@ window.registerSanitizer = registerSanitizer;
 
 // Escapa caracteres especiales de HTML para prevenir inyecciones de código (XSS)
 function escapeHtml(text) {
-    if (!text) return '';
-    return text
+    if (text === null || text === undefined) return '';
+    return String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")

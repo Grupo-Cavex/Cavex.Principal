@@ -29,27 +29,70 @@ function loadEmpleadosFromServer() {
         .then(result => {
             // Si la respuesta del servidor indica éxito
             if (result.success) {
-                // Comprueba que los datos contengan un arreglo válido de registros de empleados
-                if (result.data && Array.isArray(result.data)) {
-                    // Mapea la lista de registros de base de datos a un formato estandarizado para la vista
-                    empleados = result.data.map(item => {
-                        const nom = item.strNombre || item.StrNombre || '';
-                        const pat = item.strApellidoPaterno || item.StrApellidoPaterno || '';
-                        const mat = item.strApellidoMaterno || item.StrApellidoMaterno || '';
-                        const rawFullName = (nom + ' ' + pat + (mat ? ' ' + mat : '')).trim();
-                        const stId = item.idCatStatus ?? item.IdCatStatus ?? 1;
-                        return {
-                            id: item.id ?? item.Id,
-                            nombre: typeof toTitleCase === 'function' ? toTitleCase(rawFullName || 'Sin nombre') : (rawFullName || 'Sin nombre'),
-                            curp: item.strCurp || item.StrCurp || '—',
-                            rfc: item.strRfc || item.StrRfc || '—',
-                            area: typeof toTitleCase === 'function' ? toTitleCase(item.strEmpCondicionesLaborales || item.StrEmpCondicionesLaborales || 'Sin Condiciones Laborales') : (item.strEmpCondicionesLaborales || 'Sin Condiciones Laborales'),
-                            puesto: typeof toTitleCase === 'function' ? toTitleCase(item.strEmpCatTipoContratacion || item.StrEmpCatTipoContratacion || 'Sin Tipo de Contratación') : (item.strEmpCatTipoContratacion || 'Sin Tipo de Contratación'),
-                            correo: item.strCorreoElectronico || item.StrCorreoElectronico || '—',
-                            telefono: (item.empTelefonos && item.empTelefonos.length > 0) ? (item.empTelefonos[0].bigNumeroCelular || item.empTelefonos[0].bigNumeroFijo || item.empTelefonos[0].strNumeroCelular || item.empTelefonos[0].strNumeroFijo || '—') : '—',
-                            activo: stId !== 2
-                        };
-                    });
+                if (result.pageIndex && typeof result.pageIndex === 'number') {
+                    currentPage = result.pageIndex;
+                }
+
+                const rawItems = Array.isArray(result.data) 
+                    ? result.data 
+                    : (result.data?.items || result.data?.Items || []);
+
+                if (rawItems.length > 0) {
+                    empleados = rawItems.map(item => {
+                        try {
+                            const nom = item.strNombre || item.StrNombre || '';
+                            const pat = item.strApellidoPaterno || item.StrApellidoPaterno || '';
+                            const mat = item.strApellidoMaterno || item.StrApellidoMaterno || '';
+                            const rawFullName = (nom + ' ' + pat + (mat ? ' ' + mat : '')).trim();
+                            const stId = item.idCatStatus ?? item.IdCatStatus ?? 1;
+
+                            let areaStr = 'Sin Condiciones Laborales';
+                            if (item.strEmpCondicionesLaborales && typeof item.strEmpCondicionesLaborales === 'string' && item.strEmpCondicionesLaborales.trim() !== '') {
+                                areaStr = item.strEmpCondicionesLaborales;
+                            } else if (item.StrEmpCondicionesLaborales && typeof item.StrEmpCondicionesLaborales === 'string' && item.StrEmpCondicionesLaborales.trim() !== '') {
+                                areaStr = item.StrEmpCondicionesLaborales;
+                            } else if (item.empCondicionesLaborales?.strValor) {
+                                areaStr = item.empCondicionesLaborales.strValor;
+                            } else if (item.EmpCondicionesLaborales?.StrValor) {
+                                areaStr = item.EmpCondicionesLaborales.StrValor;
+                            }
+
+                            let puestoStr = 'Sin Tipo de Contratación';
+                            if (item.strEmpCatTipoContratacion && typeof item.strEmpCatTipoContratacion === 'string' && item.strEmpCatTipoContratacion.trim() !== '') {
+                                puestoStr = item.strEmpCatTipoContratacion;
+                            } else if (item.StrEmpCatTipoContratacion && typeof item.StrEmpCatTipoContratacion === 'string' && item.StrEmpCatTipoContratacion.trim() !== '') {
+                                puestoStr = item.StrEmpCatTipoContratacion;
+                            } else if (item.empCatTipoContratacion?.strValor) {
+                                puestoStr = item.empCatTipoContratacion.strValor;
+                            } else if (item.EmpCatTipoContratacion?.StrValor) {
+                                puestoStr = item.EmpCatTipoContratacion.StrValor;
+                            }
+                            
+                            let telStr = '—';
+                            const tels = item.empTelefonos || item.EmpTelefonos;
+                            if (Array.isArray(tels) && tels.length > 0) {
+                                const t = tels[0];
+                                telStr = t.bigNumeroCelular || t.BigNumeroCelular || t.bigNumeroFijo || t.BigNumeroFijo || t.strNumeroCelular || t.StrNumeroCelular || t.strNumeroFijo || t.StrNumeroFijo || '—';
+                            }
+
+                            const formattedNombre = typeof window.toTitleCase === 'function' ? window.toTitleCase(rawFullName) : rawFullName;
+
+                            return {
+                                id: item.id ?? item.Id,
+                                nombre: formattedNombre || 'Sin nombre',
+                                curp: item.strCurp || item.StrCurp || '—',
+                                rfc: item.strRfc || item.StrRfc || '—',
+                                area: areaStr,
+                                puesto: puestoStr,
+                                correo: item.strCorreoElectronico || item.StrCorreoElectronico || '—',
+                                telefono: telStr,
+                                activo: Number(stId) !== 2
+                            };
+                        } catch (err) {
+                            console.error("Error al mapear empleado:", item, err);
+                            return null;
+                        }
+                    }).filter(Boolean);
                 } else {
                     empleados = [];
                 }
@@ -73,7 +116,7 @@ function loadEmpleadosFromServer() {
             }
         })
         .catch(err => {
-            // En caso de fallar la comunicación o haber error de parseo, inicializa vacío y dibuja la tabla
+            console.error("Error al cargar empleados desde el servidor:", err);
             empleados = [];
             renderEmpleados(0);
         });

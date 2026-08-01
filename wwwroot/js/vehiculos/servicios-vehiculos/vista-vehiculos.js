@@ -63,12 +63,12 @@ function inicializarVehiculosIndex() {
                 Swal.close();
                 if (result.success && result.data) {
                     vehiculosDemo = result.data.map(v => {
-                        const strMarca = vehiculoCatalogos.idVehCatMarcaVehiculo.find(item => item.id === v.idVehCatMarcaVehiculo)?.strValor || "Desconocida";
-                        const strColor = vehiculoCatalogos.idVehCatColor.find(item => item.id === v.idVehCatColor)?.strValor || "Desconocido";
-                        const strTipoVehiculo = vehiculoCatalogos.idVehCatTipoVehiculo.find(item => item.id === v.idVehCatTipoVehiculo)?.strValor || "Desconocido";
-                        const strCapacidad = vehiculoCatalogos.idVehCatCapacidad.find(item => item.id === v.idVehCatCapacidad)?.strValor || "";
-                        const strTipoCombustible = vehiculoCatalogos.idVehCatTipoCombustible.find(item => item.id === v.idVehCatTipoCombustible)?.strValor || "";
-                        const strStatus = vehiculoCatalogos.idVehCatStatus.find(item => item.id === v.idVehCatStatus)?.strValor || "Activo";
+                        const strMarca = v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || vehiculoCatalogos.idVehCatMarcaVehiculo.find(item => (item.id ?? item.Id) === (v.idVehCatMarcaVehiculo ?? v.IdVehCatMarcaVehiculo))?.strValor || "Desconocida";
+                        const strColor = v.strVehCatColor || v.StrVehCatColor || vehiculoCatalogos.idVehCatColor.find(item => (item.id ?? item.Id) === (v.idVehCatColor ?? v.IdVehCatColor))?.strValor || "Desconocido";
+                        const strTipoVehiculo = v.strVehCatTipoVehiculo || v.StrVehCatTipoVehiculo || vehiculoCatalogos.idVehCatTipoVehiculo.find(item => (item.id ?? item.Id) === (v.idVehCatTipoVehiculo ?? v.IdVehCatTipoVehiculo))?.strValor || "Desconocido";
+                        const strCapacidad = v.strVehCatCapacidad || v.StrVehCatCapacidad || vehiculoCatalogos.idVehCatCapacidad.find(item => (item.id ?? item.Id) === (v.idVehCatCapacidad ?? v.IdVehCatCapacidad))?.strValor || "";
+                        const strTipoCombustible = v.strVehCatTipoCombustible || v.StrVehCatTipoCombustible || vehiculoCatalogos.idVehCatTipoCombustible.find(item => (item.id ?? item.Id) === (v.idVehCatTipoCombustible ?? v.IdVehCatTipoCombustible))?.strValor || "";
+                        const strStatus = v.strVehCatStatus || v.StrVehCatStatus || vehiculoCatalogos.idVehCatStatus.find(item => (item.id ?? item.Id) === (v.idVehCatStatus ?? v.IdVehCatStatus))?.strValor || "Activo";
 
                         return {
                             id: v.id,
@@ -170,6 +170,12 @@ function renderVehiculosTable() {
     setText("vehiculosCountActivos", String(vehiculosDemo.filter(v => v.strStatus === "Activo").length));
     setText("vehiculosCountMantenimiento", String(vehiculosDemo.filter(v => v.strStatus === "En mantenimiento").length));
     setText("vehiculosPaginationInfo", filtrados.length ? `Mostrando ${inicio + 1}-${inicio + pagina.length} de ${filtrados.length} registros` : "Mostrando 0-0 de 0 registros");
+    
+    const headerPill = document.querySelector('.vehiculo-module-table .records-pill');
+    if (headerPill) {
+        headerPill.textContent = `${vehiculosDemo.length} vehículos`;
+    }
+    
     renderVehiculosPagination(totalPaginas);
 
     document.querySelectorAll('#vehiculosTableBody .btn-action-trigger').forEach(el => {

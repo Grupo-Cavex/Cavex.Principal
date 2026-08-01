@@ -14,7 +14,7 @@ namespace Cavex.Principal.Models.VehDaniosAccidentes
 
         [Required(ErrorMessage = "La fecha del evento es obligatoria.")]
         [Display(Name = "Fecha del evento")]
-        public DateOnly DteFechaEvento { get; set; }
+        public DateTime DteFechaEvento { get; set; }
 
         [Required(ErrorMessage = "La descripcion es obligatoria.")]
         [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]

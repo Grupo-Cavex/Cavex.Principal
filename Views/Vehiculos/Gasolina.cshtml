@@ -1,7 +1,7 @@
 @{
-    ViewData["Title"] = "Control de la carga de gasolina";
-    ViewData["HeaderEyebrow"] = "Consumo vehicular";
-    ViewData["HeaderSubtitle"] = "Registra cargas de combustible, costos, kilometraje, gasolinera y comprobantes por unidad.";
+    ViewBag.Title = "Control de la carga de gasolina";
+    ViewBag.HeaderEyebrow = "Consumo vehicular";
+    ViewBag.HeaderSubtitle = "Registra cargas de combustible, costos, kilometraje, gasolinera y comprobantes por unidad.";
 }
 
 @section Head {
@@ -46,14 +46,14 @@
                 </div>
             </section>
 
-            <!-- Datos de carga y catálogos relacionados. -->
+            <!-- Datos de carga, pago y comprobante en punto 2. -->
             <section class="cavex-card form-section-card vehiculo-section-card">
-                <h3 class="form-section-title"><span class="form-section-number">2</span>Datos de la carga</h3>
+                <h3 class="form-section-title"><span class="form-section-number">2</span>Datos de la carga y Comprobante de pago</h3>
                 <div class="row g-3">
                     <div class="col-md-6 col-xl-4">
-                        <label class="form-label" for="gasolina-dteFechaCarga">Fecha de carga</label>
-                        <input id="gasolina-dteFechaCarga" name="dteFechaCarga" type="date" class="form-control" required />
-                        <div class="invalid-feedback" id="gasolina-dteFechaCargaError">Captura una fecha válida.</div>
+                        <label class="form-label" for="gasolina-dteFechaCarga">Fecha y hora de carga</label>
+                        <input id="gasolina-dteFechaCarga" name="dteFechaCarga" type="datetime-local" class="form-control" step="60" required />
+                        <div class="invalid-feedback" id="gasolina-dteFechaCargaError">Captura una fecha y hora válida.</div>
                     </div>
                     <div class="col-md-6 col-xl-4">
                         <label class="form-label" for="gasolina-idVehCatGasolineras">Gasolinera</label>
@@ -93,35 +93,60 @@
                         </select>
                         <div class="invalid-feedback" id="gasolina-idVehFormaPagoError">Selecciona una forma de pago.</div>
                     </div>
+                    <div class="col-12 mt-3">
+                        <label class="form-label" for="gasolinaComprobanteArchivo">Comprobante de pago</label>
+                        <div id="gasolinaComprobanteArea" class="vehiculo-upload-area gasolina-comprobante-area" role="button" tabindex="0">
+                            <input id="gasolinaComprobanteArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
+                            <input id="gasolina-strUrlComprobantePago" name="strUrlComprobantePago" type="hidden" value="" />
+                            <div id="gasolinaComprobantePrompt" class="vehiculo-upload-prompt gasolina-comprobante-prompt">
+                                <span class="vehiculo-upload-icon" aria-hidden="true">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                                </span>
+                                <strong>Arrastra el comprobante de pago aquí</strong>
+                                <span>o haz clic para seleccionar</span>
+                                <small>PDF, JPG, JPEG, PNG o WEBP · máximo 5 MB</small>
+                            </div>
+                            <div class="vehiculo-file-preview" id="gasolinaFilePreview" style="display: none;">
+                                <div class="vehiculo-file-meta">
+                                    <strong id="gasolinaFileName">Comprobante seleccionado</strong>
+                                    <small id="gasolinaFileSize"></small>
+                                </div>
+                                <div class="vehiculo-file-actions gasolina-file-actions">
+                                    <button id="btnQuitarComprobanteGasolina" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="gasolinaComprobanteArchivoError" class="invalid-feedback gasolina-upload-error"></div>
+                    </div>
                 </div>
             </section>
 
-            <!-- Comprobante opcional: el backend futuro asignará la ruta a strUrlComprobantePago. -->
+            <!-- Evidencias en punto 3 -->
             <section class="cavex-card form-section-card vehiculo-section-card">
-                <h3 class="form-section-title"><span class="form-section-number">3</span>Comprobante de pago</h3>
-                <label class="form-label" for="gasolinaComprobanteArchivo">Archivo</label>
-                <div id="gasolinaComprobanteArea" class="vehiculo-upload-area gasolina-comprobante-area" role="button" tabindex="0">
-                    <input id="gasolinaComprobanteArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
-                    <input id="gasolina-strUrlComprobantePago" name="strUrlComprobantePago" type="hidden" value="" />
-                    <div id="gasolinaComprobantePrompt" class="vehiculo-upload-prompt gasolina-comprobante-prompt">
+                <h3 class="form-section-title"><span class="form-section-number">3</span>Evidencias</h3>
+                <label class="form-label" for="gasolinaEvidenciaArchivo">Archivo de Evidencias</label>
+                <div id="gasolinaEvidenciaArea" class="vehiculo-upload-area gasolina-evidencia-area" role="button" tabindex="0">
+                    <input id="gasolinaEvidenciaArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
+                    <input id="gasolina-strUrlEvidencia" name="strUrlEvidencia" type="hidden" value="" />
+                    <div id="gasolinaEvidenciaPrompt" class="vehiculo-upload-prompt gasolina-evidencia-prompt">
                         <span class="vehiculo-upload-icon" aria-hidden="true">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
                         </span>
-                        <strong>Arrastra el comprobante aquí</strong>
+                        <strong>Arrastra la evidencia aquí</strong>
                         <span>o haz clic para seleccionar</span>
                         <small>PDF, JPG, JPEG, PNG o WEBP · máximo 5 MB</small>
                     </div>
-                    <div class="vehiculo-file-preview" id="gasolinaFilePreview" style="display: none;">
+                    <div class="vehiculo-file-preview" id="gasolinaEvidenciaPreview" style="display: none;">
                         <div class="vehiculo-file-meta">
-                            <strong id="gasolinaFileName">Comprobante seleccionado</strong>
-                            <small id="gasolinaFileSize"></small>
+                            <strong id="gasolinaEvidenciaFileName">Evidencia seleccionada</strong>
+                            <small id="gasolinaEvidenciaFileSize"></small>
                         </div>
                         <div class="vehiculo-file-actions gasolina-file-actions">
-                            <button id="btnQuitarComprobanteGasolina" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
+                            <button id="btnQuitarEvidenciaGasolina" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
                         </div>
                     </div>
                 </div>
-                <div id="gasolinaComprobanteArchivoError" class="invalid-feedback gasolina-upload-error"></div>
+                <div id="gasolinaEvidenciaArchivoError" class="invalid-feedback gasolina-upload-error"></div>
             </section>
         </div>
 

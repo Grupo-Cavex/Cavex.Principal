@@ -1,9 +1,9 @@
 @{
-    var title = ViewData["TableTitle"] as string ?? "Resultados del módulo";
-    var subtitle = ViewData["TableSubtitle"] as string ?? "Mostrando la lista de registros actuales.";
-    var count = ViewData["TableCount"] as int? ?? 0;
-    var countLabel = ViewData["TableCountLabel"] as string ?? "registros";
-    var extraPill = ViewData["TableExtraPill"] as string ?? "Página 1";
+    var title = ViewBag.TableTitle as string ?? "Resultados del módulo";
+    var subtitle = ViewBag.TableSubtitle as string ?? "Mostrando la lista de registros actuales.";
+    var count = ViewBag.TableCount as int? ?? 0;
+    var countLabel = ViewBag.TableCountLabel as string ?? "registros";
+    var extraPill = ViewBag.TableExtraPill as string ?? "Página 1";
 }
 <div class="table-toolbar">
     <div>

@@ -1,13 +1,13 @@
 @model Cavex.Principal.Models.VehCatAseguradora.VehCatAseguradoraSaveDto;
 @{
-    ViewData["Title"] = "Nueva Compañía de Seguros";
-    ViewData["HeaderEyebrow"] = "Configuración";
-    ViewData["HeaderSubtitle"] = "Administra el catálogo de compañías de seguros de la plataforma.";
+    ViewBag.Title = "Nueva Compañía de Seguros";
+    ViewBag.HeaderEyebrow = "Configuración";
+    ViewBag.HeaderSubtitle = "Administra el catálogo de compañías de seguros de la plataforma.";
 
-    ViewData["TableTitle"] = "Listado de compañías de seguros";
-    ViewData["TableSubtitle"] = "Catálogo de aseguradoras registradas y sus descripciones.";
-    ViewData["TableCount"] = 0;
-    ViewData["TableCountLabel"] = "aseguradoras";
+    ViewBag.TableTitle = "Listado de compañías de seguros";
+    ViewBag.TableSubtitle = "Catálogo de aseguradoras registradas y sus descripciones.";
+    ViewBag.TableCount = 0;
+    ViewBag.TableCountLabel = "aseguradoras";
 }
 
 @section Head {

@@ -4,16 +4,17 @@ namespace Cavex.Principal.Models.VehControlServicio
 {
     public class VehControlServicioSaveDto
     {
+        public int Id { get; set; }
+
         public string? StrUrlComprobantePago { get; set; }
 
         [Required(ErrorMessage = "El vehiculo es obligatorio.")]
         [Display(Name = "Vehiculo")]
         public int IdVehDatosGenerales { get; set; }
 
-
         [Required(ErrorMessage = "La fecha de servicio es obligatoria.")]
         [Display(Name = "Fecha de servicio")]
-        public DateTime DteFechaServicio { get; set; }
+        public DateOnly DteFechaServicio { get; set; }
 
         [Required(ErrorMessage = "El kilometraje actual es obligatorio.")]
         [Display(Name = "Kilometraje actual")]
@@ -23,12 +24,27 @@ namespace Cavex.Principal.Models.VehControlServicio
         [Display(Name = "Taller")]
         public int IdVehCatTaller { get; set; }
 
-        [Required(ErrorMessage = "El encargado es obligatorio.")]
-        [Display(Name = "Encargado")]
-        public int IdEmpEmpleado { get; set; } = 0; 
+        public int IdVehCatTipoServicio { get; set; }
 
+        public string? StrDescripcion { get; set; }
 
+        public decimal MnyCostoManoObra { get; set; }
+
+        public decimal MnyCostoRefacciones { get; set; }
+
+        public int IdVehFormaPago { get; set; } = 1;
+
+        public int IdVehCatResponsableServicio { get; set; }
+
+        public int IdEmpEmpleadoChofer { get; set; }
+
+        public int IdEmpEmpleado { get; set; }
+
+        public int? IntProximoServicioPorKm { get; set; }
+
+        public DateOnly? DteProximoServicioPorFecha { get; set; }
     }
 }
+
 
         

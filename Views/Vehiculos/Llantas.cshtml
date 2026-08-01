@@ -1,8 +1,8 @@
 @{
-    ViewData["Title"] = "Control de llantas";
-    ViewData["HeaderEyebrow"] = "Seguridad vehicular";
-    ViewData["HeaderTitle"] = "Control de llantas";
-    ViewData["HeaderSubtitle"] = "Registra compras, posiciones, kilometraje, rotaciones, vida estimada y evidencias por unidad.";
+    ViewBag.Title = "Control de llantas";
+    ViewBag.HeaderEyebrow = "Seguridad vehicular";
+    ViewBag.HeaderTitle = "Control de llantas";
+    ViewBag.HeaderSubtitle = "Registra compras, posiciones, kilometraje, rotaciones, vida estimada y evidencias por unidad.";
 }
 
 @section Head {
@@ -48,48 +48,35 @@
                 </div>
             </section>
 
-            <!-- Datos de la llanta: columnas NOT NULL de dbo.VehControlLlanta. -->
+            <!-- Datos de la llanta -->
             <section class="cavex-card form-section-card vehiculo-section-card">
                 <h3 class="form-section-title"><span class="form-section-number">2</span>Datos de la llanta</h3>
                 <div class="row g-3">
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-3">
                         <label class="form-label" for="llanta-idVehCatMarcaLlanta">Marca de llanta</label>
                         <select id="llanta-idVehCatMarcaLlanta" name="idVehCatMarcaLlanta" class="form-select" required>
                             <option value="">Seleccionar...</option>
                         </select>
                         <div class="invalid-feedback" id="llanta-idVehCatMarcaLlantaError">Selecciona una marca válida.</div>
                     </div>
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-3">
                         <label class="form-label" for="llanta-strModelo">Modelo</label>
                         <input id="llanta-strModelo" name="strModelo" type="text" maxlength="50" class="form-control" placeholder="Ej. Primacy 4" required />
                         <div class="invalid-feedback" id="llanta-strModeloError">El modelo es obligatorio y admite hasta 50 caracteres.</div>
                     </div>
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-3">
                         <label class="form-label" for="llanta-strMedida">Medida</label>
                         <input id="llanta-strMedida" name="strMedida" type="text" maxlength="50" class="form-control" placeholder="205/55 R16" required />
                         <div class="invalid-feedback" id="llanta-strMedidaError">Captura una medida válida, por ejemplo 205/55 R16.</div>
                     </div>
-                    <div class="col-md-6 col-xl-4">
-                        <label class="form-label" for="llanta-dteFechaCompra">Fecha de compra</label>
-                        <input id="llanta-dteFechaCompra" name="dteFechaCompra" type="date" class="form-control" required />
-                        <div class="invalid-feedback" id="llanta-dteFechaCompraError">Captura una fecha válida.</div>
-                    </div>
-                    <div class="col-md-6 col-xl-4">
-                        <label class="form-label" for="llanta-mnyCosto">Costo</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input id="llanta-mnyCosto" name="mnyCosto" type="text" class="form-control" placeholder="0.00" required />
-                        </div>
-                        <div class="invalid-feedback" id="llanta-mnyCostoError">Captura un costo mayor que cero.</div>
-                    </div>
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-3">
                         <label class="form-label" for="llanta-idVehCatPosicionLlanta">Posición</label>
                         <select id="llanta-idVehCatPosicionLlanta" name="idVehCatPosicionLlanta" class="form-select" required>
                             <option value="">Seleccionar...</option>
                         </select>
                         <div class="invalid-feedback" id="llanta-idVehCatPosicionLlantaError">Selecciona una posición válida.</div>
                     </div>
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-3">
                         <label class="form-label" for="llanta-idVehCatStatus">Estatus</label>
                         <select id="llanta-idVehCatStatus" name="idVehCatStatus" class="form-select" required>
                             <option value="">Seleccionar...</option>
@@ -99,9 +86,36 @@
                 </div>
             </section>
 
-            <!-- Fechas opcionales: columnas NULL usadas para alertas futuras de vida y rotación. -->
+            <!-- Datos de compra y pago -->
+            <section class="cavex-card form-section-card vehiculo-section-card">
+                <h3 class="form-section-title"><span class="form-section-number">3</span>Datos de compra y pago</h3>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="llanta-dteFechaCompra">Fecha de compra</label>
+                        <input id="llanta-dteFechaCompra" name="dteFechaCompra" type="date" class="form-control" required />
+                        <div class="invalid-feedback" id="llanta-dteFechaCompraError">Captura una fecha válida.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="llanta-mnyCosto">Costo</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input id="llanta-mnyCosto" name="mnyCosto" type="text" class="form-control" placeholder="0.00" required />
+                        </div>
+                        <div class="invalid-feedback" id="llanta-mnyCostoError">Captura un costo mayor que cero.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="llanta-idVehFormaPago">Forma de pago</label>
+                        <select id="llanta-idVehFormaPago" name="idVehFormaPago" class="form-select">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                        <div class="invalid-feedback" id="llanta-idVehFormaPagoError">Selecciona una forma de pago válida.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Fechas de vida y rotación -->
             <section class="cavex-card form-section-card vehiculo-section-card llanta-fechas-card">
-                <h3 class="form-section-title"><span class="form-section-number">3</span>Fechas de vida y rotación</h3>
+                <h3 class="form-section-title"><span class="form-section-number">4</span>Fechas de vida y rotación</h3>
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label" for="llanta-dteFechaFinVidaEstimada">Vida estimada</label>
@@ -121,32 +135,64 @@
                 </div>
             </section>
 
-            <!-- Evidencia opcional: el backend futuro convertirá el archivo local en strUrlEvidencia. -->
+            <!-- Archivos y Evidencias -->
             <section class="cavex-card form-section-card vehiculo-section-card">
-                <h3 class="form-section-title"><span class="form-section-number">4</span>Evidencia</h3>
-                <label class="form-label" for="llantaEvidenciaArchivo">Archivo</label>
-                <div id="llantaEvidenciaArea" class="vehiculo-upload-area llanta-evidencia-area" role="button" tabindex="0">
-                    <input id="llantaEvidenciaArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
-                    <input id="llanta-strUrlEvidencia" name="strUrlEvidencia" type="hidden" value="" />
-                    <div id="llantaEvidenciaPrompt" class="vehiculo-upload-prompt llanta-evidencia-prompt">
-                        <span class="vehiculo-upload-icon" aria-hidden="true">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
-                        </span>
-                        <strong>Arrastra la evidencia aquí</strong>
-                        <span>o haz clic para seleccionar</span>
-                        <small>PDF, JPG, JPEG, PNG o WEBP · máximo 5 MB</small>
+                <h3 class="form-section-title"><span class="form-section-number">5</span>Archivos y Evidencias</h3>
+                <div class="row g-3">
+                    <!-- Comprobante de pago Drag & Drop -->
+                    <div class="col-md-6">
+                        <label class="form-label" for="llantaComprobanteArchivo">Comprobante de Pago</label>
+                        <div id="llantaComprobanteArea" class="vehiculo-upload-area llanta-comprobante-area" role="button" tabindex="0">
+                            <input id="llantaComprobanteArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
+                            <input id="llanta-strUrlComprobantePago" name="strUrlComprobantePago" type="hidden" value="" />
+                            <div id="llantaComprobantePrompt" class="vehiculo-upload-prompt llanta-comprobante-prompt">
+                                <span class="vehiculo-upload-icon" aria-hidden="true">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                                </span>
+                                <strong>Arrastra el comprobante de pago aquí</strong>
+                                <span>o haz clic para seleccionar</span>
+                                <small>PDF, JPG, JPEG, PNG o WEBP · máximo 5 MB</small>
+                            </div>
+                            <div class="vehiculo-file-preview" id="llantaComprobanteFilePreview" style="display: none;">
+                                <div class="vehiculo-file-meta">
+                                    <strong id="llantaComprobanteFileName">Comprobante seleccionado</strong>
+                                    <small id="llantaComprobanteFileSize"></small>
+                                </div>
+                                <div class="vehiculo-file-actions llanta-file-actions">
+                                    <button id="btnQuitarComprobanteLlanta" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="llantaComprobanteArchivoError" class="invalid-feedback llanta-upload-error"></div>
                     </div>
-                    <div class="vehiculo-file-preview" id="llantaFilePreview" style="display: none;">
-                        <div class="vehiculo-file-meta">
-                            <strong id="llantaFileName">Evidencia seleccionada</strong>
-                            <small id="llantaFileSize"></small>
+
+                    <!-- Evidencia Drag & Drop -->
+                    <div class="col-md-6">
+                        <label class="form-label" for="llantaEvidenciaArchivo">Archivo de Evidencia</label>
+                        <div id="llantaEvidenciaArea" class="vehiculo-upload-area llanta-evidencia-area" role="button" tabindex="0">
+                            <input id="llantaEvidenciaArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
+                            <input id="llanta-strUrlEvidencia" name="strUrlEvidencia" type="hidden" value="" />
+                            <div id="llantaEvidenciaPrompt" class="vehiculo-upload-prompt llanta-evidencia-prompt">
+                                <span class="vehiculo-upload-icon" aria-hidden="true">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                                </span>
+                                <strong>Arrastra la evidencia aquí</strong>
+                                <span>o haz clic para seleccionar</span>
+                                <small>PDF, JPG, JPEG, PNG o WEBP · máximo 5 MB</small>
+                            </div>
+                            <div class="vehiculo-file-preview" id="llantaFilePreview" style="display: none;">
+                                <div class="vehiculo-file-meta">
+                                    <strong id="llantaFileName">Evidencia seleccionada</strong>
+                                    <small id="llantaFileSize"></small>
+                                </div>
+                                <div class="vehiculo-file-actions llanta-file-actions">
+                                    <button id="btnQuitarEvidenciaLlanta" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="vehiculo-file-actions llanta-file-actions">
-                            <button id="btnQuitarEvidenciaLlanta" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
-                        </div>
+                        <div id="llantaEvidenciaArchivoError" class="invalid-feedback llanta-upload-error"></div>
                     </div>
                 </div>
-                <div id="llantaEvidenciaArchivoError" class="invalid-feedback llanta-upload-error"></div>
             </section>
         </div>
     </div>

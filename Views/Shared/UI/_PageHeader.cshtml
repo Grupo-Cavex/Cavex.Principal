@@ -1,14 +1,14 @@
 @{
-    var containerClass = ViewData["HeaderContainerClass"] as string ?? "internal-header";
-    var eyebrow = ViewData["HeaderEyebrow"] as string;
-    var title = ViewData["HeaderTitle"] as string ?? ViewData["Title"] as string;
-    var subtitle = ViewData["HeaderSubtitle"] as string;
-    var buttonText = ViewData["HeaderButtonText"] as string;
-    var buttonAction = ViewData["HeaderButtonAction"] as string;
-    var buttonController = ViewData["HeaderButtonController"] as string;
-    var buttonClass = ViewData["HeaderButtonClass"] as string ?? "btn btn-cavex";
-    var badgeText = ViewData["HeaderBadgeText"] as string;
-    var badgeClass = ViewData["HeaderBadgeClass"] as string ?? "badge-cavex";
+    var containerClass = ViewBag.HeaderContainerClass as string ?? "internal-header";
+    var eyebrow = ViewBag.HeaderEyebrow as string;
+    var title = ViewBag.HeaderTitle as string ?? ViewBag.Title as string;
+    var subtitle = ViewBag.HeaderSubtitle as string;
+    var buttonText = ViewBag.HeaderButtonText as string;
+    var buttonAction = ViewBag.HeaderButtonAction as string;
+    var buttonController = ViewBag.HeaderButtonController as string;
+    var buttonClass = ViewBag.HeaderButtonClass as string ?? "btn btn-cavex";
+    var badgeText = ViewBag.HeaderBadgeText as string;
+    var badgeClass = ViewBag.HeaderBadgeClass as string ?? "badge-cavex";
 }
 <div class="@containerClass">
     <div>

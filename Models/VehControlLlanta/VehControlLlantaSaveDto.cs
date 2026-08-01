@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehControlLlanta
 {
@@ -50,6 +50,13 @@ namespace Cavex.Principal.Models.VehControlLlanta
         [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
         [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
+
+        [Display(Name = "Forma de pago")]
+        public int? IdVehFormaPago { get; set; }
+
+        [StringLength(2048, ErrorMessage = "El valor no puede superar los 2048 caracteres.")]
+        [Display(Name = "Comprobante de pago")]
+        public string? StrUrlComprobantePago { get; set; }
 
         [Required(ErrorMessage = "El estatus es obligatorio.")]
         [Display(Name = "Estatus")]

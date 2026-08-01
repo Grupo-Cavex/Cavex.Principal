@@ -17,7 +17,7 @@ namespace Cavex.Principal.Models.VehInfracciones
         public string StrEmpEmpleado { get; set; } = string.Empty;
 
         [Display(Name = "Fecha de infraccion")]
-        public DateOnly DteFechaInfraccion { get; set; }
+        public DateTime DteFechaInfraccion { get; set; }
 
         [Display(Name = "Motivo")]
         public string StrMotivo { get; set; } = string.Empty;
@@ -40,6 +40,9 @@ namespace Cavex.Principal.Models.VehInfracciones
 
         [Display(Name = "Comprobante de pago")]
         public string? StrUrlComprobantePago { get; set; }
+
+        [Display(Name = "Evidencias")]
+        public string? StrUrlEvidencia { get; set; }
 
         [Display(Name = "Observaciones")]
         public string? StrObservaciones { get; set; }

@@ -1,9 +1,9 @@
 @model Cavex.Principal.ViewModels.CreateViewModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    ViewData["Title"] = "Agregar nuevo empleado";
-    ViewData["HeaderEyebrow"] = "Gestión de personal";
-    ViewData["HeaderSubtitle"] = "Captura los datos del trabajador y completa cada sección para registrarlo en el sistema.";
+    ViewBag.Title = "Agregar nuevo empleado";
+    ViewBag.HeaderEyebrow = "Gestión de personal";
+    ViewBag.HeaderSubtitle = "Captura los datos del trabajador y completa cada sección para registrarlo en el sistema.";
     Layout = "~/Views/Shared/UI/_Layout.cshtml";
 }
 
@@ -96,18 +96,18 @@
                     </div>
                     <div class="form-group">
                         <label>Teléfono fijo</label>
-                        <input asp-for="TelefonoFijo" type="tel" id="txtTelefonoFijo" placeholder="0000000000" maxlength="10" autocomplete="off" pattern="^[0-9]{10}$" />
+                        <input asp-for="TelefonoFijo" type="tel" id="txtTelefonoFijo" placeholder="Ej. 5512345678" maxlength="10" autocomplete="off" pattern="^[0-9]{10}$" />
                     </div>
                 </div>
 
                 <div class="form-row cols-2">
                     <div class="form-group">
                         <label>Teléfono celular</label>
-                        <input asp-for="TelefonoCelular" type="tel" id="txtTelefonoCelular" placeholder="0000000000" maxlength="10" autocomplete="off" required pattern="^[0-9]{10}$" />
+                        <input asp-for="TelefonoCelular" type="tel" id="txtTelefonoCelular" placeholder="Ej. 5512345678" maxlength="10" autocomplete="off" required pattern="^[0-9]{10}$" />
                     </div>
                     <div class="form-group">
                         <label>Número de Seguridad Social</label>
-                        <input asp-for="Nss" type="text" id="txtNSS" placeholder="00000000000" maxlength="11" autocomplete="off" required pattern="^[0-9]{11}$" />
+                        <input asp-for="Nss" type="text" id="txtNSS" placeholder="Ej. 12345678901" maxlength="11" autocomplete="off" required pattern="^[0-9]{11}$" />
                     </div>
                 </div>
             </div>
@@ -300,7 +300,7 @@
                         </div>
                         <div class="form-group">
                             <label>Teléfono celular</label>
-                            <input type="tel" class="txtRefTelefono" placeholder="0000000000" maxlength="10" autocomplete="off" required pattern="^[0-9]{10}$" />
+                            <input type="tel" class="txtRefTelefono" placeholder="Ej. 5512345678" maxlength="10" autocomplete="off" required pattern="^[0-9]{10}$" />
                         </div>
                     </div>
                 </div>
