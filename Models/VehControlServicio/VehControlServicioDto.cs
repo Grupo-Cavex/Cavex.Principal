@@ -40,8 +40,8 @@ namespace Cavex.Principal.Models.VehControlServicio
         public string? StrVehServicioDetalle { get; set; }
         public string? StrVehCatTipoServicio { get; set; }
 
-        public int IdVehCatResponsableServicio { get; set; }
-        public string? StrVehCatResponsableServicio { get; set; }
+
+
 
         public string? StrDescripcion { get; set; }
 

@@ -43,8 +43,6 @@ namespace Cavex.Principal.Models.VehInfracciones
         [Display(Name = "Evidencia")]
         public string? StrUrlEvidencia { get; set; }
 
-        [Display(Name = "Evidencias")]
-        public string? StrUrlEvidencia { get; set; }
 
         [Display(Name = "Observaciones")]
         public string? StrObservaciones { get; set; }

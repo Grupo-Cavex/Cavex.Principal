@@ -55,13 +55,8 @@ namespace Cavex.Principal.Models.VehControlLlanta
         [Display(Name = "Comprobante de Pago")]
         public string? StrUrlComptobantePago { get; set; }
 
-        public int? IdVehFormaPago { get; set; }
 
-        [Display(Name = "Forma de pago")]
-        public string StrVehCatFormaPago { get; set; } = string.Empty;
 
-        [Display(Name = "Comprobante de pago")]
-        public string? StrUrlComprobantePago { get; set; }
 
         public int IdVehCatStatus { get; set; }
 
