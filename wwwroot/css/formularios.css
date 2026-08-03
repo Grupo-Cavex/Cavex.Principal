@@ -211,8 +211,19 @@
 }
 
 .custom-select-items-list {
-    max-height: 200px;
-    overflow-y: auto;
+    max-height: 220px;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.custom-select-items-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-select-items-list::-webkit-scrollbar-thumb {
+    background: var(--teal-cavex);
+    border-radius: 4px;
 }
 
 .custom-select-option {

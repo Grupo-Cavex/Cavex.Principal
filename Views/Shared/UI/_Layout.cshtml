@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Grupo CAVEX</title>
+    <title>@ViewBag.Title - Grupo CAVEX</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/layout-principal.css" asp-append-version="true" />
@@ -48,8 +48,17 @@
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                             </div>
                             <div class="item-details">
-                                <span class="item-title">Nueva Marca</span>
-                                <span class="item-desc">Gestión de marcas de vehículos.</span>
+                                <span class="item-title">Marcas de Vehículos</span>
+                                <span class="item-desc">Catálogo de marcas de la flota.</span>
+                            </div>
+                        </a>
+                        <a asp-controller="Marcas" asp-action="MarcaLlanta" class="mega-menu-item">
+                            <div class="item-icon-box item-icon-orange">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg>
+                            </div>
+                            <div class="item-details">
+                                <span class="item-title">Marcas de Llantas</span>
+                                <span class="item-desc">Catálogo de marcas de neumáticos.</span>
                             </div>
                         </a>
                         <a asp-controller="Gasolina" asp-action="Gasolineras" class="mega-menu-item">
@@ -66,26 +75,17 @@
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                             </div>
                             <div class="item-details">
-                                <span class="item-title">Pólizas de Seguros</span>
-                                <span class="item-desc">Aseguradoras y vigencia de coberturas.</span>
+                                <span class="item-title">Aseguradoras</span>
+                                <span class="item-desc">Catálogo de aseguradoras y pólizas.</span>
                             </div>
                         </a>
                         <a asp-controller="IngresoTaller" asp-action="ResponsableServicio" class="mega-menu-item">
-                            <div class="item-icon-box item-icon-orange">
+                            <div class="item-icon-box item-icon-teal">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             </div>
                             <div class="item-details">
                                 <span class="item-title">Encargados del Servicio</span>
                                 <span class="item-desc">Personal responsable y autorizadores.</span>
-                            </div>
-                        </a>
-                        <a asp-controller="Marcas" asp-action="MarcaLlanta" class="mega-menu-item">
-                            <div class="item-icon-box item-icon-orange">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            </div>
-                            <div class="item-details">
-                                <span class="item-title">Nueva llanta de vehiculos</span>
-                                <span class="item-desc">Catálogo de llantas para vehiculos.</span>
                             </div>
                         </a>
                     </div>
@@ -170,7 +170,7 @@
                             </div>
                             <div class="item-details">
                                 <span class="item-title">Nuevo Servicio</span>
-                                <span class="item-desc">Alta de nuevos servicios.</span>
+                                <span class="item-desc">Catálogo de servicios y tipos de traslado.</span>
                             </div>
                         </a>
                         <a asp-controller="AreaLaboral" asp-action="Index" class="mega-menu-item">
@@ -179,7 +179,7 @@
                             </div>
                             <div class="item-details">
                                 <span class="item-title">Áreas Laborales</span>
-                                <span class="item-desc">Gestión de departamentos interno.</span>
+                                <span class="item-desc">Gestión de departamentos internos.</span>
                             </div>
                         </a>
                         <a asp-controller="Talleres" asp-action="Index" class="mega-menu-item">
@@ -188,7 +188,7 @@
                             </div>
                             <div class="item-details">
                                 <span class="item-title">Nuevo Taller</span>
-                                <span class="item-desc">Alta de talleres y ubicaciones.</span>
+                                <span class="item-desc">Catálogo de talleres autorizados.</span>
                             </div>
                         </a>
 

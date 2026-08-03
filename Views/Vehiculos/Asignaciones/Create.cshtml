@@ -1,7 +1,7 @@
 @{
-    ViewData["Title"] = "Asignación de vehículos";
-    ViewData["HeaderEyebrow"] = "Control operativo";
-    ViewData["HeaderSubtitle"] = "Asigna unidades a empleados y controla kilometraje inicial, final y recorrido total.";
+    ViewBag.Title = "Asignación de vehículos";
+    ViewBag.HeaderEyebrow = "Control operativo";
+    ViewBag.HeaderSubtitle = "Asigna unidades a empleados y controla kilometraje inicial, final y recorrido total.";
 }
 
 @section Head {
@@ -52,13 +52,17 @@
                 </div>
             </section>
 
-            <!-- Fecha de asignación: conserva el nombre dteFechaAsigncion de la tabla real. -->
+            <!-- Fecha de asignación y fecha de finalización -->
             <section class="cavex-card form-section-card vehiculo-section-card asignacion-fecha-card">
-                <h3 class="form-section-title"><span class="form-section-number">3</span>Fecha de Asignación</h3>
+                <h3 class="form-section-title"><span class="form-section-number">3</span>Fechas de Asignación y Finalización</h3>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label" for="asignacion-dteFechaAsigncion">Fecha</label>
-                        <input id="asignacion-dteFechaAsigncion" name="dteFechaAsigncion" type="date" class="form-control" readonly tabindex="-1" style="background-color: #e9ecef; pointer-events: none;" required />
+                        <label class="form-label" for="asignacion-dteFechaAsigncion">Fecha y hora de asignación</label>
+                        <input id="asignacion-dteFechaAsigncion" name="dteFechaAsigncion" type="datetime-local" class="form-control" step="60" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="asignacion-dteFechaFinalizacion">Fecha y hora de finalización <span class="vehiculo-optional-label">Opcional</span></label>
+                        <input id="asignacion-dteFechaFinalizacion" name="dteFechaFinalizacion" type="datetime-local" class="form-control" step="60" />
                     </div>
                 </div>
             </section>
@@ -102,7 +106,8 @@
                     <div class="vehiculo-summary-item"><span>Placa</span><strong id="previewAsignacionPlaca">—</strong></div>
                     <div class="vehiculo-summary-item"><span>Empleado</span><strong id="previewAsignacionEmpleado">Sin seleccionar</strong></div>
                     <div class="vehiculo-summary-item"><span>Área</span><strong id="previewAsignacionArea">—</strong></div>
-                    <div class="vehiculo-summary-item"><span>Fecha</span><strong id="previewAsignacionFecha">—</strong></div>
+                    <div class="vehiculo-summary-item"><span>Fecha asignación</span><strong id="previewAsignacionFecha">—</strong></div>
+                    <div class="vehiculo-summary-item"><span>Fecha finalización</span><strong id="previewAsignacionFechaFinalizacion">En curso / Sin definir</strong></div>
                     <div class="vehiculo-summary-item"><span>Km inicial</span><strong id="previewAsignacionKmInicial">0 km</strong></div>
                     <div class="vehiculo-summary-item"><span>Km final</span><strong id="previewAsignacionKmFinal">Sin capturar</strong></div>
                     <div class="vehiculo-summary-item asignacion-total-preview"><span>Km total</span><strong id="previewAsignacionKmTotal">0 km</strong></div>
@@ -119,7 +124,27 @@
 </form>
 
 <div class="cavex-card table-module vehiculo-module-table mt-4">
-    <h3 class="form-section-title mb-3">Asignaciones Activas</h3>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h3 class="form-section-title m-0">Historial de Asignaciones</h3>
+        <div class="table-search-box position-relative" style="max-width: 260px;">
+            <input type="text" id="asignacionesTableSearch" class="form-control form-control-sm" placeholder="Buscar en asignaciones..." />
+        </div>
+    </div>
+
+    <div class="table-filter-bar mb-3">
+        <div class="custom-tabs-container" id="asignacionesStatusTabs">
+            <button type="button" class="tab-item active" data-status-filter="todos">
+                Todos <span class="tab-count count-all" id="asigCountTodos">0</span>
+            </button>
+            <button type="button" class="tab-item" data-status-filter="pendientes">
+                Pendientes <span class="tab-count count-inactive" id="asigCountPendientes">0</span>
+            </button>
+            <button type="button" class="tab-item" data-status-filter="completos">
+                Completos <span class="tab-count count-active" id="asigCountCompletos">0</span>
+            </button>
+        </div>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover align-middle executive-table table-cavex-compact">
             <thead>
@@ -129,12 +154,13 @@
                     <th>Año</th>
                     <th>Placa</th>
                     <th>Empleado Responsable</th>
+                    <th style="width: 130px;">Estado</th>
                     <th class="text-end" style="width: 150px;">Acciones</th>
                 </tr>
             </thead>
             <tbody id="asignacionesTableBody">
                 <tr>
-                    <td colspan="6" class="text-center text-muted">Cargando registros...</td>
+                    <td colspan="7" class="text-center text-muted">Cargando registros...</td>
                 </tr>
             </tbody>
         </table>

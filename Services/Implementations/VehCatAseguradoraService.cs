@@ -1,4 +1,4 @@
-﻿using Cavex.Principal.ApiClients.VehCatAseguradora;
+using Cavex.Principal.ApiClients.VehCatAseguradora;
 using Cavex.Principal.Common;
 using Cavex.Principal.Models.VehCatAseguradora;
 using Cavex.Principal.Services.Interfaces;
@@ -18,8 +18,26 @@ namespace Cavex.Principal.Services.Implementations
             _logger = logger;
         }
 
-        public Task<ResponseWrapper<PagedResponse<VehCatAseguradoraDto>>> ObtenerTodosAsync(CancellationToken cancellationToken = default) =>
-            ExecuteAsync(() => _vehCatAseguradoraApi.GetAllAsync(cancellationToken), "No fue posible obtener los registros de VehCatAseguradora.");
+        public Task<ResponseWrapper<PagedResponse<VehCatAseguradoraDto>>> ObtenerTodosAsync(
+            int pageIndex = 1,
+            int pageSize = 10,
+            string? search = null,
+            int? status = null,
+            CancellationToken cancellationToken = default) =>
+            ExecuteAsync(() => _vehCatAseguradoraApi.GetAllAsync(pageIndex, pageSize, search, status, cancellationToken), "No fue posible obtener los registros de VehCatAseguradora.");
+
+        public async Task<bool> ExistePorNombreAsync(string nombre, int? excludeId = null, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(nombre)) return false;
+            var response = await ObtenerTodosAsync(1, 10, nombre, null, cancellationToken);
+            if (response.Success && response.Data?.Items != null)
+            {
+                return response.Data.Items.Any(x => 
+                    x.StrValor.Trim().Equals(nombre.Trim(), StringComparison.OrdinalIgnoreCase) 
+                    && (!excludeId.HasValue || x.Id != excludeId.Value));
+            }
+            return false;
+        }
 
         public Task<ResponseWrapper<VehCatAseguradoraDto>> ObtenerPorIdAsync(int id, CancellationToken cancellationToken = default) =>
             ExecuteAsync(() => _vehCatAseguradoraApi.GetByIdAsync(id, cancellationToken), "No fue posible obtener el registro de VehCatAseguradora.");

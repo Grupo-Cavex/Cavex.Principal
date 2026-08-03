@@ -1,13 +1,12 @@
 @model Cavex.Principal.Models.VehCatAseguradora.VehCatAseguradoraSaveDto;
 @{
-    ViewData["Title"] = "Nueva Compañía de Seguros";
-    ViewData["HeaderEyebrow"] = "Configuración";
-    ViewData["HeaderSubtitle"] = "Administra el catálogo de compañías de seguros de la plataforma.";
+    ViewBag.Title = "Nueva Compañía de Seguros";
+    ViewBag.HeaderEyebrow = "Configuración";
+    ViewBag.HeaderSubtitle = "Administra el catálogo de compañías de seguros de la plataforma.";
 
-    ViewData["TableTitle"] = "Listado de compañías de seguros";
-    ViewData["TableSubtitle"] = "Catálogo de aseguradoras registradas y sus descripciones.";
-    ViewData["TableCount"] = 0;
-    ViewData["TableCountLabel"] = "aseguradoras";
+    ViewBag.TableTitle = "Listado de compañías de seguros";
+    ViewBag.TableSubtitle = "Catálogo de aseguradoras registradas y sus descripciones.";
+    ViewBag.TableCountLabel = "aseguradoras";
 }
 
 @section Head {
@@ -19,7 +18,6 @@
 <div class="filter-card">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
-            <span class="eyebrow">Formulario</span>
             <h2 class="filter-title" id="formTitle">Registrar aseguradora</h2>
             <p class="cavex-subtitle" id="formSubtitle">Ingresa el nombre y la descripción para registrar la compañía de seguros.</p>
         </div>
@@ -37,12 +35,18 @@
                 <textarea id="strDescripcionSeguro" name="StrDescripcion" class="form-control no-uppercase" rows="3" placeholder="Ej. Cobertura nacional" style="resize: none;"></textarea>
                 <div class="invalid-feedback" id="descripcionFeedback">La descripción contiene caracteres no válidos.</div>
             </div>
+            <div class="col-md-12" id="statusContainer">
+                <label class="form-label" for="intIdStatus">Estado de la aseguradora</label>
+                <select id="intIdStatus" name="IdCatStatus" class="form-select">
+                    <option value="">-- Seleccionar Estado --</option>
+                </select>
+                <div class="invalid-feedback" id="statusFeedback">Selecciona un estatus.</div>
+            </div>
         </div>
 
         <div class="search-actions mt-3">
-            <a class="btn btn-outline-cavex" asp-controller="Vehiculos" asp-action="Index">Volver</a>
-            <button type="button" class="btn btn-outline-cavex" id="btnCancel" onclick="resetForm()" style="display: none;">Cancelar</button>
             <button type="submit" class="btn btn-cavex" id="btnSubmit">Guardar aseguradora</button>
+            <button type="button" class="btn btn-outline-cavex" id="btnCancel" onclick="resetForm()" style="display: none;">Cancelar</button>
         </div>
     </form>
 </div>
@@ -51,6 +55,7 @@
     <partial name="_TableCardHeader" />
 
     <div class="table-filter-bar d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="custom-tabs-container" id="statusTabs"></div>
         <div class="table-search-box position-relative">
             <input type="text" id="tableSearch" class="form-control" placeholder="Buscar aseguradora..." oninput="handleSearch(this.value)" />
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -66,6 +71,7 @@
                 <tr>
                     <th>Nombre de la aseguradora</th>
                     <th>Descripción</th>
+                    <th style="width: 120px;">Estatus</th>
                     <th class="text-end" style="width: 160px;">Acciones</th>
                 </tr>
             </thead>

@@ -7,7 +7,6 @@
     ViewBag.HeaderButtonAction = "Create";
 
     ViewBag.TableTitle = "Listado de vehículos";
-    ViewBag.TableCount = 0;
     ViewBag.TableCountLabel = "vehículos";
 }
 
@@ -16,7 +15,7 @@
     <link rel="stylesheet" href="~/css/vista-vehiculos.css" asp-append-version="true" />
 }
 
-<!-- Header global configurado mediante ViewData.
+<!-- Header global configurado mediante ViewBag.
      El alta permanece como acción principal y las demás rutas son accesos operativos. -->
 <partial name="_PageHeader" />
 
@@ -73,10 +72,10 @@
             <thead>
                 <tr>
                     <th>Placa</th>
-                    <th>Marca</th>
-                    <th>Modelo</th>
+                    <th>Marca / Modelo</th>
                     <th>Año</th>
                     <th>Color</th>
+                    <th>Kilometraje</th>
                     <th style="width: 140px;">Estatus</th>
                     <th class="text-end" style="width: 150px;">Acciones</th>
                 </tr>

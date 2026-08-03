@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehDatosGenerales
 {
@@ -68,6 +68,13 @@ namespace Cavex.Principal.Models.VehDatosGenerales
        
         [Display(Name = "Motor")]
         public string? StrMotor { get; set; }
+
+        [Display(Name = "Último mantenimiento")]
+        public DateOnly? DteUltimoMantenimiento { get; set; }
+
+        [Display(Name = "Próximo mantenimiento")]
+        public DateOnly? DteProximoMantenimiento { get; set; }
+
         public int IdVehCatTransmision { get; set; }
 
         [Display(Name = "Tipo de transmision")]

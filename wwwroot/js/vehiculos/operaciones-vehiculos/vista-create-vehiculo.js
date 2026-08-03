@@ -166,6 +166,8 @@ function inicializarRegistroVehiculo() {
         formData.append("VehCatColorDto.Id", parseInt(document.getElementById("idVehCatColor").value));
         formData.append("StrPlaca", document.getElementById("strPlaca").value);
         formData.append("StrNumMotor", document.getElementById("strNumMotor").value);
+        formData.append("DteUltimoMantenimiento", document.getElementById("dteUltimoMantenimiento")?.value || "");
+        formData.append("DteProximoMantenimiento", document.getElementById("dteProximoMantenimiento")?.value || "");
         formData.append("VehCatTipoVehiculo.Id", parseInt(document.getElementById("idVehCatTipoVehiculo").value));
         formData.append("VehCatCapacidad.Id", parseInt(document.getElementById("idVehCatCapacidad").value));
         formData.append("VehCatTipoCombustibleDto.Id", parseInt(document.getElementById("idVehCatTipoCombustible").value));
@@ -393,7 +395,7 @@ function validarCampoImagen() {
 
 function validarFormularioVehiculo(form) {
     const obligatorios = ["strNumSerie", "idVehCatMarcaVehiculo", "strModelo", "intAnio", "idVehCatColor", "strPlaca", "strNumMotor", "idVehCatTipoVehiculo", "idVehCatCapacidad", "idVehCatTipoCombustible", "idVehCatTransmision", "decKilometrajeActual"];
-    const opcionales = ["strVersion", "strObservaciones"];
+    const opcionales = ["strVersion", "strObservaciones", "dteUltimoMantenimiento", "dteProximoMantenimiento"];
     let valido = true;
     [...obligatorios, ...opcionales].forEach(id => {
         const campo = document.getElementById(id);
@@ -443,7 +445,7 @@ function validarCampoVehiculo(campo) {
             case "strNumMotor":
                 if (original !== valor) mensaje = "El número de motor no debe iniciar ni terminar con espacios.";
                 else if (!/^[A-Z0-9]+$/.test(valor)) mensaje = "El número de motor solo permite letras y números.";
-                else if (valor.length > 50) mensaje = "El número de motor no debe superar 50 caracteres.";
+                else if (valor.length < 11 || valor.length > 17) mensaje = "El número de motor debe tener entre 11 y 17 caracteres.";
                 break;
             case "decKilometrajeActual": {
                 const rawVal = valor.replace(/,/g, "");
@@ -520,7 +522,7 @@ function validarCampoVehiculoEnTyping(campo) {
                 if (original !== valor || valor.length > 20 || !/^[A-Z0-9-]+$/.test(valor)) mensaje = "Invalido";
                 break;
             case "strNumMotor":
-                if (original !== valor || !/^[A-Z0-9]+$/.test(valor) || valor.length > 50) mensaje = "Invalido";
+                if (original !== valor || !/^[A-Z0-9]+$/.test(valor) || valor.length < 11 || valor.length > 17) mensaje = "Invalido";
                 break;
             case "decKilometrajeActual": {
                 const rawVal = valor.replace(/,/g, "");
@@ -599,7 +601,7 @@ async function cargarDatosVehiculoParaEditar(id) {
             }
         });
 
-        const response = await fetch(`/Vehiculos/GetVehiculo?id=${id}`);
+        const response = await fetch(`/Vehiculos/GetVehiculoById?id=${id}`);
         const result = await response.json();
         Swal.close();
 
@@ -631,6 +633,10 @@ async function cargarDatosVehiculoParaEditar(id) {
             document.getElementById("strVersion").value = getVal("strVersion", "StrVersion");
             document.getElementById("strPlaca").value = getVal("strPlaca", "StrPlaca");
             document.getElementById("strNumMotor").value = getVal("strNumMotor", "StrNumMotor") || getVal("strMotor", "StrMotor");
+            const ultMant = getVal("dteUltimoMantenimiento", "DteUltimoMantenimiento");
+            if (ultMant && document.getElementById("dteUltimoMantenimiento")) document.getElementById("dteUltimoMantenimiento").value = ultMant.split("T")[0];
+            const proxMant = getVal("dteProximoMantenimiento", "DteProximoMantenimiento");
+            if (proxMant && document.getElementById("dteProximoMantenimiento")) document.getElementById("dteProximoMantenimiento").value = proxMant.split("T")[0];
             document.getElementById("decKilometrajeActual").value = formatNumberWithCommas(getVal("decKilometrajeActual", "DecKilometrajeActual") || 0);
             document.getElementById("strObservaciones").value = getVal("strObservaciones", "StrObservaciones");
  

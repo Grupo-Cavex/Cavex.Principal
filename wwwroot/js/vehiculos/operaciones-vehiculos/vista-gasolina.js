@@ -2,6 +2,7 @@
 
 // Variable global para almacenar el archivo comprobante de gasolina seleccionado
 let comprobanteArchivoSeleccionado = null;
+let evidenciaArchivoSeleccionadoGasolina = null;
 // Datos globales para vinculación vehículo-chofer
 let listaVehiculosGasolina = [];
 let listaEmpleadosGasolina = [];
@@ -20,6 +21,7 @@ function inicializarVistaGasolina() {
     cargarCatalogosGasolina();
     inicializarCalculoLitros();
     inicializarCargaComprobante();
+    inicializarCargaEvidencia();
 
     const montoG = document.getElementById("gasolina-mnyMontoPagado");
     if (montoG) {
@@ -87,12 +89,17 @@ function inicializarVistaGasolina() {
         formData.append("DecKilometrajeActual", parseFloat(document.getElementById("gasolina-decKilometrajeActual").value.replace(/,/g, "")));
         formData.append("IdVehFormaPago", parseInt(document.getElementById("gasolina-idVehFormaPago").value, 10));
         formData.append("StrUrlComprobantePago", document.getElementById("gasolina-strUrlComprobantePago").value || "");
+        formData.append("StrUrlEvidencia", document.getElementById("gasolina-strUrlEvidencia")?.value || "");
         formData.append("IdVehCatGasolineras", parseInt(document.getElementById("gasolina-idVehCatGasolineras").value, 10));
         formData.append("IdEmpEmpleado", parseInt(document.getElementById("gasolina-idEmpEmpleado").value, 10));
 
         const fileInput = document.getElementById("gasolinaComprobanteArchivo");
         if (fileInput && fileInput.files.length > 0) {
             formData.append("ComprobanteArchivo", fileInput.files[0]);
+        }
+        const evidenciaInput = document.getElementById("gasolinaEvidenciaArchivo");
+        if (evidenciaInput && evidenciaInput.files.length > 0) {
+            formData.append("EvidenciaArchivo", evidenciaInput.files[0]);
         }
 
         try {
@@ -477,6 +484,149 @@ window.quitarArchivoComprobanteGasolina = function() {
     renderizarPreviaComprobante();
 };
 
+function inicializarCargaEvidencia() {
+    const area = document.getElementById("gasolinaEvidenciaArea");
+    const input = document.getElementById("gasolinaEvidenciaArchivo");
+    if (!area || !input) return;
+
+    input.addEventListener("click", event => {
+        event.stopPropagation();
+    });
+
+    area.addEventListener("click", event => {
+        if (input.disabled) return;
+        if (event.target.closest("#btnQuitarEvidenciaGasolina")) return;
+        input.click();
+    });
+
+    document.getElementById("btnQuitarEvidenciaGasolina")?.addEventListener("click", event => {
+        event.stopPropagation();
+        limpiarEvidenciaGasolina();
+    });
+
+    area.addEventListener("keydown", event => {
+        if (input.disabled) return;
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            input.click();
+        }
+    });
+
+    area.addEventListener("dragover", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.add("is-drag-over");
+    });
+    area.addEventListener("dragenter", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.add("is-drag-over");
+    });
+    area.addEventListener("dragleave", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.remove("is-drag-over");
+    });
+
+    area.addEventListener("drop", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.remove("is-drag-over");
+        const archivo = event.dataTransfer.files?.[0];
+        if (archivo) procesarArchivoEvidenciaGasolina(archivo);
+    });
+
+    input.addEventListener("change", () => {
+        const archivo = input.files?.[0];
+        if (archivo) procesarArchivoEvidenciaGasolina(archivo);
+    });
+}
+
+function procesarArchivoEvidenciaGasolina(archivo) {
+    const limBytes = 5 * 1024 * 1024;
+    const extensionesPermitidas = ["jpg", "jpeg", "png", "webp", "pdf"];
+    limpiarErrorEvidenciaGasolina();
+
+    const ext = archivo.name.split('.').pop().toLowerCase();
+    if (!extensionesPermitidas.includes(ext)) {
+        mostrarErrorEvidenciaGasolina("El archivo debe ser PDF, JPG, PNG o WEBP.");
+        return;
+    }
+    if (archivo.size > limBytes) {
+        mostrarErrorEvidenciaGasolina("El archivo supera el límite de 5 MB.");
+        return;
+    }
+
+    const input = document.getElementById("gasolinaEvidenciaArchivo");
+    if (input) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(archivo);
+        input.files = dataTransfer.files;
+    }
+
+    evidenciaArchivoSeleccionadoGasolina = archivo;
+    renderizarPreviaEvidenciaGasolina();
+}
+
+function renderizarPreviaEvidenciaGasolina() {
+    const prompt = document.getElementById("gasolinaEvidenciaPrompt");
+    const preview = document.getElementById("gasolinaEvidenciaPreview");
+    const hidden = document.getElementById("gasolina-strUrlEvidencia");
+    if (!prompt || !preview) return;
+
+    const urlExistente = hidden ? hidden.value : "";
+
+    if (!evidenciaArchivoSeleccionadoGasolina && !urlExistente) {
+        prompt.style.display = "flex";
+        preview.style.display = "none";
+        return;
+    }
+
+    prompt.style.display = "none";
+    preview.style.display = "flex";
+
+    const nameText = document.getElementById("gasolinaEvidenciaFileName");
+    const sizeText = document.getElementById("gasolinaEvidenciaFileSize");
+
+    if (urlExistente) {
+        const name = urlExistente.split("/").pop();
+        if (nameText) nameText.textContent = name;
+        if (sizeText) sizeText.textContent = "Evidencia guardada";
+    } else if (evidenciaArchivoSeleccionadoGasolina) {
+        if (nameText) nameText.textContent = evidenciaArchivoSeleccionadoGasolina.name;
+        if (sizeText) sizeText.textContent = (evidenciaArchivoSeleccionadoGasolina.size / 1024 / 1024).toFixed(2) + " MB";
+    }
+}
+
+function limpiarEvidenciaGasolina() {
+    evidenciaArchivoSeleccionadoGasolina = null;
+    const input = document.getElementById("gasolinaEvidenciaArchivo");
+    if (input) input.value = "";
+    const hidden = document.getElementById("gasolina-strUrlEvidencia");
+    if (hidden) hidden.value = "";
+    limpiarErrorEvidenciaGasolina();
+    renderizarPreviaEvidenciaGasolina();
+}
+
+function mostrarErrorEvidenciaGasolina(msg) {
+    const err = document.getElementById("gasolinaEvidenciaArchivoError");
+    if (err) {
+        err.textContent = msg;
+        err.style.display = "block";
+    }
+}
+
+function limpiarErrorEvidenciaGasolina() {
+    const err = document.getElementById("gasolinaEvidenciaArchivoError");
+    if (err) {
+        err.textContent = "";
+        err.style.display = "none";
+    }
+}
+
 // Limpia el input del comprobante de pago cargado
 function limpiarComprobante() {
     comprobanteArchivoSeleccionado = null;
@@ -490,6 +640,15 @@ function limpiarComprobante() {
     if (prompt) prompt.style.display = "flex";
     if (preview) preview.style.display = "none";
     limpiarErrorComprobante();
+
+    const inputEv = document.getElementById("gasolinaEvidenciaArchivo");
+    if (inputEv) inputEv.value = "";
+    const hiddenEv = document.getElementById("gasolina-strUrlEvidencia");
+    if (hiddenEv) hiddenEv.value = "";
+    const promptEv = document.getElementById("gasolinaEvidenciaPrompt");
+    const previewEv = document.getElementById("gasolinaEvidenciaPreview");
+    if (promptEv) promptEv.style.display = "flex";
+    if (previewEv) previewEv.style.display = "none";
 }
 
 function mostrarErrorComprobante(mensaje) {
@@ -712,7 +871,7 @@ function verDetalleGasolina(id) {
                 <p><strong>Vehículo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
                 <p><strong>Placa:</strong> ${v ? v.strPlaca : "—"}</p>
                 <p><strong>Chofer Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha de Carga:</strong> ${g.dteFechaCarga ? new Date(g.dteFechaCarga).toLocaleDateString("es-MX") : "—"}</p>
+                <p><strong>Fecha de Carga:</strong> ${g.dteFechaCarga ? new Date(g.dteFechaCarga).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : "—"}</p>
                 <p><strong>Gasolinera:</strong> ${escapeHtml(g.strVehCatGasolineras)}</p>
                 <p><strong>Monto Pagado:</strong> $${Number(g.mnyMontoPagado).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</p>
                 <p><strong>Precio por Litro:</strong> $${Number(g.mnyPrecioLitro).toLocaleString("es-MX", { minimumFractionDigits: 2 })} / L</p>
@@ -750,7 +909,15 @@ function editarGasolina(id) {
     }
     
     if (g.dteFechaCarga) {
-        document.getElementById("gasolina-dteFechaCarga").value = g.dteFechaCarga.split("T")[0];
+        const d = new Date(g.dteFechaCarga);
+        if (!isNaN(d)) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            const hh = String(d.getHours()).padStart(2, "0");
+            const min = String(d.getMinutes()).padStart(2, "0");
+            document.getElementById("gasolina-dteFechaCarga").value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
     }
     
     document.getElementById("gasolina-idVehCatGasolineras").value = g.idVehCatGasolineras;
@@ -777,6 +944,14 @@ function editarGasolina(id) {
     }
     comprobanteArchivoSeleccionado = null;
     renderizarPreviaComprobante();
+
+    if (g.strUrlEvidencia) {
+        document.getElementById("gasolina-strUrlEvidencia").value = g.strUrlEvidencia;
+    } else {
+        document.getElementById("gasolina-strUrlEvidencia").value = "";
+    }
+    evidenciaArchivoSeleccionadoGasolina = null;
+    renderizarPreviaEvidenciaGasolina();
 
     // Trigger calculation
     document.getElementById("gasolina-mnyMontoPagado").dispatchEvent(new Event("input"));
@@ -827,6 +1002,7 @@ function resetearFormularioGasolina() {
         form.querySelectorAll(".is-valid, .is-invalid").forEach(el => el.classList.remove("is-valid", "is-invalid"));
     }
     limpiarComprobante();
+    limpiarEvidenciaGasolina();
     // Reset calculations
     const litros = document.getElementById("gasolinaLitrosEstimados");
     if (litros) litros.textContent = "0.00 L";

@@ -1,7 +1,7 @@
 @{
-    ViewData["Title"] = "Registro de vehículo";
-    ViewData["HeaderEyebrow"] = "Inventario vehicular";
-    ViewData["HeaderSubtitle"] = "Captura los datos de la unidad ha registrar.";
+    ViewBag.Title = "Registro de vehículo";
+    ViewBag.HeaderEyebrow = "Inventario vehicular";
+    ViewBag.HeaderSubtitle = "Captura los datos de la unidad ha registrar.";
 }
 
 @section Head {
@@ -54,8 +54,18 @@
                     </div>
                      <div class="col-md-6 col-xl-4">
                         <label class="form-label" for="strNumMotor">Número de motor</label>
-                        <input id="strNumMotor" name="strNumMotor" type="text" maxlength="50" class="form-control" placeholder="Ej. 123456ABC" autocomplete="off" />
-                        <div class="invalid-feedback" id="strNumMotorError">Captura un número de motor válido.</div>
+                        <input id="strNumMotor" name="strNumMotor" type="text" minlength="11" maxlength="17" class="form-control" placeholder="11 a 17 caracteres" autocomplete="off" />
+                        <div class="invalid-feedback" id="strNumMotorError">El número de motor debe tener entre 11 y 17 caracteres alfanuméricos.</div>
+                    </div>
+                    <div class="col-md-6 col-xl-4">
+                        <label class="form-label" for="dteUltimoMantenimiento">Último mantenimiento</label>
+                        <input id="dteUltimoMantenimiento" name="dteUltimoMantenimiento" type="date" class="form-control" />
+                        <div class="invalid-feedback" id="dteUltimoMantenimientoError">Selecciona una fecha válida.</div>
+                    </div>
+                    <div class="col-md-6 col-xl-4">
+                        <label class="form-label" for="dteProximoMantenimiento">Próximo mantenimiento</label>
+                        <input id="dteProximoMantenimiento" name="dteProximoMantenimiento" type="date" class="form-control" />
+                        <div class="invalid-feedback" id="dteProximoMantenimientoError">Selecciona una fecha válida.</div>
                     </div>
                 </div>
             </div>

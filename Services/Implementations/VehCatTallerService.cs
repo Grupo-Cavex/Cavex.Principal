@@ -22,8 +22,9 @@ namespace Cavex.Principal.Services.Implementations
             int pageIndex = 1,
             int pageSize = 10,
             string? search = null,
+            int? status = null,
             CancellationToken cancellationToken = default) =>
-            ExecuteAsync(() => _vehCatTallerApi.GetAllAsync(pageIndex, pageSize, search, cancellationToken), "No fue posible obtener los registros de VehCatTaller.");
+            ExecuteAsync(() => _vehCatTallerApi.GetAllAsync(pageIndex, pageSize, search, status, cancellationToken), "No fue posible obtener los registros de VehCatTaller.");
 
         public async Task<bool> ExistePorNombreAsync(string nombre, int? excludeId = null, CancellationToken cancellationToken = default)
         {

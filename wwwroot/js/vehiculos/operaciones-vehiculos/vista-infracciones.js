@@ -4,12 +4,13 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarVistaInfracciones();
 });
 
-// Arreglo temporal de vehÃ­culos cargado desde la BD para la vista previa lateral
+// Arreglo temporal de vehículos cargado desde la BD para la vista previa lateral
 let listaVehiculosInfracciones = [];
-// Variable global para almacenar el comprobante de infracciÃ³n seleccionado
+// Variable global para almacenar el comprobante de infracción seleccionado
 let comprobanteArchivoSeleccionado = null;
+let evidenciaArchivoSeleccionadoInfraccion = null;
 
-// Inicializa la configuraciÃ³n de la pantalla de infracciones
+// Inicializa la configuración de la pantalla de infracciones
 function inicializarVistaInfracciones() {
     const form = document.getElementById("infraccionVehiculoForm");
     if (!form) return;
@@ -17,6 +18,7 @@ function inicializarVistaInfracciones() {
     cargarCatalogosInfracciones();
     inicializarEstatusInfraccion();
     inicializarCargaComprobante();
+    inicializarCargaEvidencia();
     
     const montoInf = document.getElementById("infraccion-mnyMontoPagado");
     if (montoInf) {
@@ -25,7 +27,7 @@ function inicializarVistaInfracciones() {
     
     inicializarContadores();
 
-    // Eventos de validaciÃ³n en tiempo real para todos los inputs
+    // Eventos de validación en tiempo real para todos los inputs
     form.querySelectorAll("input:not([type='file']):not([type='hidden']), select, textarea").forEach(campo => {
         ["input", "change"].forEach(evento => campo.addEventListener(evento, () => {
             const teniaError = campo.classList.contains("is-invalid");
@@ -46,7 +48,7 @@ function inicializarVistaInfracciones() {
     });
 
 
-    // EnvÃ­o del formulario al backend para registrar la infracciÃ³n
+    // Envío del formulario al backend para registrar la infracción
     form.addEventListener("submit", async event => {
         event.preventDefault();
         
@@ -61,7 +63,7 @@ function inicializarVistaInfracciones() {
         }
 
         Swal.fire({
-            title: "Registrando infracciÃ³n...",
+            title: "Registrando infracción...",
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
@@ -76,7 +78,7 @@ function inicializarVistaInfracciones() {
         const fechaPagoInput = document.getElementById("infraccion-dteFechaPago").value;
         const formaPagoInput = document.getElementById("infraccion-idVehFormaPago").value;
 
-        // ConstrucciÃ³n con FormData para soportar multipart upload del archivo comprobante
+        // Construcción con FormData para soportar multipart upload del archivo comprobante
         const formData = new FormData();
         formData.append("Id", editModeInfraccionId || 0);
         formData.append("IdVehDatosGenerales", parseInt(document.getElementById("infraccion-idVehDatosGenerales").value, 10));
@@ -96,11 +98,16 @@ function inicializarVistaInfracciones() {
         }
         
         formData.append("StrUrlComprobantePago", document.getElementById("infraccion-strUrlComprobantePago").value || "");
+        formData.append("StrUrlEvidencia", document.getElementById("infraccion-strUrlEvidencia")?.value || "");
         formData.append("StrObservaciones", document.getElementById("infraccion-strObservaciones").value || "");
 
         const fileInput = document.getElementById("infraccionComprobanteArchivo");
         if (isPaid && fileInput && fileInput.files.length > 0) {
             formData.append("ComprobanteArchivo", fileInput.files[0]);
+        }
+        const evidenciaInput = document.getElementById("infraccionEvidenciaArchivo");
+        if (evidenciaInput && evidenciaInput.files.length > 0) {
+            formData.append("EvidenciaArchivo", evidenciaInput.files[0]);
         }
 
         try {
@@ -116,7 +123,7 @@ function inicializarVistaInfracciones() {
                 Swal.fire({
                     icon: "error",
                     title: "Error al registrar",
-                    text: result.message || "No fue posible registrar la infracciÃ³n.",
+                    text: result.message || "No fue posible registrar la infracción.",
                     confirmButtonColor: "var(--teal-cavex)"
                 });
                 return;
@@ -124,8 +131,8 @@ function inicializarVistaInfracciones() {
 
             Swal.fire({
                 icon: "success",
-                title: editModeInfraccionId ? "InfracciÃ³n actualizada" : "InfracciÃ³n registrada",
-                text: editModeInfraccionId ? "Los datos de la infracciÃ³n han sido actualizados exitosamente." : "Los datos de la infracciÃ³n han sido registrados exitosamente.",
+                title: editModeInfraccionId ? "Infracción actualizada" : "Infracción registrada",
+                text: editModeInfraccionId ? "Los datos de la infracción han sido actualizados exitosamente." : "Los datos de la infracción han sido registrados exitosamente.",
                 confirmButtonColor: "var(--teal-cavex)"
             }).then(() => {
                 resetearFormularioInfraccion();
@@ -135,8 +142,8 @@ function inicializarVistaInfracciones() {
             Swal.close();
             Swal.fire({
                 icon: "error",
-                title: "Error de conexiÃ³n",
-                text: "No se pudo establecer comunicaciÃ³n con el servidor. Â¡Intenta de nuevo!",
+                title: "Error de conexión",
+                text: "No se pudo establecer comunicación con el servidor. ¡Intenta de nuevo!",
                 confirmButtonColor: "var(--teal-cavex)"
             });
         }
@@ -145,11 +152,11 @@ function inicializarVistaInfracciones() {
     actualizarVistaPreviaInfraccion();
 }
 
-// Datos globales para vinculaciÃ³n vehÃ­culo-chofer
+// Datos globales para vinculación vehículo-chofer
 let listaEmpleadosInfracciones = [];
 let asignacionesActivasInfracciones = [];
 
-// Carga catÃ¡logos de vehÃ­culos, empleados, formas de pago y estatus del servidor
+// Carga catálogos de vehículos, empleados, formas de pago y estatus del servidor
 async function cargarCatalogosInfracciones() {
     try {
         const [vehRes, empRes, asigRes] = await Promise.all([
@@ -158,7 +165,7 @@ async function cargarCatalogosInfracciones() {
             fetch("/Asignaciones/GetAsignacionesActivas").then(r => r.json()).catch(() => ({ success: false }))
         ]);
 
-        // Asignaciones activas para vinculaciÃ³n y filtrado
+        // Asignaciones activas para vinculación y filtrado
         if (asigRes.success && asigRes.data) {
             asignacionesActivasInfracciones = asigRes.data;
         }
@@ -175,11 +182,11 @@ async function cargarCatalogosInfracciones() {
                 .filter(id => !isNaN(id) && id > 0)
         );
 
-        // 1. Cargar solo vehÃ­culos asignados
+        // 1. Cargar solo vehículos asignados
         const selectVeh = document.getElementById("infraccion-idVehDatosGenerales");
         if (selectVeh && vehRes.success && vehRes.data) {
             listaVehiculosInfracciones = vehRes.data.items || [];
-            selectVeh.innerHTML = '<option value="">Seleccionar vehÃ­culo asignado...</option>';
+            selectVeh.innerHTML = '<option value="">Seleccionar vehículo asignado...</option>';
             listaVehiculosInfracciones.forEach(v => {
                 const vId = Number(v.id ?? v.Id);
                 if (vehIdAsignados.has(vId)) {
@@ -211,7 +218,7 @@ async function cargarCatalogosInfracciones() {
             });
         }
 
-        // VinculaciÃ³n bidireccional segura
+        // Vinculación bidireccional segura
         let isVinculandoInfraccion = false;
 
         selectVeh?.addEventListener("change", () => {
@@ -292,10 +299,10 @@ async function cargarCatalogosInfracciones() {
             actualizarVistaPreviaInfraccion();
         });
     } catch (err) {
-        console.error("Error al cargar catÃ¡logos de infracciones:", err);
+        console.error("Error al cargar catálogos de infracciones:", err);
     }
 
-    // 3. Cargar catÃ¡logos (Forma de pago, Estatus)
+    // 3. Cargar catálogos (Forma de pago, Estatus)
     fetch("/Vehiculos/GetVehiculoCatalogos")
         .then(res => res.json())
         .then(result => {
@@ -313,7 +320,7 @@ async function cargarCatalogosInfracciones() {
                     });
                 }
 
-                // Estatus de la infracciÃ³n
+                // Estatus de la infracción
                 const selectStatus = document.getElementById("infraccion-idVehCatStatus");
                 if (selectStatus && result.data.idVehCatStatus) {
                     selectStatus.innerHTML = '<option value="">Seleccionar...</option>';
@@ -357,7 +364,7 @@ function inicializarEstatusInfraccion() {
     });
 }
 
-// Habilita o deshabilita los campos de pago segÃºn el estatus de la infracciÃ³n
+// Habilita o deshabilita los campos de pago según el estatus de la infracción
 function toggleCamposPago(requerido) {
     const monto = document.getElementById("infraccion-mnyMontoPagado");
     const fecha = document.getElementById("infraccion-dteFechaPago");
@@ -393,7 +400,7 @@ function toggleCamposPago(requerido) {
     }
 }
 
-// Configura el cargador del archivo comprobante (Drag & Drop + SelecciÃ³n manual)
+// Configura el cargador del archivo comprobante (Drag & Drop + Selección manual)
 function inicializarCargaComprobante() {
     const area = document.getElementById("infraccionComprobanteArea");
     const input = document.getElementById("infraccionComprobanteArchivo");
@@ -403,7 +410,7 @@ function inicializarCargaComprobante() {
         event.stopPropagation();
     });
 
-    // Al hacer clic en el Ã¡rea, abre el explorador de archivos si no estÃ¡ deshabilitado y no se clica en Quitar
+    // Al hacer clic en el área, abre el explorador de archivos si no está deshabilitado y no se clica en Quitar
     area.addEventListener("click", event => {
         if (input.disabled) return;
         if (event.target.closest("#btnQuitarComprobanteInfraccion")) {
@@ -426,7 +433,7 @@ function inicializarCargaComprobante() {
         }
     });
 
-    // AÃ±ade clase visual al arrastrar archivos sobre el Ã¡rea
+    // Añade clase visual al arrastrar archivos sobre el área
     area.addEventListener("dragover", event => {
         if (input.disabled) return;
         event.preventDefault();
@@ -444,7 +451,7 @@ function inicializarCargaComprobante() {
         area.classList.remove("is-drag-over");
     });
 
-    // Procesa el archivo soltado en el Ã¡rea
+    // Procesa el archivo soltado en el área
     area.addEventListener("drop", event => {
         if (input.disabled) return;
         event.preventDefault();
@@ -461,21 +468,21 @@ function inicializarCargaComprobante() {
     });
 }
 
-// Valida el formato y tamaÃ±o del archivo comprobante (por extensiÃ³n)
+// Valida el formato y tamaño del archivo comprobante (por extensión)
 function procesarArchivoComprobante(archivo) {
     const limBytes = 5 * 1024 * 1024;
     const extensionesPermitidas = ["jpg", "jpeg", "png", "webp", "pdf"];
 
     limpiarErrorComprobante();
 
-    // Extrae y valida la extensiÃ³n del archivo para mÃ¡xima compatibilidad
+    // Extrae y valida la extensión del archivo para máxima compatibilidad
     const ext = archivo.name.split('.').pop().toLowerCase();
     if (!extensionesPermitidas.includes(ext)) {
         mostrarErrorComprobante("El archivo debe ser PDF, JPG, PNG o WEBP.");
         return;
     }
     if (archivo.size > limBytes) {
-        mostrarErrorComprobante("El archivo supera el lÃ­mite de 5 MB.");
+        mostrarErrorComprobante("El archivo supera el límite de 5 MB.");
         return;
     }
 
@@ -525,9 +532,152 @@ function renderizarPreviaComprobante() {
 window.quitarComprobanteExistenteInfraccion = function() {
     const hidden = document.getElementById("infraccion-strUrlComprobantePago");
     if (hidden) hidden.value = "";
+    limpiarErrorComprobante();
     renderizarPreviaComprobante();
-    actualizarVistaPreviaInfraccion();
-};
+}
+
+function inicializarCargaEvidencia() {
+    const area = document.getElementById("infraccionEvidenciaArea");
+    const input = document.getElementById("infraccionEvidenciaArchivo");
+    if (!area || !input) return;
+
+    input.addEventListener("click", event => {
+        event.stopPropagation();
+    });
+
+    area.addEventListener("click", event => {
+        if (input.disabled) return;
+        if (event.target.closest("#btnQuitarEvidenciaInfraccion")) return;
+        input.click();
+    });
+
+    document.getElementById("btnQuitarEvidenciaInfraccion")?.addEventListener("click", event => {
+        event.stopPropagation();
+        limpiarEvidenciaInfraccion();
+    });
+
+    area.addEventListener("keydown", event => {
+        if (input.disabled) return;
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            input.click();
+        }
+    });
+
+    area.addEventListener("dragover", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.add("is-drag-over");
+    });
+    area.addEventListener("dragenter", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.add("is-drag-over");
+    });
+    area.addEventListener("dragleave", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.remove("is-drag-over");
+    });
+
+    area.addEventListener("drop", event => {
+        if (input.disabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        area.classList.remove("is-drag-over");
+        const archivo = event.dataTransfer.files?.[0];
+        if (archivo) procesarArchivoEvidenciaInfraccion(archivo);
+    });
+
+    input.addEventListener("change", () => {
+        const archivo = input.files?.[0];
+        if (archivo) procesarArchivoEvidenciaInfraccion(archivo);
+    });
+}
+
+function procesarArchivoEvidenciaInfraccion(archivo) {
+    const limBytes = 5 * 1024 * 1024;
+    const extensionesPermitidas = ["jpg", "jpeg", "png", "webp", "pdf"];
+    limpiarErrorEvidenciaInfraccion();
+
+    const ext = archivo.name.split('.').pop().toLowerCase();
+    if (!extensionesPermitidas.includes(ext)) {
+        mostrarErrorEvidenciaInfraccion("El archivo debe ser PDF, JPG, PNG o WEBP.");
+        return;
+    }
+    if (archivo.size > limBytes) {
+        mostrarErrorEvidenciaInfraccion("El archivo supera el l�mite de 5 MB.");
+        return;
+    }
+
+    const input = document.getElementById("infraccionEvidenciaArchivo");
+    if (input) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(archivo);
+        input.files = dataTransfer.files;
+    }
+
+    evidenciaArchivoSeleccionadoInfraccion = archivo;
+    renderizarPreviaEvidenciaInfraccion();
+}
+
+function renderizarPreviaEvidenciaInfraccion() {
+    const prompt = document.getElementById("infraccionEvidenciaPrompt");
+    const preview = document.getElementById("infraccionEvidenciaFilePreview");
+    const hidden = document.getElementById("infraccion-strUrlEvidencia");
+    if (!prompt || !preview) return;
+
+    const urlExistente = hidden ? hidden.value : "";
+
+    if (!evidenciaArchivoSeleccionadoInfraccion && !urlExistente) {
+        prompt.style.display = "flex";
+        preview.style.display = "none";
+        return;
+    }
+
+    prompt.style.display = "none";
+    preview.style.display = "flex";
+
+    const nameText = document.getElementById("infraccionEvidenciaFileName");
+    const sizeText = document.getElementById("infraccionEvidenciaFileSize");
+
+    if (urlExistente) {
+        const name = urlExistente.split("/").pop();
+        if (nameText) nameText.textContent = name;
+        if (sizeText) sizeText.textContent = "Evidencia guardada";
+    } else if (evidenciaArchivoSeleccionadoInfraccion) {
+        if (nameText) nameText.textContent = evidenciaArchivoSeleccionadoInfraccion.name;
+        if (sizeText) sizeText.textContent = (evidenciaArchivoSeleccionadoInfraccion.size / 1024 / 1024).toFixed(2) + " MB";
+    }
+}
+
+function limpiarEvidenciaInfraccion() {
+    evidenciaArchivoSeleccionadoInfraccion = null;
+    const input = document.getElementById("infraccionEvidenciaArchivo");
+    if (input) input.value = "";
+    const hidden = document.getElementById("infraccion-strUrlEvidencia");
+    if (hidden) hidden.value = "";
+    limpiarErrorEvidenciaInfraccion();
+    renderizarPreviaEvidenciaInfraccion();
+}
+
+function mostrarErrorEvidenciaInfraccion(msg) {
+    const err = document.getElementById("infraccionEvidenciaArchivoError");
+    if (err) {
+        err.textContent = msg;
+        err.style.display = "block";
+    }
+}
+
+function limpiarErrorEvidenciaInfraccion() {
+    const err = document.getElementById("infraccionEvidenciaArchivoError");
+    if (err) {
+        err.textContent = "";
+        err.style.display = "none";
+    }
+}
 
 window.quitarArchivoComprobanteInfraccion = function() {
     comprobanteArchivoSeleccionado = null;
@@ -608,17 +758,23 @@ function actualizarVistaPreviaInfraccion() {
     // Buscar placa
     const vehId = val("infraccion-idVehDatosGenerales");
     const veh = listaVehiculosInfracciones.find(v => String(v.id) === vehId);
-    const placaText = veh ? veh.strPlaca : "â€”";
+    const placaText = veh ? veh.strPlaca : "Desconocida";
 
     const setText = (id, str) => {
         const el = document.getElementById(id);
-        if (el) el.textContent = str || "â€”";
+        if (el) el.textContent = str || "Desconocida";
     };
 
     setText("previewInfraccionVehiculo", txt("infraccion-idVehDatosGenerales") || "Sin seleccionar");
     setText("previewInfraccionPlaca", placaText);
     setText("previewInfraccionEmpleado", txt("infraccion-idEmpEmpleado") || "Sin seleccionar");
-    setText("previewInfraccionFecha", val("infraccion-dteFechaInfraccion") || "â€”");
+    const fechaInfVal = val("infraccion-dteFechaInfraccion");
+    let fechaInfFmt = "-";
+    if (fechaInfVal) {
+        const dInf = new Date(fechaInfVal);
+        fechaInfFmt = isNaN(dInf) ? fechaInfVal : dInf.toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+    setText("previewInfraccionFecha", fechaInfFmt);
     setText("previewInfraccionMotivo", val("infraccion-strMotivo") || "Sin capturar");
 
     const montoVal = parseFloat(val("infraccion-mnyMontoPagado")) || 0;
@@ -631,7 +787,7 @@ function actualizarVistaPreviaInfraccion() {
     setText("previewInfraccionComprobante", hasFile ? name : "Sin archivo");
 }
 
-// Realiza validaciÃ³n de campos obligatorios requeridos
+// Realiza validación de campos obligatorios requeridos
 function validarFormularioInfraccion(form) {
     const obligatorios = ["infraccion-idVehDatosGenerales", "infraccion-idEmpEmpleado", "infraccion-dteFechaInfraccion", "infraccion-idVehCatStatus", "infraccion-strMotivo"];
     
@@ -655,14 +811,14 @@ function validarFormularioInfraccion(form) {
     return valido;
 }
 
-// Realiza validaciÃ³n lÃ³gica individual por campo
+// Realiza validación lógica individual por campo
 function validarCampoInfraccion(campo) {
     const original = String(campo.value || "");
     const valor = original.trim();
     let mensaje = "";
 
     if (campo.required && !valor) {
-        mensaje = campo.tagName === "SELECT" ? "Selecciona una opciÃ³n." : "Este campo es obligatorio.";
+        mensaje = campo.tagName === "SELECT" ? "Selecciona una opción." : "Este campo es obligatorio.";
     }
 
     if (!mensaje) {
@@ -674,7 +830,7 @@ function validarCampoInfraccion(campo) {
                 const rawVal = valor.replace(/,/g, "");
                 const num = Number(rawVal);
                 if (isNaN(num) || num < 0 || num > 999999) {
-                    mensaje = "Monto pagado no vÃ¡lido.";
+                    mensaje = "Monto pagado no válido.";
                 }
                 break;
             }
@@ -709,7 +865,7 @@ function limpiarErrorCampo(campo) {
     }
 }
 
-// â”€â”€â”€ CRUD Actions y Renderizado â”€â”€â”€
+// �"?�"?�"? CRUD Actions y Renderizado �"?�"?�"?
 let listaInfracciones = [];
 let editModeInfraccionId = null;
 
@@ -744,7 +900,7 @@ function renderInfraccionesTable() {
         const v = listaVehiculosInfracciones.find(veh => Number(veh.id ?? veh.Id) === vehIdTarget);
         const marca = (window.obtenerNombreMarcaVehiculo && v) ? window.obtenerNombreMarcaVehiculo(v) : (v ? (v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || "Desconocida") : "Desconocida");
         const modelo = v ? (v.strModelo || v.StrModelo || "Desconocido") : "Desconocido";
-        const placa = v ? (v.strPlaca || v.StrPlaca || "â€”") : "â€”";
+        const placa = v ? (v.strPlaca || v.StrPlaca || "Desconocida") : "Desconocida";
         const brandModel = `${marca} ${modelo}`;
 
         const empIdTarget = Number(inf.idEmpEmpleado ?? inf.IdEmpEmpleado);
@@ -837,22 +993,27 @@ function verDetalleInfraccion(id) {
         }
     }
 
+    const decode = window.decodeUtf8Mojibake || (s => s || '');
+    const motivoText = decode(inf.strMotivo);
+    const obsText = decode(inf.strObservaciones) || "Ninguna";
+    const empNameDec = decode(empleadoName);
+
     Swal.fire({
-        title: "Detalle de InfracciÃ³n",
+        title: "Detalle de Infracción",
         html: `
             <div class="text-start fs-6" style="line-height: 1.6;">
-                <p><strong>VehÃ­culo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
-                <p><strong>Placa:</strong> ${v ? v.strPlaca : "â€”"}</p>
-                <p><strong>Chofer Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha InfracciÃ³n:</strong> ${inf.dteFechaInfraccion ? new Date(inf.dteFechaInfraccion).toLocaleDateString("es-MX") : "â€”"}</p>
-                <p><strong>Estatus:</strong> <span class="badge ${inf.idVehCatStatus === 2 ? "bg-success" : "bg-warning text-dark"}">${statusText}</span></p>
-                <p><strong>Motivo:</strong> ${escapeHtml(inf.strMotivo)}</p>
+                <p><strong>Vehículo:</strong> ${v ? `${decode(v.strModelo)} (${v.intAnio})` : "Desconocido"}</p>
+                <p><strong>Placa:</strong> ${v ? decode(v.strPlaca) : "Desconocida"}</p>
+                <p><strong>Chofer Responsable:</strong> ${empNameDec}</p>
+                <p><strong>Fecha Infracción:</strong> ${inf.dteFechaInfraccion ? (isNaN(new Date(inf.dteFechaInfraccion)) ? inf.dteFechaInfraccion : new Date(inf.dteFechaInfraccion).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })) : "-"}</p>
+                <p><strong>Estatus:</strong> <span class="badge ${inf.idVehCatStatus === 2 ? "bg-success" : "bg-warning text-dark"}">${decode(statusText)}</span></p>
+                <p><strong>Motivo:</strong> ${escapeHtml(motivoText)}</p>
                 <p><strong>Monto Pagado:</strong> ${inf.mnyMontoPagado ? `$${Number(inf.mnyMontoPagado).toLocaleString("es-MX", { minimumFractionDigits: 2 })}` : "$0.00"}</p>
                 <p><strong>Fecha Pago:</strong> ${inf.dteFechaPago ? new Date(inf.dteFechaPago).toLocaleDateString("es-MX") : "No registrada"}</p>
-                <p><strong>Forma Pago:</strong> ${escapeHtml(inf.strVehFormaPago || "Sin seleccionar")}</p>
+                <p><strong>Forma Pago:</strong> ${escapeHtml(decode(inf.strVehFormaPago) || "Sin seleccionar")}</p>
                 <p><strong>Comprobante:</strong></p>
                 <div class="mb-3">${comprobanteHtml}</div>
-                <p><strong>Observaciones:</strong> ${escapeHtml(inf.strObservaciones || "Ninguna")}</p>
+                <p><strong>Observaciones:</strong> ${escapeHtml(obsText)}</p>
             </div>
         `,
         confirmButtonColor: "var(--teal-cavex)"
@@ -880,7 +1041,15 @@ function editarInfraccion(id) {
     }
     
     if (inf.dteFechaInfraccion) {
-        document.getElementById("infraccion-dteFechaInfraccion").value = inf.dteFechaInfraccion.split("T")[0];
+        const d = new Date(inf.dteFechaInfraccion);
+        if (!isNaN(d)) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            const hh = String(d.getHours()).padStart(2, "0");
+            const min = String(d.getMinutes()).padStart(2, "0");
+            document.getElementById("infraccion-dteFechaInfraccion").value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
     }
     
     document.getElementById("infraccion-idVehCatStatus").value = inf.idVehCatStatus;
@@ -900,6 +1069,14 @@ function editarInfraccion(id) {
         document.getElementById("infraccion-dteFechaPago").value = "";
     }
     document.getElementById("infraccion-idVehFormaPago").value = inf.idVehFormaPago || "";
+    if (inf.strUrlEvidencia) {
+        document.getElementById("infraccion-strUrlEvidencia").value = inf.strUrlEvidencia;
+    } else {
+        document.getElementById("infraccion-strUrlEvidencia").value = "";
+    }
+    evidenciaArchivoSeleccionadoInfraccion = null;
+    renderizarPreviaEvidenciaInfraccion();
+
     document.getElementById("infraccion-strObservaciones").value = inf.strObservaciones || "";
     document.getElementById("infraccion-strObservaciones").dispatchEvent(new Event("input"));
 
@@ -918,13 +1095,13 @@ function editarInfraccion(id) {
 
 function eliminarInfraccion(id) {
     Swal.fire({
-        title: "Â¿EstÃ¡s seguro?",
-        text: "Este registro de infracciÃ³n serÃ¡ eliminado permanentemente.",
+        title: "¿Estás seguro?",
+        text: "Este registro de infracción será eliminado permanentemente.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {
@@ -938,10 +1115,10 @@ function eliminarInfraccion(id) {
                 const res = await response.json();
                 Swal.close();
                 if (res.success) {
-                    Swal.fire("Eliminado", "La infracciÃ³n ha sido eliminada.", "success");
+                    Swal.fire("Eliminado", "La infracción ha sido eliminada.", "success");
                     cargarInfraccionesList();
                 } else {
-                    Swal.fire("Error", res.message || "No se pudo eliminar la infracciÃ³n.", "error");
+                    Swal.fire("Error", res.message || "No se pudo eliminar la infracción.", "error");
                 }
             } catch (err) {
                 Swal.close();
@@ -976,6 +1153,7 @@ function resetearFormularioInfraccion() {
         }
     }
     limpiarComprobante();
+    limpiarEvidenciaInfraccion();
     actualizarVistaPreviaInfraccion();
 }
 

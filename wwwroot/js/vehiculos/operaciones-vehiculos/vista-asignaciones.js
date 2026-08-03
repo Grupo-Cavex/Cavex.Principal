@@ -1,16 +1,32 @@
 "use strict";
 
-// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── State ────────────────────────────────────────────────────────────────────
 let listaVehiculosAsignacion = [];
 let listaEmpleadosAsignacion = [];
 let asignacionesActivas = [];
 let listaMarcasVehiculos = [];
 let editModeId = null;
+let filtroEstadoAsignaciones = 'todos'; // todos | pendientes | completos
+let busquedaAsignaciones = '';
 
 // â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener("DOMContentLoaded", () => {
     inicializarVistaAsignaciones();
+
+    // Eventos de filtro por pestañas y búsqueda en la tabla de asignaciones
+    document.querySelectorAll('#asignacionesStatusTabs .tab-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#asignacionesStatusTabs .tab-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filtroEstadoAsignaciones = btn.getAttribute('data-status-filter') || 'todos';
+            renderAsignacionesTable();
+        });
+    });
+
+    document.getElementById('asignacionesTableSearch')?.addEventListener('input', (e) => {
+        busquedaAsignaciones = e.target.value.trim().toLowerCase();
+        renderAsignacionesTable();
+    });
 });
 
 function inicializarVistaAsignaciones() {
@@ -71,6 +87,7 @@ function inicializarVistaAsignaciones() {
             idVehDatosGenerales: parseInt(document.getElementById("asignacion-idVehDatosGenerales").value, 10),
             idEmpEmpleado: parseInt(document.getElementById("asignacion-idEmpEmpleado").value, 10),
             dteFechaAsigncion: document.getElementById("asignacion-dteFechaAsigncion").value,
+            dteFechaFinalizacion: document.getElementById("asignacion-dteFechaFinalizacion")?.value || null,
             decKilometrajeInicial: parseKm("asignacion-decKilometrajeInicial"),
             decKilometrajeFinal: parseKm("asignacion-decKilometrajeFinal") || null,
             decKilometrajeTotal: parseKm("asignacion-decKilometrajeTotal") || null
@@ -167,21 +184,16 @@ async function cargarCatalogosAsignacion() {
 // â”€â”€â”€ Fecha automÃ¡tica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function inicializarFechaAsignacion() {
     const fechaInput = document.getElementById("asignacion-dteFechaAsigncion");
-    const fechaVisual = document.getElementById("asignacionFechaVisual");
     if (!fechaInput) return;
 
-    fechaInput.readOnly = true;
-    fechaInput.style.backgroundColor = "#e9ecef";
-    fechaInput.style.pointerEvents = "none";
-
-    const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth() + 1).padStart(2, "0");
-    const dd = String(hoy.getDate()).padStart(2, "0");
-    fechaInput.value = `${yyyy}-${mm}-${dd}`;
-
-    if (fechaVisual) {
-        fechaVisual.textContent = hoy.toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
+    if (!fechaInput.value) {
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+        const dd = String(hoy.getDate()).padStart(2, "0");
+        const hh = String(hoy.getHours()).padStart(2, "0");
+        const min = String(hoy.getMinutes()).padStart(2, "0");
+        fechaInput.value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
     }
 }
 
@@ -301,7 +313,10 @@ function actualizarVistaPreviaAsignacion() {
     }
 
     const fecha = document.getElementById("asignacion-dteFechaAsigncion")?.value;
-    setText("previewAsignacionFecha", fecha ? new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }) : "-");
+    setText("previewAsignacionFecha", fecha ? new Date(fecha).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : "—");
+
+    const fechaFin = document.getElementById("asignacion-dteFechaFinalizacion")?.value;
+    setText("previewAsignacionFechaFinalizacion", fechaFin ? new Date(fechaFin).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : "En curso / Sin definir");
 
     const kmInicial = (document.getElementById("asignacion-decKilometrajeInicial")?.value || "0").replace(/,/g, "");
     const kmFinal = (document.getElementById("asignacion-decKilometrajeFinal")?.value || "").replace(/,/g, "");
@@ -376,49 +391,101 @@ function limpiarErrorCampo(campo) {
 }
 
 function obtenerNombreMarca(v) {
-    if (!v) return "-";
-    if (v.strVehCatMarcaVehiculo && v.strVehCatMarcaVehiculo !== "-") return v.strVehCatMarcaVehiculo;
-    if (v.StrVehCatMarcaVehiculo && v.StrVehCatMarcaVehiculo !== "-") return v.StrVehCatMarcaVehiculo;
-    if (v.strMarca && v.strMarca !== "-") return v.strMarca;
-    if (v.StrMarca && v.StrMarca !== "-") return v.StrMarca;
-    if (v.strMarcaVehiculo && v.strMarcaVehiculo !== "-") return v.strMarcaVehiculo;
-    if (v.StrMarcaVehiculo && v.StrMarcaVehiculo !== "-") return v.StrMarcaVehiculo;
+    if (!v) return "—";
+    if (window.obtenerNombreMarcaVehiculo) {
+        const res = window.obtenerNombreMarcaVehiculo(v);
+        if (res && res !== "—" && res !== "Desconocida") return res;
+    }
+    if (v.strVehCatMarcaVehiculo && v.strVehCatMarcaVehiculo !== "—" && v.strVehCatMarcaVehiculo !== "Desconocida") return v.strVehCatMarcaVehiculo;
+    if (v.strMarca && v.strMarca !== "—" && v.strMarca !== "Desconocida") return v.strMarca;
+    if (v.strMarcaVehiculo && v.strMarcaVehiculo !== "—" && v.strMarcaVehiculo !== "Desconocida") return v.strMarcaVehiculo;
     if (v.idVehCatMarcaVehiculo && listaMarcasVehiculos.length > 0) {
         const m = listaMarcasVehiculos.find(item => Number(item.id ?? item.Id) === Number(v.idVehCatMarcaVehiculo));
         if (m && (m.strValor || m.StrValor || m.nombre)) return m.strValor || m.StrValor || m.nombre;
     }
-    return "-";
+    return "—";
 }
 
-// Dibuja la tabla de asignaciones de vehÃ­culos en pantalla
+function esAsignacionCompleta(a) {
+    const fin = a.decKilometrajeFinal ?? a.DecKilometrajeFinal;
+    const tot = a.decKilometrajeTotal ?? a.DecKilometrajeTotal;
+    const fFin = a.dteFechaFinalizacion ?? a.DteFechaFinalizacion;
+    if (fin != null && Number(fin) > 0 && tot != null && Number(tot) > 0) return true;
+    if (fFin) {
+        const fechaFinDate = new Date(fFin);
+        if (!isNaN(fechaFinDate) && fechaFinDate <= new Date()) return true;
+    }
+    return false;
+}
+
+// Dibuja la tabla de asignaciones de vehículos en pantalla
 function renderAsignacionesTable() {
     const tbody = document.getElementById("asignacionesTableBody");
     if (!tbody) return;
 
-    // Si la lista estÃ¡ vacÃ­a, mostramos un renglÃ³n informativo con colspan 6
-    if (!asignacionesActivas || asignacionesActivas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron asignaciones registradas.</td></tr>';
+    // Actualizar badges de conteo de las pestañas
+    const countTodos = asignacionesActivas ? asignacionesActivas.length : 0;
+    const countPendientes = asignacionesActivas ? asignacionesActivas.filter(a => !esAsignacionCompleta(a)).length : 0;
+    const countCompletos = asignacionesActivas ? asignacionesActivas.filter(a => esAsignacionCompleta(a)).length : 0;
+
+    const elTodos = document.getElementById("asigCountTodos");
+    const elPend = document.getElementById("asigCountPendientes");
+    const elComp = document.getElementById("asigCountCompletos");
+    if (elTodos) elTodos.innerText = countTodos;
+    if (elPend) elPend.innerText = countPendientes;
+    if (elComp) elComp.innerText = countCompletos;
+
+    // Filtrar por estado y por texto de búsqueda
+    const filtrados = (asignacionesActivas || []).filter(a => {
+        const esComp = esAsignacionCompleta(a);
+        if (filtroEstadoAsignaciones === 'pendientes' && esComp) return false;
+        if (filtroEstadoAsignaciones === 'completos' && !esComp) return false;
+
+        if (busquedaAsignaciones) {
+            const v = listaVehiculosAsignacion.find(veh => Number(veh.id) === Number(a.idVehDatosGenerales));
+            const marca = (v ? obtenerNombreMarca(v) : (a.strVehDatosGenerales || "")).toLowerCase();
+            const modelo = (v ? (v.strModelo || "") : (a.strVehDatosGenerales || "")).toLowerCase();
+            const placa = (v ? (v.strPlaca || "") : "").toLowerCase();
+            const emp = listaEmpleadosAsignacion.find(e => Number(e.id) === Number(a.idEmpEmpleado));
+            const empleadoName = (emp ? (emp.strNombre + " " + emp.strApellidoPaterno + (emp.strApellidoMaterno ? " " + emp.strApellidoMaterno : "")) : (a.strEmpEmpleado || "")).toLowerCase();
+
+            const match = marca.includes(busquedaAsignaciones) ||
+                          modelo.includes(busquedaAsignaciones) ||
+                          placa.includes(busquedaAsignaciones) ||
+                          empleadoName.includes(busquedaAsignaciones);
+            if (!match) return false;
+        }
+        return true;
+    });
+
+    // Si la lista está vacía, mostramos un renglón informativo con colspan 7
+    if (!filtrados || filtrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron asignaciones registradas.</td></tr>';
         return;
     }
 
-    // Mapeamos cada asignaciÃ³n a un renglÃ³n (tr) de la tabla
-    tbody.innerHTML = asignacionesActivas.map(a => {
-        // Buscamos los datos completos del vehÃ­culo vinculado
+    // Mapeamos cada asignación a un renglón (tr) de la tabla
+    tbody.innerHTML = filtrados.map(a => {
+        // Buscamos los datos completos del vehículo vinculado
         const v = listaVehiculosAsignacion.find(veh => Number(veh.id) === Number(a.idVehDatosGenerales));
-        let marca = v ? obtenerNombreMarca(v) : "â€”";
-        if (marca === "â€”" && a.strVehDatosGenerales) {
-            const parts = a.strVehDatosGenerales.split(/[Â·\-]/);
+        let marca = v ? obtenerNombreMarca(v) : "—";
+        if ((!marca || marca === "—" || marca === "Desconocida") && a.strVehDatosGenerales) {
+            const parts = a.strVehDatosGenerales.split(/[·\-]/);
             if (parts.length > 0 && parts[0].trim()) marca = parts[0].trim();
         }
-        const modelo = v ? (v.strModelo || "â€”") : (a.strVehDatosGenerales || "â€”");
-        const anio = v ? String(v.intAnio || "â€”") : "â€”";
-        const placa = v ? (v.strPlaca || "â€”") : "â€”";
+        const modelo = v ? (v.strModelo || "—") : (a.strVehDatosGenerales || "—");
+        const anio = v ? String(v.intAnio || "—") : "—";
+        const placa = v ? (v.strPlaca || "—") : "—";
         
         // Buscamos los datos completos del empleado vinculado
         const emp = listaEmpleadosAsignacion.find(e => Number(e.id) === Number(a.idEmpEmpleado));
-        const empleadoName = emp ? (emp.strNombre + " " + emp.strApellidoPaterno + (emp.strApellidoMaterno ? " " + emp.strApellidoMaterno : "")).trim() : (a.strEmpEmpleado || "â€”");
+        const empleadoName = emp ? (emp.strNombre + " " + emp.strApellidoPaterno + (emp.strApellidoMaterno ? " " + emp.strApellidoMaterno : "")).trim() : (a.strEmpEmpleado || "—");
 
-        // Construimos el HTML del renglÃ³n con las 6 columnas solicitadas
+        const esComp = esAsignacionCompleta(a);
+        const statusBadge = esComp
+            ? `<span class="badge bg-success">Completo</span>`
+            : `<span class="badge bg-warning text-dark">Pendiente</span>`;
+
         return `
             <tr>
                 <td>${escapeHtml(marca)}</td>
@@ -426,10 +493,10 @@ function renderAsignacionesTable() {
                 <td>${escapeHtml(anio)}</td>
                 <td><span class="badge bg-light text-dark border">${escapeHtml(placa)}</span></td>
                 <td>${escapeHtml(empleadoName)}</td>
+                <td>${statusBadge}</td>
                 <td class="text-end">
-                    <!-- BotÃ³n de Acciones dropdown estÃ¡ndar -->
                     <div class="dropdown actions-dropdown d-inline-block">
-                        <button class="btn-action-trigger btn-sm" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
+                        <button class="btn-action-trigger btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span>Acciones</span>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
@@ -459,16 +526,8 @@ function renderAsignacionesTable() {
         `;
     }).join("");
 
-    // Inicializamos dinÃ¡micamente cada trigger de dropdown mediante Bootstrap Popper
     tbody.querySelectorAll('.btn-action-trigger').forEach(el => {
-        new bootstrap.Dropdown(el, {
-            popperConfig: (defaultConfig) => {
-                return {
-                    ...defaultConfig,
-                    strategy: 'fixed'
-                };
-            }
-        });
+        new bootstrap.Dropdown(el);
     });
 }
 
@@ -482,14 +541,14 @@ function verDetalleAsignacion(id) {
     const marcaNombre = obtenerNombreMarca(v);
 
     Swal.fire({
-        title: "Detalle de AsignaciÃ³n",
+        title: "Detalle de Asignación",
         html: `
             <div class="text-start fs-6" style="line-height: 1.6;">
                 <p><strong>Marca:</strong> ${marcaNombre}</p>
-                <p><strong>VehÃ­culo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
-                <p><strong>Placa:</strong> ${v ? v.strPlaca : "â€”"}</p>
+                <p><strong>Vehículo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
+                <p><strong>Placa:</strong> ${v ? v.strPlaca : "—"}</p>
                 <p><strong>Empleado Responsable:</strong> ${empleadoName}</p>
-                <p><strong>Fecha de AsignaciÃ³n:</strong> ${a.dteFechaAsigncion ? new Date(a.dteFechaAsigncion).toLocaleDateString("es-MX") : "â€”"}</p>
+                <p><strong>Fecha de Asignación:</strong> ${a.dteFechaAsigncion ? new Date(a.dteFechaAsigncion).toLocaleString("es-MX", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : "—"}</p>
                 <p><strong>Kilometraje Inicial:</strong> ${Number(a.decKilometrajeInicial).toLocaleString("es-MX")} km</p>
                 <p><strong>Kilometraje Final:</strong> ${a.decKilometrajeFinal ? Number(a.decKilometrajeFinal).toLocaleString("es-MX") + " km" : "Sin cerrar"}</p>
                 <p><strong>Kilometraje Total Recorrido:</strong> ${a.decKilometrajeTotal ? Number(a.decKilometrajeTotal).toLocaleString("es-MX") + " km" : "En curso"}</p>
@@ -606,7 +665,28 @@ function editarAsignacion(id) {
     }
     
     if (a.dteFechaAsigncion) {
-        document.getElementById("asignacion-dteFechaAsigncion").value = a.dteFechaAsigncion.split("T")[0];
+        const d = new Date(a.dteFechaAsigncion);
+        if (!isNaN(d)) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            const hh = String(d.getHours()).padStart(2, "0");
+            const min = String(d.getMinutes()).padStart(2, "0");
+            document.getElementById("asignacion-dteFechaAsigncion").value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
+    }
+    if (a.dteFechaFinalizacion) {
+        const dFin = new Date(a.dteFechaFinalizacion);
+        if (!isNaN(dFin)) {
+            const yyyy = dFin.getFullYear();
+            const mm = String(dFin.getMonth() + 1).padStart(2, "0");
+            const dd = String(dFin.getDate()).padStart(2, "0");
+            const hh = String(dFin.getHours()).padStart(2, "0");
+            const min = String(dFin.getMinutes()).padStart(2, "0");
+            document.getElementById("asignacion-dteFechaFinalizacion").value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
+    } else {
+        document.getElementById("asignacion-dteFechaFinalizacion").value = "";
     }
     
     document.getElementById("asignacion-decKilometrajeInicial").value = formatoConComas(a.decKilometrajeInicial);

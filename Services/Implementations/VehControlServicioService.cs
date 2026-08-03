@@ -1,4 +1,4 @@
-﻿using Cavex.Principal.ApiClients.VehControlServicio;
+using Cavex.Principal.ApiClients.VehControlServicio;
 using Cavex.Principal.Common;
 using Cavex.Principal.Models.VehControlServicio;
 using Cavex.Principal.Services.Interfaces;
@@ -18,17 +18,35 @@ namespace Cavex.Principal.Services.Implementations
             _logger = logger;
         }
 
-        public Task<ResponseWrapper<PagedResponse<VehControlServicioDto>>> ObtenerTodosAsync(CancellationToken cancellationToken = default) =>
-            ExecuteAsync(() => _vehControlServicioApi.GetAllAsync(cancellationToken), "No fue posible obtener los registros de VehControlServicio.");
+        public async Task<ResponseWrapper<PagedResponse<VehControlServicioDto>>> ObtenerTodosAsync(CancellationToken cancellationToken = default)
+        {
+            var res = await ExecuteAsync(() => _vehControlServicioApi.GetAllAsync(1, 1000, null, cancellationToken), "No fue posible obtener los registros de VehControlServicio.");
+            if (!res.Success || res.Data == null)
+            {
+                return new ResponseWrapper<PagedResponse<VehControlServicioDto>>
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Message = res.Message ?? "Sin registros disponibles.",
+                    Data = new PagedResponse<VehControlServicioDto>
+                    {
+                        PageIndex = 1,
+                        PageSize = 1000,
+                        TotalCount = 0,
+                        Items = Array.Empty<VehControlServicioDto>()
+                    }
+                };
+            }
+            return res;
+        }
 
         public Task<ResponseWrapper<VehControlServicioDto>> ObtenerPorIdAsync(int id, CancellationToken cancellationToken = default) =>
             ExecuteAsync(() => _vehControlServicioApi.GetByIdAsync(id, cancellationToken), "No fue posible obtener el registro de VehControlServicio.");
 
         public Task<ResponseWrapper<VehControlServicioDto>> CrearAsync(VehControlServicioSaveDto dto, CancellationToken cancellationToken = default) =>
-            ExecuteAsync(() => _vehControlServicioApi.CreateAsync(dto, cancellationToken), "No fue posible crear el registro de VehControlServicio.");
+            ExecuteAsync(() => _vehControlServicioApi.CreateAsync(RequestWrapper<VehControlServicioSaveDto>.Create(dto), cancellationToken), "No fue posible crear el registro de VehControlServicio.");
 
         public Task<ResponseWrapper<VehControlServicioDto>> EditarAsync(VehControlServicioEditDto dto, CancellationToken cancellationToken = default) =>
-            ExecuteAsync(() => _vehControlServicioApi.UpdateAsync(dto, cancellationToken), "No fue posible editar el registro de VehControlServicio.");
+            ExecuteAsync(() => _vehControlServicioApi.UpdateAsync(dto.Id, RequestWrapper<VehControlServicioEditDto>.Create(dto), cancellationToken), "No fue posible editar el registro de VehControlServicio.");
 
         public Task<ResponseWrapper<bool>> EliminarAsync(int id, CancellationToken cancellationToken = default) =>
             ExecuteAsync(() => _vehControlServicioApi.DeleteAsync(id, cancellationToken), "No fue posible eliminar el registro de VehControlServicio.");
