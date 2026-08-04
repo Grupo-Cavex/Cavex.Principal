@@ -601,7 +601,7 @@ async function cargarDatosVehiculoParaEditar(id) {
             }
         });
 
-        const response = await fetch(`/Vehiculos/GetVehiculo?id=${id}`);
+        const response = await fetch(`/Vehiculos/GetVehiculoById?id=${id}`);
         const result = await response.json();
         Swal.close();
 

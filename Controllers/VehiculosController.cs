@@ -188,6 +188,17 @@ namespace Cavex.Principal.Controllers
             });
         }
 
+        [HttpGet("/Vehiculos/GetVehiculoById")]
+        public async Task<IActionResult> GetVehiculoById(int id, CancellationToken cancellationToken)
+        {
+            var response = await _vehDatosGenerales.ObtenerPorIdAsync(id, cancellationToken);
+            if (response == null || !response.Success || response.Data == null)
+            {
+                return Json(new { success = false, message = response?.Message ?? "No se encontró el vehículo." });
+            }
+            return Json(new { success = true, data = response.Data });
+        }
+
         [HttpPost("/Vehiculos/DeleteVehiculo")]
         public async Task<IActionResult> DeleteVehiculo(int id, CancellationToken cancellationToken)
         {

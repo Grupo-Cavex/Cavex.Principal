@@ -130,6 +130,24 @@ namespace Cavex.Principal.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetTiposContratacion(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var response = await _catalogApi.GetTiposContratacionAsync(1, 100, cancellationToken);
+                if (response == null || !response.Success)
+                {
+                    return Json(new { success = false, message = response?.Message ?? "No se pudieron obtener los tipos de contratación." });
+                }
+                return Json(new { success = true, data = response.Data?.Items });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetStatus(CancellationToken cancellationToken)
         {
             var response = await _statusService.ObtenerTodosAsync(cancellationToken);

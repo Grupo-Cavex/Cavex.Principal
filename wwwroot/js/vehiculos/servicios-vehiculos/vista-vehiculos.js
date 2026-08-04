@@ -138,13 +138,12 @@ function renderVehiculoRow(vehiculo) {
     return `
         <tr>
             <td>
-                <div class="description-text font-weight-700">${escapeHtml(vehiculo.strPlaca)}</div>
-                <div class="vehicle-muted-line">${escapeHtml(vehiculo.strNumSerie)}</div>
+                <div><span class="badge bg-light text-dark border font-weight-700 px-2 py-1">${escapeHtml(vehiculo.strPlaca)}</span></div>
+                <div class="vehicle-muted-line small text-muted mt-1">${escapeHtml(vehiculo.strNumSerie)}</div>
             </td>
-            <td>${escapeHtml(vehiculo.strMarca)}</td>
             <td>
-                <div class="description-text">${escapeHtml(vehiculo.strModelo)}</div>
-                <div class="vehicle-muted-line">${escapeHtml(vehiculo.strVersion || "Sin version")}</div>
+                <div class="cotizacion-main-text font-weight-700">${escapeHtml(vehiculo.strMarca)} ${escapeHtml(vehiculo.strModelo)}</div>
+                <div class="vehicle-muted-line small text-muted">${escapeHtml(vehiculo.strVersion || "Sin versión")}</div>
             </td>
             <td>${escapeHtml(vehiculo.intAnio)}</td>
             <td>${escapeHtml(vehiculo.strColor)}</td>

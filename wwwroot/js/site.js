@@ -101,6 +101,23 @@ function sanitizeDecimalOnly(val) {
     }
     return clean;
 }
+
+// Formatea inputs numéricos como moneda con separador de millares en tiempo real
+window.formatCurrencyInput = function(input) {
+    if (!input) return;
+    let value = input.value.replace(/[^0-9.]/g, "");
+    const parts = value.split(".");
+    if (parts.length > 2) {
+        value = parts[0] + "." + parts.slice(1).join("");
+    }
+    let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    let decimalPart = parts[1];
+    if (decimalPart !== undefined) {
+        input.value = integerPart + "." + decimalPart.substring(0, 2);
+    } else {
+        input.value = integerPart;
+    }
+};
  
 // Permite caracteres alfanuméricos, espacios, guiones y diagonales
 function sanitizeAlphanumericDash(val) {

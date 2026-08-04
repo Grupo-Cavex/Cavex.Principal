@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehCatResponsableServicio
 {
@@ -15,7 +15,7 @@ namespace Cavex.Principal.Models.VehCatResponsableServicio
         public string? StrDescripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El estatus es obligatorio.")]
-        public int IdCatStatus { get; set; } = 1;
+        public int IdVehCatStatus { get; set; } = 1;
     }
 }
 

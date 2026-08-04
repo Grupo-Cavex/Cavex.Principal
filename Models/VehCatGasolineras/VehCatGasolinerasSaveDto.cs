@@ -16,5 +16,11 @@ namespace Cavex.Principal.Models.VehCatGasolineras
 
         [Required(ErrorMessage = "El estatus es obligatorio.")]
         public int IdCatStatus { get; set; } = 1;
+
+        public int IdVehCatStatus
+        {
+            get => IdCatStatus;
+            set => IdCatStatus = value;
+        }
     }
 }

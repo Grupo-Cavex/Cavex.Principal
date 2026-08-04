@@ -96,7 +96,7 @@ function wireFormInputs() {
     const statusField = document.getElementById("intIdStatusSucursal");
 
     if (nombreInput) {
-        registerSanitizer(nombreInput, sanitizeLettersOnly);
+        registerSanitizer(nombreInput, sanitizeGeneralText);
         nombreInput.addEventListener("input", () => {
             nombreInput.classList.remove("is-invalid", "is-valid");
         });

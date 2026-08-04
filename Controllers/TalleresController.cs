@@ -8,12 +8,15 @@ namespace Cavex.Principal.Controllers
     public class TalleresController : Controller
     {
         private readonly IVehCatTallerService _service;
+        private readonly ICatStatusService _catStatusService;
         private readonly IMemoryCache _cache;
         private const string CacheKey = "talleres_list";
+        private const string StatusCacheKey = "talleres_status_list";
 
-        public TalleresController(IVehCatTallerService service, IMemoryCache cache)
+        public TalleresController(IVehCatTallerService service, ICatStatusService catStatusService, IMemoryCache cache)
         {
             _service = service;
+            _catStatusService = catStatusService;
             _cache = cache;
         }
 
@@ -23,11 +26,38 @@ namespace Cavex.Principal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetTalleres(int pagina, string? search, CancellationToken cancellationToken)
+        public async Task<JsonResult> GetStatus(CancellationToken cancellationToken)
+        {
+            var statusItems = _cache.Get<object>(StatusCacheKey);
+            if (statusItems != null)
+            {
+                return Json(new { success = true, data = statusItems });
+            }
+
+            var response = await _catStatusService.ObtenerTodosAsync(cancellationToken);
+            if (!response.Success || response.Data?.Items == null || !response.Data.Items.Any())
+            {
+                statusItems = new object[]
+                {
+                    new { id = 1, strValor = "Activo", strDescripcion = "Activo" },
+                    new { id = 2, strValor = "Inactivo", strDescripcion = "Inactivo" }
+                };
+                _cache.Set(StatusCacheKey, statusItems, TimeSpan.FromSeconds(30));
+                return Json(new { success = true, data = statusItems });
+            }
+
+            statusItems = response.Data.Items;
+            _cache.Set(StatusCacheKey, statusItems, TimeSpan.FromMinutes(10));
+            return Json(new { success = true, data = statusItems });
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetTalleres(int pagina = 1, int pageSize = 1000, string? search = null, int? status = null, CancellationToken cancellationToken = default)
         {
             if (pagina < 1) pagina = 1;
+            if (pageSize < 1) pageSize = 1000;
 
-            var response = await _service.ObtenerTodosAsync(pagina, 10, search, cancellationToken);
+            var response = await _service.ObtenerTodosAsync(pagina, pageSize, search, status, cancellationToken);
             if (!response.Success)
             {
                 return Json(new { success = false, message = response.Message });

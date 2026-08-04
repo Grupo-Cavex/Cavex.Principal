@@ -1,15 +1,12 @@
-@model Cavex.Principal.Models.EmpCatAreaLaboral.EmpCatAreaLaboralSaveDto;
+@model Cavex.Principal.Models.EmpCatAreaLaboral.EmpCatAreaLaboralSaveDto
 @{
     ViewBag.Title = "Áreas Laborales";
     ViewBag.HeaderEyebrow = "Configuración";
-    ViewBag.HeaderTitle = "Áreas Laborales";
     ViewBag.HeaderSubtitle = "Administra el catálogo de departamentos y divisiones de la empresa.";
 
     ViewBag.TableTitle = "Listado de áreas laborales";
     ViewBag.TableSubtitle = "Catálogo de áreas de trabajo y sus descripciones.";
-    ViewBag.TableCount = 0;
     ViewBag.TableCountLabel = "áreas";
-    ViewBag.TableExtraPill = "Catálogo General";
 }
 
 @section Head {
@@ -21,27 +18,26 @@
 <div class="filter-card">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
-            <span class="eyebrow">Formulario</span>
             <h2 class="filter-title" id="formTitle">Registrar área laboral</h2>
             <p class="cavex-subtitle" id="formSubtitle">Ingresa el nombre y la descripción para registrar el área laboral.</p>
         </div>
     </div>
 
-    <form id="formArea" class="filter-form-compact" onsubmit="handleFormSubmit(event)">
+    <form id="formAreaLaboral" class="filter-form-compact" onsubmit="handleFormSubmit(event)">
         <div class="row g-3">
             <div class="col-md-12">
-                <label class="form-label" for="strNombre">Nombre del área</label>
-                <input id="strNombre" name="StrValor" class="form-control no-uppercase" placeholder="Ej. Operaciones" required />
+                <label class="form-label" for="strNombreAreaLaboral">Nombre del área</label>
+                <input id="strNombreAreaLaboral" name="StrValor" class="form-control no-uppercase" placeholder="Ej. Operaciones" required />
                 <div class="invalid-feedback" id="nombreFeedback">El nombre del área es obligatorio.</div>
             </div>
             <div class="col-md-12">
-                <label class="form-label" for="strDescripcion">Descripción</label>
-                <textarea id="strDescripcion" name="StrDescripcion" class="form-control no-uppercase" rows="3" placeholder="Ej. Personal encargado del soporte operativo en campo" style="resize: none;"></textarea>
+                <label class="form-label" for="strDescripcionAreaLaboral">Descripción</label>
+                <textarea id="strDescripcionAreaLaboral" name="StrDescripcion" class="form-control no-uppercase" rows="3" placeholder="Ej. Personal encargado del soporte operativo en campo" style="resize: none;"></textarea>
                 <div class="invalid-feedback" id="descripcionFeedback">La descripción contiene caracteres no válidos.</div>
             </div>
                 <div class="col-md-12" id="statusContainer" style="display: none;">
-                    <label class="form-label" for="intIdStatus">Estado del área laboral</label>
-                    <select id="intIdStatus" name="IdCatStatus" class="form-select" required>
+                    <label class="form-label" for="intIdStatusAreaLaboral">Estado del área laboral</label>
+                    <select id="intIdStatusAreaLaboral" name="IdCatStatus" class="form-select" required>
                         <option value="">-- Seleccionar Estado --</option>
                     </select>
                 <div class="invalid-feedback" id="statusFeedback">Selecciona un estatus.</div>
@@ -49,7 +45,6 @@
         </div>
 
         <div class="search-actions mt-3">
-            <a class="btn btn-outline-cavex" asp-controller="Home" asp-action="Index">Volver</a>
             <button type="button" class="btn btn-outline-cavex" id="btnCancel" onclick="resetForm()" style="display: none;">Cancelar</button>
             <button type="submit" class="btn btn-cavex" id="btnSubmit">Guardar área laboral</button>
         </div>
@@ -59,20 +54,11 @@
 <div class="cavex-card table-module">
     <partial name="_TableCardHeader" />
 
+    
     <div class="table-filter-bar d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div class="custom-tabs-container" id="statusTabs">
-            <button type="button" class="tab-item active" data-status-filter="todos">
-                Todos <span class="tab-count count-all" id="countTodos">0</span>
-            </button>
-            <button type="button" class="tab-item" data-status-filter="activos">
-                Activos <span class="tab-count count-active" id="countActivos">0</span>
-            </button>
-            <button type="button" class="tab-item" data-status-filter="inactivos">
-                Inactivos <span class="tab-count count-inactive" id="countInactivos">0</span>
-            </button>
-        </div>
-        <div class="table-search-box position-relative" style="max-width: 260px;">
-            <input type="text" id="tableSearch" class="form-control" placeholder="Buscar área..." oninput="handleSearch(this.value)" />
+        <div class="custom-tabs-container" id="statusTabs"></div>
+        <div class="table-search-box position-relative">
+            <input type="text" id="tableSearch" class="form-control" placeholder="Buscar área laboral..." oninput="handleSearch(this.value)" />
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>

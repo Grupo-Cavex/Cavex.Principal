@@ -9,13 +9,10 @@ namespace Cavex.Principal.Services.Interfaces
             int pageIndex = 1,
             int pageSize = 10,
             string? search = null,
+            int? status = null,
             CancellationToken cancellationToken = default);
 
         Task<bool> ExistePorNombreAsync(string nombre, int? excludeId = null, CancellationToken cancellationToken = default);
-
-        Task<ResponseWrapper<EmpCatAreaLaboralDto>> ObtenerPorIdAsync(
-            int id,
-            CancellationToken cancellationToken = default);
 
         Task<ResponseWrapper<EmpCatAreaLaboralDto>> CrearAsync(
             EmpCatAreaLaboralSaveDto request,

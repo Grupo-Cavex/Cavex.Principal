@@ -2,11 +2,10 @@
 @{
     ViewBag.Title = "Nuevo Encargado de Servicio";
     ViewBag.HeaderEyebrow = "Configuracion";
-    ViewBag.HeaderSubtitle = "Administra el catalogo de encargados del servicio de los vehiculos.";
+    ViewBag.HeaderSubtitle = "Administra el catalogo de encargados de servicio de los vehiculos.";
 
-    ViewBag.TableTitle = "Listado de encargados del servicio";
+    ViewBag.TableTitle = "Listado de encargados de servicio";
     ViewBag.TableSubtitle = "Catalogo de encargados del servicio y sus descripciones.";
-    ViewBag.TableCount = 0;
     ViewBag.TableCountLabel = "encargados";
 }
 
@@ -20,7 +19,6 @@
 <div class="filter-card">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
-            <span class="eyebrow">Formulario</span>
             <h2 class="filter-title" id="formTitle">Registrar encargado de servicio</h2>
             <p class="cavex-subtitle" id="formSubtitle">Ingresa el nombre y la descripcion para registrar el encargado de servicio.</p>
         </div>
@@ -34,9 +32,16 @@
                 <div class="invalid-feedback" id="nombreFeedback">El nombre del encargado ya existe.</div>
             </div>
             <div class="col-md-12">
-                <label class="form-label" for="strDescripcion">Descripcion</label>
+                <label class="form-label" for="strDescripcion">Descripcion (Opcional)</label>
                 <textarea id="strDescripcion" name="StrDescripcion" class="form-control no-uppercase" rows="3" placeholder="Ej. Encargado del turno matutino" style="resize: none;"></textarea>
                 <div class="invalid-feedback" id="descripcionFeedback">La descripcion contiene caracteres no validos.</div>
+            </div>
+            <div class="col-md-12" id="statusContainer">
+                <label class="form-label" for="intIdStatus">Estado del encargado</label>
+                <select id="intIdStatus" name="IdCatStatus" class="form-select">
+                    <option value="">-- Seleccionar Estado --</option>
+                </select>
+                <div class="invalid-feedback" id="statusFeedback">Selecciona un estatus.</div>
             </div>
         </div>
 
@@ -51,9 +56,9 @@
     <partial name="_TableCardHeader" />
 
     <div class="table-filter-bar d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div></div>
+        <div class="custom-tabs-container" id="statusTabs"></div>
         <div class="table-search-box position-relative">
-            <input type="text" id="tableSearch" class="form-control" placeholder="Buscar responsable..." oninput="handleSearch(this.value)" />
+            <input type="text" id="tableSearch" class="form-control" placeholder="Buscar encargado..." oninput="handleSearch(this.value)" />
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -65,8 +70,9 @@
         <table class="table table-hover align-middle executive-table table-cavex-compact">
             <thead>
                 <tr>
-                    <th>Nombre del responsable</th>
+                    <th>Nombre del encargado</th>
                     <th>Descripcion</th>
+                    <th style="width: 120px;">Estatus</th>
                     <th class="text-end" style="width: 160px;">Acciones</th>
                 </tr>
             </thead>
@@ -78,7 +84,7 @@
         <div class="pagination-info small" id="paginationInfo">
             Mostrando 0-0 de 0 registros
         </div>
-        <nav aria-label="Navegacion de responsables de servicio">
+        <nav aria-label="Navegacion de encargados de servicio">
             <ul class="pagination pagination-cavex m-0" id="paginationList"></ul>
         </nav>
     </div>
@@ -87,4 +93,3 @@
 @section Scripts {
     <script src="~/js/vehiculos/servicios-vehiculos/vista-encargado-servicio.js" asp-append-version="true"></script>
 }
-

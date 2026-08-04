@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarVistaLlantas();
 });
 
-// Inicializa las validaciones, Drag & Drop y catÃ¡logos de la vista de Llantas
+// Inicializa las validaciones, Drag & Drop y catálogos de la vista de Llantas
 function inicializarVistaLlantas() {
     const form = document.getElementById("llantaVehiculoForm");
     if (!form) return;
@@ -33,7 +33,7 @@ function inicializarVistaLlantas() {
         });
     }
 
-    // Eventos de validaciÃ³n en tiempo real para todos los inputs/selects obligatorios
+    // Eventos de validación en tiempo real para todos los inputs/selects obligatorios
     form.querySelectorAll("input:not([type='file']):not([type='hidden']), select").forEach(campo => {
         ["input", "change"].forEach(evento => campo.addEventListener(evento, () => {
             const teniaError = campo.classList.contains("is-invalid");
@@ -51,7 +51,7 @@ function inicializarVistaLlantas() {
         });
     });
 
-    // EnvÃ­o asÃ­ncrono de los datos de la llanta a guardar en la base de datos
+    // Envío asíncrono de los datos de la llanta a guardar en la base de datos
     form.addEventListener("submit", async event => {
         event.preventDefault();
         
@@ -78,7 +78,7 @@ function inicializarVistaLlantas() {
         const sigRotacionInput = document.getElementById("llanta-dteFechaSiguienteRotacion").value;
         const formaPagoVal = document.getElementById("llanta-idVehFormaPago")?.value;
 
-        // Construcción del FormData para soportar la subida física de archivos
+        // Construcci�n del FormData para soportar la subida f�sica de archivos
         const formData = new FormData();
         formData.append("Id", editModeLlantaId || 0);
         formData.append("IdVehDatosGenerales", parseInt(document.getElementById("llanta-idVehDatosGenerales").value, 10));
@@ -141,15 +141,15 @@ function inicializarVistaLlantas() {
             Swal.close();
             Swal.fire({
                 icon: "error",
-                title: "Error de conexiÃ³n",
-                text: "No se pudo establecer comunicaciÃ³n con el servidor. Â¡Intenta de nuevo!",
+                title: "Error de conexión",
+                text: "No se pudo establecer comunicación con el servidor. ¡Intenta de nuevo!",
                 confirmButtonColor: "var(--teal-cavex)"
             });
         }
     });
 }
 
-// Carga catálogos de vehículos, marcas de llantas, posiciones, formas de pago y estados
+// Carga cat�logos de veh�culos, marcas de llantas, posiciones, formas de pago y estados
 async function cargarCatalogosLlantas() {
     try {
         const [vehRes, empRes, asigRes] = await Promise.all([
@@ -173,22 +173,21 @@ async function cargarCatalogosLlantas() {
                 .filter(id => !isNaN(id) && id > 0)
         );
 
-        // 1. Cargar solo vehÃ­culos asignados
+        // 1. Cargar vehículos activos
         const select = document.getElementById("llanta-idVehDatosGenerales");
         if (select && vehRes.success && vehRes.data) {
             listaVehiculosLlantas = vehRes.data.items || [];
-            select.innerHTML = '<option value="">Seleccionar vehÃ­culo asignado...</option>';
+            select.innerHTML = '<option value="">Seleccionar vehículo...</option>';
             listaVehiculosLlantas.forEach(v => {
                 const vId = Number(v.id ?? v.Id);
-                if (vehIdAsignados.has(vId)) {
-                    const opt = document.createElement("option");
-                    opt.value = String(vId);
-                    const marcaNombre = (window.obtenerNombreMarcaVehiculo && v) ? window.obtenerNombreMarcaVehiculo(v) : (v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || "");
-                    const marcaDisplay = marcaNombre && marcaNombre !== "—" ? marcaNombre + " " : "";
-                    opt.textContent = `${v.strPlaca || v.StrPlaca} - ${marcaDisplay}${v.strModelo || v.StrModelo} (${v.intAnio || v.IntAnio})`;
-                    select.appendChild(opt);
-                }
+                const opt = document.createElement("option");
+                opt.value = String(vId);
+                const marcaNombre = (window.obtenerNombreMarcaVehiculo && v) ? window.obtenerNombreMarcaVehiculo(v) : (v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || v.StrMarca || "");
+                const marcaDisplay = marcaNombre && marcaNombre !== "-" ? marcaNombre + " " : "";
+                opt.textContent = `${v.strPlaca || v.StrPlaca || '—'} - ${marcaDisplay}${v.strModelo || v.StrModelo || ''} (${v.intAnio || v.IntAnio || ''})`;
+                select.appendChild(opt);
             });
+            select.dispatchEvent(new Event("change", { bubbles: true }));
 
             select.addEventListener("change", () => {
                 const vId = Number(select.value);
@@ -210,7 +209,7 @@ async function cargarCatalogosLlantas() {
         }
 
     } catch (err) {
-        console.error("Error al cargar catÃ¡logos base de llantas:", err);
+        console.error("Error al cargar catálogos base de llantas:", err);
     }
 
     // Cargar catálogos de llantas (marcas, posiciones, formas de pago, estatus)
@@ -224,10 +223,11 @@ async function cargarCatalogosLlantas() {
                     selectMarca.innerHTML = '<option value="">Seleccionar...</option>';
                     result.data.idVehCatMarcaLlanta.forEach(item => {
                         const opt = document.createElement("option");
-                        opt.value = String(item.id);
-                        opt.textContent = item.strValor || item.strDescripcion;
+                        opt.value = String(item.id ?? item.Id);
+                        opt.textContent = item.strValor || item.StrValor || item.strDescripcion || item.StrDescripcion || "";
                         selectMarca.appendChild(opt);
                     });
+                    selectMarca.dispatchEvent(new Event("change", { bubbles: true }));
                 }
 
                 // Posiciones
@@ -236,10 +236,11 @@ async function cargarCatalogosLlantas() {
                     selectPos.innerHTML = '<option value="">Seleccionar...</option>';
                     result.data.idVehCatPosicionLlanta.forEach(item => {
                         const opt = document.createElement("option");
-                        opt.value = String(item.id);
-                        opt.textContent = item.strValor || item.strDescripcion;
+                        opt.value = String(item.id ?? item.Id);
+                        opt.textContent = item.strValor || item.StrValor || item.strDescripcion || item.StrDescripcion || "";
                         selectPos.appendChild(opt);
                     });
+                    selectPos.dispatchEvent(new Event("change", { bubbles: true }));
                 }
 
                 // Formas de pago
@@ -249,10 +250,11 @@ async function cargarCatalogosLlantas() {
                     selectFormaPago.innerHTML = '<option value="">Seleccionar...</option>';
                     result.data.idVehCatFormaPago.forEach(item => {
                         const opt = document.createElement("option");
-                        opt.value = String(item.id);
-                        opt.textContent = item.strValor || item.strDescripcion;
+                        opt.value = String(item.id ?? item.Id);
+                        opt.textContent = item.strValor || item.StrValor || item.strDescripcion || item.StrDescripcion || "";
                         selectFormaPago.appendChild(opt);
                     });
+                    selectFormaPago.dispatchEvent(new Event("change", { bubbles: true }));
                 }
 
                 // Estatus de la llanta
@@ -261,11 +263,12 @@ async function cargarCatalogosLlantas() {
                     selectStatus.innerHTML = '<option value="">Seleccionar...</option>';
                     result.data.idVehCatStatus.forEach(item => {
                         const opt = document.createElement("option");
-                        opt.value = String(item.id);
-                        opt.textContent = item.strValor || item.strDescripcion;
+                        opt.value = String(item.id ?? item.Id);
+                        opt.textContent = item.strValor || item.StrValor || item.strDescripcion || item.StrDescripcion || "";
                         selectStatus.appendChild(opt);
                     });
                     selectStatus.value = "1";
+                    selectStatus.dispatchEvent(new Event("change", { bubbles: true }));
                 }
             }
             // Cargar registros de llantas
@@ -274,7 +277,7 @@ async function cargarCatalogosLlantas() {
         .catch(() => {});
 }
 
-// Configura el Drag & Drop e input de selección de archivo para la Evidencia
+// Configura el Drag & Drop e input de seleccin de archivo para la Evidencia
 function inicializarCargaEvidencia() {
     const area = document.getElementById("llantaEvidenciaArea");
     const input = document.getElementById("llantaEvidenciaArchivo");
@@ -380,7 +383,7 @@ function procesarArchivoEvidencia(archivo) {
         return;
     }
     if (archivo.size > limBytes) {
-        mostrarErrorEvidencia("El archivo supera el lÃ­mite de 5 MB.");
+        mostrarErrorEvidencia("El archivo supera el límite de 5 MB.");
         return;
     }
 
@@ -413,7 +416,7 @@ function procesarArchivoComprobante(archivo) {
         return;
     }
     if (archivo.size > limBytes) {
-        mostrarErrorComprobante("El archivo supera el límite de 5 MB.");
+        mostrarErrorComprobante("El archivo supera el l�mite de 5 MB.");
         return;
     }
 
@@ -488,7 +491,7 @@ function limpiarErrorComprobante() {
     if (error) { error.textContent = ""; error.classList.remove("d-block"); }
 }
 
-// Realiza validación lógica del formulariofunction validarFormularioLlanta(form) {
+// Realiza validaci�n l�gica del formulariofunction validarFormularioLlanta(form) {
     const obligatorios = [
         "llanta-idVehDatosGenerales", "llanta-idVehCatMarcaLlanta", "llanta-strModelo",
         "llanta-strMedida", "llanta-idVehCatPosicionLlanta", "llanta-dteFechaCompra",
@@ -512,11 +515,11 @@ function limpiarErrorComprobante() {
             valido = false;
         }
         if (rot && rot.value && rot.value < compra) {
-            mensajeCampo(rot, "La fecha de rotaciÃ³n debe ser igual o posterior a la compra.");
+            mensajeCampo(rot, "La fecha de rotación debe ser igual o posterior a la compra.");
             valido = false;
         }
         if (sig && sig.value && sig.value < compra) {
-            mensajeCampo(sig, "La siguiente rotaciÃ³n debe ser igual o posterior a la compra.");
+            mensajeCampo(sig, "La siguiente rotación debe ser igual o posterior a la compra.");
             valido = false;
         }
     }
@@ -527,7 +530,7 @@ function limpiarErrorComprobante() {
         if (typeof primerError.focus === "function") primerError.focus({ preventScroll: true });
     }
     return valido;
-}
+
 
 function mensajeCampo(campo, msg) {
     campo.classList.remove("is-valid");
@@ -537,14 +540,14 @@ function mensajeCampo(campo, msg) {
     if (error) error.textContent = msg;
 }
 
-// Valida valores individuales e intervalos vÃ¡lidos
+// Valida valores individuales e intervalos válidos
 function validarCampoLlanta(campo) {
     const original = String(campo.value || "");
     const valor = original.trim();
     let mensaje = "";
 
     if (campo.required && !valor) {
-        mensaje = campo.tagName === "SELECT" ? "Selecciona una opciÃ³n." : "Este campo es obligatorio.";
+        mensaje = campo.tagName === "SELECT" ? "Selecciona una opción." : "Este campo es obligatorio.";
     }
 
     if (!mensaje) {
@@ -559,7 +562,7 @@ function validarCampoLlanta(campo) {
                 const rawVal = valor.replace(/,/g, "");
                 const num = Number(rawVal);
                 if (isNaN(num) || num < 0 || num > 999999) {
-                    mensaje = "Monto del costo no vÃ¡lido.";
+                    mensaje = "Monto del costo no válido.";
                 }
                 break;
             }
@@ -567,7 +570,7 @@ function validarCampoLlanta(campo) {
                 const rawVal = valor.replace(/,/g, "");
                 const num = Number(rawVal);
                 if (isNaN(num) || num < 0 || num > 999999) {
-                    mensaje = "Kilometraje no vÃ¡lido.";
+                    mensaje = "Kilometraje no válido.";
                 }
                 break;
             }
@@ -595,11 +598,11 @@ function limpiarErrorCampo(campo) {
     }
 }
 
-// â”€â”€â”€ CRUD Actions y Renderizado â”€â”€â”€
+// �"?�"?�"? CRUD Actions y Renderizado �"?�"?�"?
 
 async function cargarLlantasList() {
     try {
-        const response = await fetch("/Marcas/GetLlantas");
+        const response = await fetch("/Llantas/GetLlantas");
         const result = await response.json();
         if (result.success && result.data) {
             listaLlantas = result.data;
@@ -619,23 +622,23 @@ function renderLlantasTable() {
     const tbody = document.getElementById("llantasTableBody");
     if (!tbody) return;
 
-    // Si la lista estÃ¡ vacÃ­a, mostramos un renglÃ³n informativo con colspan 5
+    // Si la lista está vacía, mostramos un renglón informativo con colspan 5
     if (!listaLlantas || listaLlantas.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron llantas registradas.</td></tr>';
         return;
     }
 
-    // Mapeamos cada llanta a un renglÃ³n (tr) de la tabla
+    // Mapeamos cada llanta a un renglón (tr) de la tabla
     tbody.innerHTML = listaLlantas.map(ll => {
-        // Buscamos los datos completos del vehÃ­culo vinculado
+        // Buscamos los datos completos del vehículo vinculado
         const vehIdTarget = Number(ll.idVehDatosGenerales ?? ll.IdVehDatosGenerales);
         const v = listaVehiculosLlantas.find(veh => Number(veh.id ?? veh.Id) === vehIdTarget);
         const marcaNombre = (window.obtenerNombreMarcaVehiculo && v) ? window.obtenerNombreMarcaVehiculo(v) : (v ? (v.strVehCatMarcaVehiculo || v.StrVehCatMarcaVehiculo || v.strMarca || "Desconocida") : "Desconocida");
         const modelo = v ? (v.strModelo || v.StrModelo || "Desconocido") : "Desconocido";
-        const placa = v ? (v.strPlaca || v.StrPlaca || "â€”") : "â€”";
+        const placa = v ? (v.strPlaca || v.StrPlaca || "Desconocida") : "Desconocida";
         const brandModel = `${marcaNombre} ${modelo}`;
 
-        // Buscamos el chofer asignado actualmente a este vehÃ­culo
+        // Buscamos el chofer asignado actualmente a este vehículo
         const asig = asignacionesActivasLlantas.find(a => Number(a.idVehDatosGenerales ?? a.IdVehDatosGenerales) === vehIdTarget);
         let responsableName = "Sin chofer asignado";
         if (asig) {
@@ -646,7 +649,7 @@ function renderLlantasTable() {
 
         const statusNombre = ll.strVehCatStatus || ll.StrVehCatStatus || "Activa";
 
-        // Retornamos el HTML del renglÃ³n con las 5 columnas correspondientes
+        // Retornamos el HTML del renglón con las 5 columnas correspondientes
         return `
             <tr>
                 <td>${escapeHtml(brandModel)}</td>
@@ -696,7 +699,7 @@ function verDetalleLlanta(id) {
 
     const v = listaVehiculosLlantas.find(veh => veh.id === ll.idVehDatosGenerales);
     
-    // Obtener chofer asignado actualmente a este vehÃ­culo
+    // Obtener chofer asignado actualmente a este vehículo
     const asig = asignacionesActivasLlantas.find(a => a.idVehDatosGenerales === ll.idVehDatosGenerales);
     let responsableName = "Sin chofer asignado";
     if (asig) {
@@ -718,22 +721,22 @@ function verDetalleLlanta(id) {
         title: "Detalle de Registro de Llanta",
         html: `
             <div class="text-start fs-6" style="line-height: 1.6;">
-                <p><strong>VehÃ­culo:</strong> ${v ? `${v.strModelo} (${v.intAnio})` : "Desconocido"}</p>
-                <p><strong>Placa:</strong> ${v ? v.strPlaca : "â€”"}</p>
+                <p><strong>Vehículo:</strong> ${v ? `${v.strModelo || v.StrModelo || ''} (${v.intAnio || v.IntAnio || ''})` : "Desconocido"}</p>
+                <p><strong>Placa:</strong> ${v ? (v.strPlaca || v.StrPlaca || "Sin placa") : "Sin placa"}</p>
                 <p><strong>Chofer Responsable:</strong> ${responsableName}</p>
-                <p><strong>Marca de Llanta:</strong> ${escapeHtml(ll.strVehCatMarcaLlanta)}</p>
-                <p><strong>Modelo de Llanta:</strong> ${escapeHtml(ll.strModelo)}</p>
-                <p><strong>Medida:</strong> ${escapeHtml(ll.strMedida)}</p>
-                <p><strong>PosiciÃ³n:</strong> ${escapeHtml(ll.strVehCatPosicionLlanta)}</p>
-                <p><strong>Estatus:</strong> <span class="badge bg-secondary">${escapeHtml(ll.strVehCatStatus)}</span></p>
-                <p><strong>Kilometraje Actual:</strong> ${Number(ll.decKilometrajeActual).toLocaleString("es-MX")} km</p>
-                <p><strong>Costo:</strong> $${Number(ll.mnyCosto).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</p>
+                <p><strong>Marca de Llanta:</strong> ${escapeHtml(ll.strVehCatMarcaLlanta || "")}</p>
+                <p><strong>Modelo de Llanta:</strong> ${escapeHtml(ll.strModelo || "")}</p>
+                <p><strong>Medida:</strong> ${escapeHtml(ll.strMedida || "")}</p>
+                <p><strong>Posición:</strong> ${escapeHtml(ll.strVehCatPosicionLlanta || "")}</p>
+                <p><strong>Estatus:</strong> <span class="badge bg-secondary">${escapeHtml(ll.strVehCatStatus || "")}</span></p>
+                <p><strong>Kilometraje Actual:</strong> ${Number(ll.decKilometrajeActual || 0).toLocaleString("es-MX")} km</p>
+                <p><strong>Costo:</strong> $${Number(ll.mnyCosto || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</p>
                 <p><strong>Forma de Pago:</strong> ${escapeHtml(formaPagoNombre)}</p>
                 <p><strong>Comprobante de Pago:</strong> ${comprobanteLink}</p>
                 <p><strong>Evidencia:</strong> ${evidenciaLink}</p>
-                <p><strong>Fecha Compra:</strong> ${ll.dteFechaCompra ? new Date(ll.dteFechaCompra).toLocaleDateString("es-MX") : "—"}</p>                <p><strong>Vida Estimada:</strong> ${ll.dteFechaFinVidaEstimada ? new Date(ll.dteFechaFinVidaEstimada).toLocaleDateString("es-MX") : "No especificada"}</p>
-                <p><strong>Ãšltima RotaciÃ³n:</strong> ${ll.dteFechaRotacion ? new Date(ll.dteFechaRotacion).toLocaleDateString("es-MX") : "No especificada"}</p>
-                <p><strong>Siguiente RotaciÃ³n:</strong> ${ll.dteFechaSiguienteRotacion ? new Date(ll.dteFechaSiguienteRotacion).toLocaleDateString("es-MX") : "No especificada"}</p>
+                <p><strong>Fecha Compra:</strong> ${ll.dteFechaCompra ? new Date(ll.dteFechaCompra).toLocaleDateString("es-MX") : "-"}</p>                <p><strong>Vida Estimada:</strong> ${ll.dteFechaFinVidaEstimada ? new Date(ll.dteFechaFinVidaEstimada).toLocaleDateString("es-MX") : "No especificada"}</p>
+                <p><strong>Última Rotación:</strong> ${ll.dteFechaRotacion ? new Date(ll.dteFechaRotacion).toLocaleDateString("es-MX") : "No especificada"}</p>
+                <p><strong>Siguiente Rotación:</strong> ${ll.dteFechaSiguienteRotacion ? new Date(ll.dteFechaSiguienteRotacion).toLocaleDateString("es-MX") : "No especificada"}</p>
             </div>
         `,
         confirmButtonColor: "var(--teal-cavex)"
@@ -803,13 +806,13 @@ function editarLlanta(id) {
 
 function eliminarLlanta(id) {
     Swal.fire({
-        title: "Â¿EstÃ¡s seguro?",
-        text: "Este registro de llanta serÃ¡ eliminado permanentemente.",
+        title: "¿Estás seguro?",
+        text: "Este registro de llanta será eliminado permanentemente.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {

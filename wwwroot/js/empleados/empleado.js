@@ -959,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     idEmpCatGenero: parseInt(document.getElementById('idGenero').value),
                     idEmpCatEstadoCivil: parseInt(document.getElementById('ddlEstadoCivil').value),
                     idEmpCatNacionalidad: parseInt(document.getElementById('ddlNacionalidad').value),
-                    idEmpCatTipoContratacion: 1,
+                    idEmpCatTipoContratacion: parseInt(document.getElementById('ddlTipoContratacion')?.value || '1', 10),
                     idCatStatus: 1,
                     idEmpCatAreaLaboral: parseInt(document.getElementById('ddlAreaLaboral').value),
                     direccion: {
@@ -1179,7 +1179,26 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => console.error('[AreaLaboral] ERROR:', err));
 
-        return Promise.all([p1, p2, p3, p4]);
+        // ── TIPO DE CONTRATO ──
+        const p5 = fetch('/Empleado/GetTiposContratacion')
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    const select = document.getElementById('ddlTipoContratacion');
+                    if (select) {
+                        select.innerHTML = '<option value="" disabled selected>Seleccionar tipo de contrato</option>';
+                        res.data.forEach(item => {
+                            const opt = document.createElement('option');
+                            opt.value = item.id;
+                            opt.textContent = item.strValor;
+                            select.appendChild(opt);
+                        });
+                    }
+                }
+            })
+            .catch(err => console.error('[TipoContratacion] ERROR:', err));
+
+        return Promise.all([p1, p2, p3, p4, p5]);
     }
 
     window.existingDocumentUrls = {};
@@ -1308,10 +1327,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('txtTelefonoCelular').value = (rawCel && rawCel !== 0 && rawCel !== '0') ? String(rawCel).padStart(10, '0') : '';
                     }
 
-                    // Mapear Área Laboral
+                    // Mapear Área Laboral y Tipo de Contrato
                     if (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) {
                         document.getElementById('ddlAreaLaboral').value = emp.empHistorialAreas[0].idEmpCatAreaLaboral;
                         document.getElementById('ddlAreaLaboral').dispatchEvent(new Event('change'));
+                    }
+
+                    const idTipoContrato = emp.idEmpCatTipoContratacion || emp.IdEmpCatTipoContratacion;
+                    if (idTipoContrato) {
+                        const ddlTipo = document.getElementById('ddlTipoContratacion');
+                        if (ddlTipo) {
+                            ddlTipo.value = idTipoContrato;
+                            ddlTipo.dispatchEvent(new Event('change'));
+                        }
                     }
 
                     // Mapear Experiencias Laborales

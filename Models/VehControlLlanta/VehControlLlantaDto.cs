@@ -53,7 +53,7 @@ namespace Cavex.Principal.Models.VehControlLlanta
         public string? StrUrlEvidencia { get; set; }
         
         [Display(Name = "Comprobante de Pago")]
-        public string? StrUrlComptobantePago { get; set; }
+        public string? StrUrlComprobantePago { get; set; }
 
 
 

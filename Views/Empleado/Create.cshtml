@@ -241,16 +241,22 @@
                 <h2>Condiciones laborales</h2>
             </div>
 
-            <div class="form-row cols-2">
+            <div class="form-row cols-3">
                 <div class="form-group">
                     <label>Sueldo mensual</label>
                     <input asp-for="SueldoMensual" type="text" id="txtSueldoMensual" placeholder="$0.00" autocomplete="off" required />
                 </div>
                 <div class="form-group">
                     <label>Área laboral</label>
-                        <select asp-for="AreaLaboral" id="ddlAreaLaboral" required>
-                            <option value="" disabled selected>Seleccionar área</option>
-                        </select>
+                    <select asp-for="AreaLaboral" id="ddlAreaLaboral" required>
+                        <option value="" disabled selected>Seleccionar área</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de contrato</label>
+                    <select asp-for="TipoContratacion" id="ddlTipoContratacion" required>
+                        <option value="" disabled selected>Seleccionar tipo de contrato</option>
+                    </select>
                 </div>
             </div>
 
