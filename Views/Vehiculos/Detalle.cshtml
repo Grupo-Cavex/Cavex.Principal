@@ -344,11 +344,10 @@
                 </div>
             </div>
             <div class="metric-card-footer">
-                <a href="#" class="btn-metric-outline">Ver todas las alertas</a>
+                <a href="javascript:void(0)" class="btn-metric-outline" data-tab-nav="historial">Ver todas las alertas</a>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Fila de Secciones Secundarias Reales -->
     <div class="secondary-row">
@@ -363,7 +362,7 @@
                 <!-- Dinámico -->
             </div>
             <div class="metric-card-footer">
-                <a href="#" class="btn-metric-outline">Ver historial completo</a>
+                <a href="javascript:void(0)" class="btn-metric-outline" data-tab-nav="mantenimiento">Ver historial completo</a>
             </div>
         </div>
 
@@ -388,7 +387,7 @@
                 </div>
             </div>
             <div class="metric-card-footer">
-                <a href="#" class="btn-metric-outline">Ver reporte completo</a>
+                <a href="javascript:void(0)" class="btn-metric-outline" data-tab-nav="revision">Ver reporte completo</a>
             </div>
         </div>
 
@@ -416,7 +415,7 @@
                     <span class="badge-seguro-vigente" id="resumen-seguro-restante">—</span>
                 </div>
                 <div class="metric-card-footer">
-                    <a href="#" class="btn-metric-outline">Ver detalles</a>
+                    <a href="javascript:void(0)" class="btn-metric-outline" data-tab-nav="seguro">Ver detalles</a>
                 </div>
             </div>
 
@@ -435,7 +434,7 @@
                             <span class="infracciones-amount" id="resumen-infracciones-monto">Total adeudado: <span>$0.00</span></span>
                         </div>
                     </div>
-                    <a href="#" class="btn-infracciones-detail">Ver detalle</a>
+                    <a href="javascript:void(0)" class="btn-infracciones-detail" data-tab-nav="infracciones">Ver detalle</a>
                 </div>
             </div>
         </div>
@@ -470,7 +469,7 @@
                 <!-- Dinámico -->
             </div>
             <div class="metric-card-footer">
-                <a href="#" class="btn-metric-outline">Ver todos los documentos</a>
+                <a href="javascript:void(0)" class="btn-metric-outline" data-tab-nav="documentos">Ver todos los documentos</a>
             </div>
         </div>
     </div>
@@ -480,6 +479,21 @@
     <!-- CONTENIDO PESTAÑA: Mantenimiento -->
     <div id="tab-mantenimiento" class="tab-content" style="display: none;">
         <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
+                <div>
+                    <h3 class="tab-title mb-1">Historial Completo y Detallado de Mantenimiento</h3>
+                    <p class="tab-desc mb-0">
+                        Gestión independiente de servicios y mantenimientos preventivos/correctivos para este vehículo.
+                    </p>
+                </div>
+                <div>
+                    <a href="/IngresoTaller/Index?vehiculoId=@(ViewBag.VehiculoId ?? 1)" class="btn d-inline-flex align-items-center gap-2" style="background-color: var(--azul-cavex); color: #ffffff; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <img src="/svg/vista-detalles-vehiculos/wrench.svg" width="16" height="16" style="filter: brightness(0) invert(1);" alt="" />
+                        Registrar Ingreso a Taller
+                    </a>
+                </div>
+            </div>
+
             <!-- Sección de Tarjetas de Resumen Financiero y Métricas Ampliadas -->
             <div class="maint-stats-grid">
                 <div class="maint-stats-card">
@@ -505,10 +519,6 @@
                 </div>
             </div>
 
-            <h3 class="tab-title">Historial Completo y Detallado de Mantenimiento</h3>
-            <p class="tab-desc">
-                Muestra la lista de servicios realizados a este vehículo. No se muestran identificadores internos (IDs).
-            </p>
             <div class="cavex-table-responsive">
                 <table class="cavex-table">
                     <thead>

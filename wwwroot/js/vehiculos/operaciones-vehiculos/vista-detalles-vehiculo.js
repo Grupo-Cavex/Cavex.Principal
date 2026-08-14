@@ -878,47 +878,34 @@ $(document).ready(function() {
         const targetTab = $(this).attr('data-tab');
         $('.tab-content').hide();
         $(`#tab-${targetTab}`).fadeIn(150);
+    });
 
-        // --- 6. DETECCIÓN DE PESTAÑA VACÍA PARA DISPARAR SWEETALERT2 LOCALIZADO ---
-        let estaVacio = false;
-        let nombreSeccion = "";
-
-        if (targetTab === "mantenimiento" && vehiculo.mantenimientos.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Historial de Mantenimientos";
-        } else if (targetTab === "revision" && vehiculo.revision.categorias.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Puntos de Revisión";
-        } else if (targetTab === "llantas" && vehiculo.llantas.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Control de Neumáticos";
-        } else if (targetTab === "seguro" && vehiculo.seguro.siniestros.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Seguro / Siniestros";
-        } else if (targetTab === "infracciones" && vehiculo.infracciones.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Infracciones Pendientes";
-        } else if (targetTab === "documentos" && vehiculo.documentos.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Expediente de Documentos";
-        } else if (targetTab === "historial" && vehiculo.historial.length === 0) {
-            estaVacio = true;
-            nombreSeccion = "Historial de Eventos";
-        }
-
-        if (estaVacio) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'info',
-                title: `Sección vacía: ${nombreSeccion}`,
-                text: 'No hay registros cargados para este vehículo.',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true
-            });
+    // Manejador para enlaces de acceso rápido con atributo data-tab-nav
+    $(document).on('click', '[data-tab-nav]', function(e) {
+        e.preventDefault();
+        const targetTab = $(this).attr('data-tab-nav');
+        if (targetTab) {
+            const $targetBtn = $(`.tab-btn[data-tab="${targetTab.toLowerCase()}"]`);
+            if ($targetBtn.length) {
+                $targetBtn.click();
+                $('html, body').animate({
+                    scrollTop: $('.tabs-container').offset().top - 80
+                }, 200);
+            }
         }
     });
+
+    // Detectar pestaña inicial desde la URL (ej. ?tab=mantenimiento)
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTab = urlParams.get('tab') || urlParams.get('seccion');
+    if (requestedTab) {
+        const $targetBtn = $(`.tab-btn[data-tab="${requestedTab.toLowerCase()}"]`);
+        if ($targetBtn.length) {
+            setTimeout(function() {
+                $targetBtn.click();
+            }, 100);
+        }
+    }
 
     // --- 7. GRÁFICA COMPARATIVA DE KILOMETRAJE (Chart.js) ---
     function initMileageChart() {

@@ -28,7 +28,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Infracciones/Infracciones")]
         public IActionResult Infracciones()
         {
-            return View("~/Views/Vehiculos/Infracciones.cshtml");
+            return View("~/Views/Vehiculos/Infracciones/Create.cshtml");
         }
 
         [HttpGet("/Infracciones/GetInfracciones")]

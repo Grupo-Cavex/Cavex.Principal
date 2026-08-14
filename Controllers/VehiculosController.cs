@@ -188,6 +188,7 @@ namespace Cavex.Principal.Controllers
             });
         }
 
+        [HttpGet("/Vehiculos/GetVehiculo")]
         [HttpGet("/Vehiculos/GetVehiculoById")]
         public async Task<IActionResult> GetVehiculoById(int id, CancellationToken cancellationToken)
         {
@@ -271,8 +272,8 @@ namespace Cavex.Principal.Controllers
                     var capacidades = await _vehCatCapacidad.ObtenerTodosAsync(1, 100, null, cancellationToken);
                     var combustibles = await _vehCatTipoCombustible.ObtenerTodosAsync(1, 100, null, cancellationToken);
                     var transmisiones = await _vehCatTransmisionService.ObtenerTodosAsync(1, 100, null, cancellationToken);
-                    var aseguradoras = await _vehCatAseguradora.ObtenerTodosAsync(cancellationToken);
-                    var gasolineras = await _vehCatGasolineras.ObtenerTodosAsync(cancellationToken);
+                    var aseguradoras = await _vehCatAseguradora.ObtenerTodosAsync(1, 100, null, null, cancellationToken);
+                    var gasolineras = await _vehCatGasolineras.ObtenerTodosAsync(1, 100, null, null, cancellationToken);
                     var formasPago = await _vehCatFormaPago.ObtenerTodosAsync(cancellationToken);
                     var marcasLlanta = await _vehCatMarcaLlanta.ObtenerTodosAsync(cancellationToken);
                     var posicionesLlanta = await _vehCatPosicionLlanta.ObtenerTodosAsync(cancellationToken);

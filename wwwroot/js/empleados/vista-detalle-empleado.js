@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Promesas paralelas para obtener el empleado y mapear catálogos directamente de base de datos
     Promise.all([
-        fetch('/Empleado/GetEmpleado?id=' + empleadoId).then(res => res.json()),
-        fetch('/Empleado/GetGeneros').then(res => res.json()),
-        fetch('/Empleado/GetEstadosCiviles').then(res => res.json()),
-        fetch('/Empleado/GetNacionalidades').then(res => res.json()),
-        fetch('/AreaLaboral/GetAreas').then(res => res.json())
+        fetch('/Empleado/GetEmpleado?id=' + empleadoId).then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/Empleado/GetGeneros').then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/Empleado/GetEstadosCiviles').then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/Empleado/GetNacionalidades').then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/AreaLaboral/GetAreas').then(res => res.json()).catch(() => ({ success: false }))
     ])
     .then(([empRes, generosRes, estadosRes, nacsRes, areasRes]) => {
         Swal.close();
@@ -197,9 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 lblPuesto.textContent = toTitleCase(emp.strEmpCatTipoContratacion || 'Sin Tipo de Contratación');
             }
             
-            const histAreaId = (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) ? emp.empHistorialAreas[0].idEmpCatAreaLaboral : null;
+            const histAreaId = (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) 
+                ? emp.empHistorialAreas[0].idEmpCatAreaLaboral 
+                : (emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null);
             const areaOpt = histAreaId && areasRes.success && areasRes.data ? areasRes.data.find(x => x.id === histAreaId) : null;
-            const areaNameText = areaOpt ? toTitleCase(areaOpt.strValor || areaOpt.strDescripcion) : toTitleCase(emp.strEmpCondicionesLaborales || 'Sin Condiciones Laborales');
+            const areaNameText = areaOpt ? toTitleCase(areaOpt.strValor || areaOpt.strDescripcion) : toTitleCase(emp.strAreaLaboral || emp.strEmpCondicionesLaborales || 'Sin Área Asignada');
             document.getElementById('lblArea').textContent = areaNameText;
 
             // Experiencias (Timeline minimalista)

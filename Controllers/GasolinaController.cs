@@ -32,15 +32,17 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Gasolina/Gasolina")]
         public IActionResult Gasolina()
         {
-            return View("~/Views/Vehiculos/Gasolina.cshtml");
+            return View("~/Views/Vehiculos/Gasolina/Create.cshtml");
         }
 
         // Pantalla de Agregar gasolineras
+        [HttpGet("/Gasolineras")]
+        [HttpGet("/Vehiculos/Gasolineras")]
         [HttpGet("/Gasolina/Gasolineras/{id:int?}")]
         public IActionResult Gasolineras(int? id)
         {
             ViewBag.GasolineraId = id ?? 1;
-            return View("~/Views/Vehiculos/Gasolineras.cshtml");
+            return View("~/Views/Vehiculos/Gasolina/Index.cshtml");
         }
 
         [HttpGet("/Gasolina/GetGasolinas")]

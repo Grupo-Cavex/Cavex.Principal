@@ -29,7 +29,7 @@ namespace Cavex.Principal.Services.Implementations
         public async Task<bool> ExistePorNombreAsync(string nombre, int? excludeId = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(nombre)) return false;
-            var response = await ObtenerTodosAsync(1, 10, nombre, cancellationToken);
+            var response = await ObtenerTodosAsync(1, 10, nombre, null, cancellationToken);
             if (response.Success && response.Data?.Items != null)
             {
                 return response.Data.Items.Any(x => 

@@ -25,10 +25,11 @@ namespace Cavex.Principal.Controllers
 
         // Pantalla frontend de control de llantas
         [HttpGet("/Llantas")]
+        [HttpGet("/Vehiculos/Llantas")]
         [HttpGet("/Llantas/Llantas")]
         public IActionResult Llantas()
         {
-            return View("~/Views/Vehiculos/Llantas.cshtml");
+            return View("~/Views/Vehiculos/Llantas/Create.cshtml");
         }
 
         [HttpGet("/Llantas/GetLlantas")]
