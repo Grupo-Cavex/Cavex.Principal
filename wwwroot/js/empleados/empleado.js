@@ -1328,9 +1328,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     // Mapear Área Laboral y Tipo de Contrato
-                    const idAreaLaboral = (emp.empHistorialAreas && emp.empHistorialAreas.length > 0)
-                        ? emp.empHistorialAreas[0].idEmpCatAreaLaboral
-                        : (emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null);
+                    let idAreaLaboral = emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null;
+                    if (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) {
+                        const sortedAreas = [...emp.empHistorialAreas].sort((a, b) => (b.id || 0) - (a.id || 0));
+                        idAreaLaboral = sortedAreas[0].idEmpCatAreaLaboral || idAreaLaboral;
+                    }
 
                     if (idAreaLaboral) {
                         const ddlArea = document.getElementById('ddlAreaLaboral');

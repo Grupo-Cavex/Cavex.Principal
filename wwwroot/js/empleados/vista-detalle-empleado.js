@@ -197,9 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 lblPuesto.textContent = toTitleCase(emp.strEmpCatTipoContratacion || 'Sin Tipo de Contratación');
             }
             
-            const histAreaId = (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) 
-                ? emp.empHistorialAreas[0].idEmpCatAreaLaboral 
-                : (emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null);
+            let histAreaId = emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null;
+            if (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) {
+                const sortedAreas = [...emp.empHistorialAreas].sort((a, b) => (b.id || 0) - (a.id || 0));
+                histAreaId = sortedAreas[0].idEmpCatAreaLaboral || histAreaId;
+            }
             const areaOpt = histAreaId && areasRes.success && areasRes.data ? areasRes.data.find(x => x.id === histAreaId) : null;
             const areaNameText = areaOpt ? toTitleCase(areaOpt.strValor || areaOpt.strDescripcion) : toTitleCase(emp.strAreaLaboral || emp.strEmpCondicionesLaborales || 'Sin Área Asignada');
             document.getElementById('lblArea').textContent = areaNameText;

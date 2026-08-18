@@ -1,4 +1,4 @@
-﻿using Cavex.Principal.ApiClients.VehDatosGenerales;
+using Cavex.Principal.ApiClients.VehDatosGenerales;
 using Cavex.Principal.Common;
 using Cavex.Principal.Models.CatSucursal;
 using Cavex.Principal.Models.VehDatosGenerales;
@@ -29,7 +29,7 @@ namespace Cavex.Principal.Services.Implementations
             ExecuteAsync(() => _vehDatosGeneralesApi.CreateAsync(RequestWrapper<VehDatosGeneralesSaveDto>.Create(request), cancellationToken), "No fue posible crear el registro de VehDatosGenerales.");
 
         public Task<ResponseWrapper<VehDatosGeneralesDto>> EditarAsync(VehDatosGeneralesEditDto dto, CancellationToken cancellationToken = default) =>
-            ExecuteAsync(() => _vehDatosGeneralesApi.UpdateAsync(dto, cancellationToken), "No fue posible editar el registro de VehDatosGenerales.");
+            ExecuteAsync(() => _vehDatosGeneralesApi.UpdateAsync(dto.Id, RequestWrapper<VehDatosGeneralesEditDto>.Create(dto), cancellationToken), "No fue posible editar el registro de VehDatosGenerales.");
 
         public Task<ResponseWrapper<bool>> EliminarAsync(int id, CancellationToken cancellationToken = default) =>
             ExecuteAsync(() => _vehDatosGeneralesApi.DeleteAsync(id, cancellationToken), "No fue posible eliminar el registro de VehDatosGenerales.");

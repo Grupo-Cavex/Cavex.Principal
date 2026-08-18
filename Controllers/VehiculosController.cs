@@ -41,6 +41,20 @@ namespace Cavex.Principal.Controllers
         private const string VehiculosCacheKey = "vehiculos_list_cache";
         private const string VehiculosCatalogosCacheKey = "vehiculos_catalogos_cache";
 
+        private readonly IVehControlServicioService? _vehControlServicioService;
+        private readonly IVehInfraccionesService? _vehInfraccionesService;
+        private readonly IVehSeguroService? _vehSeguroService;
+        private readonly IVehControlLlantaService? _vehControlLlantaService;
+        private readonly IVehTarjetaCirculacionService? _vehTarjetaCirculacionService;
+        private readonly IVehTenenciaService? _vehTenenciaService;
+        private readonly IVehVerificacionService? _vehVerificacionService;
+        private readonly IVehPermisoTransporteService? _vehPermisoTransporteService;
+        private readonly IVehDaniosAccidentesService? _vehDaniosAccidentesService;
+        private readonly IVehAsignacionVehiculosService? _vehAsignacionVehiculosService;
+        private readonly IVehRevistaVehicularService? _vehRevistaVehicularService;
+        private readonly IVehControlGasolinaService? _vehControlGasolinaService;
+        private readonly IVehPlacasService? _vehPlacasService;
+
         public VehiculosController(
             IVehiculoListadoService vehiculoListadoService,
             IVehCatMarcaVehiculoService vehCatMarcaVehiculo, 
@@ -57,7 +71,20 @@ namespace Cavex.Principal.Controllers
             IVehCatMarcaLlantaService vehCatMarcaLlanta,
             IVehCatPosicionLlantaService vehCatPosicionLlanta,
             IWebHostEnvironment webHostEnvironment,
-            Microsoft.Extensions.Caching.Memory.IMemoryCache cache)
+            Microsoft.Extensions.Caching.Memory.IMemoryCache cache,
+            IVehControlServicioService? vehControlServicioService = null,
+            IVehInfraccionesService? vehInfraccionesService = null,
+            IVehSeguroService? vehSeguroService = null,
+            IVehControlLlantaService? vehControlLlantaService = null,
+            IVehTarjetaCirculacionService? vehTarjetaCirculacionService = null,
+            IVehTenenciaService? vehTenenciaService = null,
+            IVehVerificacionService? vehVerificacionService = null,
+            IVehPermisoTransporteService? vehPermisoTransporteService = null,
+            IVehDaniosAccidentesService? vehDaniosAccidentesService = null,
+            IVehAsignacionVehiculosService? vehAsignacionVehiculosService = null,
+            IVehRevistaVehicularService? vehRevistaVehicularService = null,
+            IVehControlGasolinaService? vehControlGasolinaService = null,
+            IVehPlacasService? vehPlacasService = null)
         {
             _vehiculoListadoService = vehiculoListadoService;
             _vehCatMarcaVehiculo = vehCatMarcaVehiculo;
@@ -75,6 +102,20 @@ namespace Cavex.Principal.Controllers
             _vehCatPosicionLlanta = vehCatPosicionLlanta;
             _webHostEnvironment = webHostEnvironment;
             _cache = cache;
+
+            _vehControlServicioService = vehControlServicioService;
+            _vehInfraccionesService = vehInfraccionesService;
+            _vehSeguroService = vehSeguroService;
+            _vehControlLlantaService = vehControlLlantaService;
+            _vehTarjetaCirculacionService = vehTarjetaCirculacionService;
+            _vehTenenciaService = vehTenenciaService;
+            _vehVerificacionService = vehVerificacionService;
+            _vehPermisoTransporteService = vehPermisoTransporteService;
+            _vehDaniosAccidentesService = vehDaniosAccidentesService;
+            _vehAsignacionVehiculosService = vehAsignacionVehiculosService;
+            _vehRevistaVehicularService = vehRevistaVehicularService;
+            _vehControlGasolinaService = vehControlGasolinaService;
+            _vehPlacasService = vehPlacasService;
         }
 
         [HttpGet("/Vehiculos")]
@@ -192,12 +233,166 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Vehiculos/GetVehiculoById")]
         public async Task<IActionResult> GetVehiculoById(int id, CancellationToken cancellationToken)
         {
-            var response = await _vehDatosGenerales.ObtenerPorIdAsync(id, cancellationToken);
-            if (response == null || !response.Success || response.Data == null)
+            try
             {
-                return Json(new { success = false, message = response?.Message ?? "No se encontró el vehículo." });
+                var response = await _vehDatosGenerales.ObtenerPorIdAsync(id, cancellationToken);
+                if (response == null || !response.Success || response.Data == null)
+                {
+                    return Json(new { success = false, message = response?.Message ?? "No se encontró el vehículo." });
+                }
+
+                object? servicios = null;
+                try {
+                    if (_vehControlServicioService != null) {
+                        var res = await _vehControlServicioService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            servicios = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? infracciones = null;
+                try {
+                    if (_vehInfraccionesService != null) {
+                        var res = await _vehInfraccionesService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            infracciones = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? seguros = null;
+                try {
+                    if (_vehSeguroService != null) {
+                        var res = await _vehSeguroService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            seguros = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? llantas = null;
+                try {
+                    if (_vehControlLlantaService != null) {
+                        var res = await _vehControlLlantaService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            llantas = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? tarjetasCirculacion = null;
+                try {
+                    if (_vehTarjetaCirculacionService != null) {
+                        var res = await _vehTarjetaCirculacionService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            tarjetasCirculacion = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? tenencias = null;
+                try {
+                    if (_vehTenenciaService != null) {
+                        var res = await _vehTenenciaService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            tenencias = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? verificaciones = null;
+                try {
+                    if (_vehVerificacionService != null) {
+                        var res = await _vehVerificacionService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            verificaciones = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? permisosTransporte = null;
+                try {
+                    if (_vehPermisoTransporteService != null) {
+                        var res = await _vehPermisoTransporteService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            permisosTransporte = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? danios = null;
+                try {
+                    if (_vehDaniosAccidentesService != null) {
+                        var res = await _vehDaniosAccidentesService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            danios = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? asignaciones = null;
+                try {
+                    if (_vehAsignacionVehiculosService != null) {
+                        var res = await _vehAsignacionVehiculosService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            asignaciones = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? revistas = null;
+                try {
+                    if (_vehRevistaVehicularService != null) {
+                        var res = await _vehRevistaVehicularService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            revistas = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? gasolina = null;
+                try {
+                    if (_vehControlGasolinaService != null) {
+                        var res = await _vehControlGasolinaService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            gasolina = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                object? placas = null;
+                try {
+                    if (_vehPlacasService != null) {
+                        var res = await _vehPlacasService.ObtenerTodosAsync(cancellationToken);
+                        if (res?.Success == true && res.Data?.Items != null) {
+                            placas = res.Data.Items.Where(x => x.IdVehDatosGenerales == id).ToList();
+                        }
+                    }
+                } catch { }
+
+                return Json(new { 
+                    success = true, 
+                    data = response.Data,
+                    servicios,
+                    infracciones,
+                    seguros,
+                    llantas,
+                    tarjetasCirculacion,
+                    tenencias,
+                    verificaciones,
+                    permisosTransporte,
+                    danios,
+                    asignaciones,
+                    revistas,
+                    gasolina,
+                    placas
+                });
             }
-            return Json(new { success = true, data = response.Data });
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost("/Vehiculos/DeleteVehiculo")]
@@ -424,7 +619,9 @@ namespace Cavex.Principal.Controllers
                         DteFechaAsignacion = existingVehiculo.DteFechaAsignacion, // Conserva la fecha de registro original
                         StrObservaciones = managerSaveDto.StrDescripcion,
                         StrMotor = managerSaveDto.StrNumMotor,
-                        IdVehCatTransmision = managerSaveDto.VehCatTransmisionDto?.Id ?? 0
+                        IdVehCatTransmision = managerSaveDto.VehCatTransmisionDto?.Id ?? 0,
+                        DteUltimoMantenimiento = managerSaveDto.DteUltimoMantenimiento,
+                        DteProximoMantenimiento = managerSaveDto.DteProximoMantenimiento
                     };
 
                     var apiResult = await _vehDatosGenerales.EditarAsync(editDto, cancellationToken);
@@ -459,7 +656,9 @@ namespace Cavex.Principal.Controllers
                         DteFechaAsignacion = DateOnly.FromDateTime(DateTime.Now),
                         StrObservaciones = managerSaveDto.StrDescripcion,
                         StrMotor = managerSaveDto.StrNumMotor,
-                        IdVehCatTransmision = managerSaveDto.VehCatTransmisionDto?.Id ?? 0
+                        IdVehCatTransmision = managerSaveDto.VehCatTransmisionDto?.Id ?? 0,
+                        DteUltimoMantenimiento = managerSaveDto.DteUltimoMantenimiento,
+                        DteProximoMantenimiento = managerSaveDto.DteProximoMantenimiento
                     };
 
                     var apiResult = await _vehDatosGenerales.CrearAsync(saveDto, cancellationToken);
