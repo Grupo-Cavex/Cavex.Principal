@@ -32,7 +32,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Danios/DaniosAccidentes")]
         public IActionResult DaniosAccidentes()
         {
-            return View("~/Views/Vehiculos/DaniosAccidentes.cshtml");
+            return View("~/Views/Vehiculos/DaniosAccidentes/Create.cshtml");
         }
 
         [HttpGet("/Danios/GetDanios")]

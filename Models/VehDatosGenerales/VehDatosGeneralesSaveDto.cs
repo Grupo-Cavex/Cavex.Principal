@@ -67,6 +67,9 @@ namespace Cavex.Principal.Models.VehDatosGenerales
         [Display(Name = "Fecha de asignación")]
         public DateOnly DteFechaAsignacion { get; set; } 
 
+        [Display(Name = "Fecha de registro")]
+        public DateOnly DteFechaRegistro { get => DteFechaAsignacion; set => DteFechaAsignacion = value; } 
+
         [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
         [Display(Name = "Observaciones")]
         public string? StrObservaciones { get; set; }

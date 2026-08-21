@@ -37,10 +37,11 @@ namespace Cavex.Principal.Controllers
 
         // --- SEGUROS (ASEGURADORAS) ---
         [HttpGet("/Seguros")]
+        [HttpGet("/Vehiculos/Seguros")]
         [HttpGet("/Seguros/Seguros")]
         public IActionResult Seguros()
         {
-            return View("~/Views/Vehiculos/Seguros.cshtml");
+            return View("~/Views/Vehiculos/Seguros/Create.cshtml");
         }
 
         [HttpGet("/Seguros/GetVehiculoSeguros")]

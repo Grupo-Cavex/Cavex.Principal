@@ -51,6 +51,17 @@ namespace Cavex.Principal.Controllers
             return Json(new { success = true, data = statusItems });
         }
 
+        [HttpGet("/AreaLaboral/GetAreas")]
+        public async Task<JsonResult> GetAreas(CancellationToken cancellationToken)
+        {
+            var response = await _serviceAreaLaboral.ObtenerTodosAsync(1, 1000, null, 1, cancellationToken);
+            if (!response.Success || response.Data?.Items == null)
+            {
+                return Json(new { success = false, message = response?.Message ?? "Sin áreas laborales.", data = new object[0] });
+            }
+            return Json(new { success = true, data = response.Data.Items });
+        }
+
         // Obtiene las áreas laborales paginadas con opción de filtrado/búsqueda
         [HttpGet]
         public async Task<JsonResult> GetAreasLaborales(int pagina, string? search, string? status, CancellationToken cancellationToken)

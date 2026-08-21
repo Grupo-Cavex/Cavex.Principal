@@ -209,20 +209,20 @@
                 <h2>Dirección</h2>
             </div>
 
-            <div class="form-row cols-1">
-                <div class="form-group dropdown-group">
-                    <label>Colonia</label>
-                    <input type="hidden" asp-for="Colonia" id="hdnColoniaId" name="Colonia" required />
-                    <input type="text" id="txtColonia" placeholder="Escribe para buscar colonia..." autocomplete="off" required />
-                    <div id="colonia-suggestions" class="suggestions-container" style="display: none;"></div>
-                </div>
-            </div>
-
-            <div class="form-row cols-3">
+            <div class="form-row cols-2">
                 <div class="form-group">
                     <label>Código postal</label>
                     <input asp-for="CodigoPostal" type="text" id="txtCodigoPostal" placeholder="00000" maxlength="5" autocomplete="off" required pattern="^[0-9]{5}$" />
                 </div>
+                <div class="form-group dropdown-group">
+                    <label>Colonia</label>
+                    <input type="hidden" asp-for="Colonia" id="hdnColoniaId" name="Colonia" required />
+                    <input type="text" id="txtColonia" placeholder="Primero coloca el Código Postal" autocomplete="off" required disabled />
+                    <div id="colonia-suggestions" class="suggestions-container" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div class="form-row cols-2">
                 <div class="form-group">
                     <label>Número exterior</label>
                     <input asp-for="NumeroExterior" type="number" id="txtNumeroExterior" placeholder="Núm. ext." autocomplete="off" required min="1" />

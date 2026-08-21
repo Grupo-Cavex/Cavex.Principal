@@ -1288,7 +1288,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                              colTexto += ', ' + municipio;
                                          }
                                          document.getElementById('txtColonia').value = colTexto;
+                                         document.getElementById('txtColonia').disabled = false;
                                          document.getElementById('txtCodigoPostal').value = cp;
+                                         if (typeof cargarColoniasPorCP === 'function') {
+                                             cargarColoniasPorCP(cp, false);
+                                         }
                                      }
                                 });
                         }
@@ -1328,9 +1332,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     // Mapear Área Laboral y Tipo de Contrato
+                    let idAreaLaboral = emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null;
                     if (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) {
-                        document.getElementById('ddlAreaLaboral').value = emp.empHistorialAreas[0].idEmpCatAreaLaboral;
-                        document.getElementById('ddlAreaLaboral').dispatchEvent(new Event('change'));
+                        const sortedAreas = [...emp.empHistorialAreas].sort((a, b) => (b.id || 0) - (a.id || 0));
+                        idAreaLaboral = sortedAreas[0].idEmpCatAreaLaboral || idAreaLaboral;
+                    }
+
+                    if (idAreaLaboral) {
+                        const ddlArea = document.getElementById('ddlAreaLaboral');
+                        if (ddlArea) {
+                            ddlArea.value = idAreaLaboral;
+                            ddlArea.dispatchEvent(new Event('change'));
+                        }
                     }
 
                     const idTipoContrato = emp.idEmpCatTipoContratacion || emp.IdEmpCatTipoContratacion;
@@ -1462,11 +1475,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Autocompletado de Colonias con Sugerencias y CP Automático
+    // Autocompletado de Colonias filtradas obligatoriamente por Código Postal
     const txtColonia = document.getElementById('txtColonia');
     const hdnColoniaId = document.getElementById('hdnColoniaId');
     const coloniaSuggestions = document.getElementById('colonia-suggestions');
-
+    let listaColoniasCP = [];
 
     function normalizarTextoBusqueda(valor) {
         return String(valor || '')
@@ -1499,14 +1512,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function coincideConBusquedaColonia(item, query) {
+        if (!query) return true;
         const valor = normalizarTextoBusqueda(obtenerValorColonia(item));
         const busqueda = normalizarTextoBusqueda(query);
         const palabras = busqueda.split(/\s+/).filter(Boolean);
-
         return palabras.length > 0 && palabras.every(palabra => valor.includes(palabra));
     }
 
     function mostrarMensajeColonia(mensaje, tipo = 'info') {
+        if (!coloniaSuggestions) return;
         coloniaSuggestions.innerHTML = '';
         const div = document.createElement('div');
         div.className = tipo === 'error' ? 'suggestion-no-results suggestion-error' : 'suggestion-no-results';
@@ -1515,98 +1529,205 @@ document.addEventListener('DOMContentLoaded', function() {
         coloniaSuggestions.style.display = 'block';
     }
 
-    let debounceTimer;
-    if (txtColonia && hdnColoniaId && coloniaSuggestions) {
-        txtColonia.addEventListener('input', function() {
-            const query = txtColonia.value.trim();
-            hdnColoniaId.value = ''; // Resetear el ID si se modifica el texto
+    function seleccionarColoniaItem(item) {
+        const nombreColoniaItem = decodeUtf8Mojibake(item?.strValor || item?.StrValor || item?.colonia || item?.Colonia || 'Colonia Desconocida');
+        const estado = decodeUtf8Mojibake(item?.empCatMunicipio?.empCatEntidadFederativa?.strValor || item?.EmpCatMunicipio?.EmpCatEntidadFederativa?.StrValor || item?.strEstado || item?.StrEstado || '');
+        const municipio = decodeUtf8Mojibake(item?.empCatMunicipio?.strValor || item?.EmpCatMunicipio?.StrValor || item?.strMunicipio || item?.StrMunicipio || '');
+        const codigoPostal = String(obtenerCodigoPostalColonia(item) || txtCodigoPostal.value || '').padStart(5, '0');
 
-            clearTimeout(debounceTimer);
-            if (query.length < 3) {
+        let colTexto = nombreColoniaItem;
+        if (codigoPostal && codigoPostal !== '00000') {
+            colTexto += ', CP ' + codigoPostal;
+        }
+        if (estado && estado !== 'Estado Desconocido') {
+            colTexto += ', ' + estado;
+        }
+        if (municipio && municipio !== 'Municipio Desconocido') {
+            colTexto += ', ' + municipio;
+        }
+
+        txtColonia.value = colTexto;
+        hdnColoniaId.value = obtenerIdColonia(item);
+        if (codigoPostal && codigoPostal !== '00000') {
+            txtCodigoPostal.value = codigoPostal;
+        }
+
+        coloniaSuggestions.innerHTML = '';
+        coloniaSuggestions.style.display = 'none';
+
+        txtColonia.dataset.touched = "true";
+        txtCodigoPostal.dataset.touched = "true";
+        limpiarError(txtColonia);
+        limpiarError(txtCodigoPostal);
+        actualizarStepperEmpleado();
+    }
+
+    function renderizarSugerenciasColonias(colonias) {
+        if (!coloniaSuggestions) return;
+        coloniaSuggestions.innerHTML = '';
+
+        if (!colonias || colonias.length === 0) {
+            mostrarMensajeColonia('No se encontraron colonias para este Código Postal.', 'warning');
+            return;
+        }
+
+        colonias.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+
+            const nombreColoniaItem = decodeUtf8Mojibake(item?.strValor || item?.StrValor || item?.colonia || item?.Colonia || 'Colonia Desconocida');
+            const estado = decodeUtf8Mojibake(item?.empCatMunicipio?.empCatEntidadFederativa?.strValor || item?.EmpCatMunicipio?.EmpCatEntidadFederativa?.StrValor || item?.strEstado || item?.StrEstado || '');
+            const municipio = decodeUtf8Mojibake(item?.empCatMunicipio?.strValor || item?.EmpCatMunicipio?.StrValor || item?.strMunicipio || item?.StrMunicipio || '');
+            const codigoPostal = String(obtenerCodigoPostalColonia(item) || txtCodigoPostal.value || '').padStart(5, '0');
+
+            div.innerHTML = `<strong>"${nombreColoniaItem}"</strong>, CP ${codigoPostal}${estado ? ', ' + estado : ''}${municipio ? ', ' + municipio : ''}`;
+
+            div.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                seleccionarColoniaItem(item);
+            });
+
+            coloniaSuggestions.appendChild(div);
+        });
+
+        coloniaSuggestions.style.display = 'block';
+    }
+
+    function cargarColoniasPorCP(cp, autoMostrar = true) {
+        if (!cp || cp.length !== 5) {
+            listaColoniasCP = [];
+            txtColonia.value = '';
+            hdnColoniaId.value = '';
+            txtColonia.disabled = true;
+            txtColonia.placeholder = 'Primero coloca el Código Postal';
+            if (coloniaSuggestions) {
+                coloniaSuggestions.innerHTML = '';
+                coloniaSuggestions.style.display = 'none';
+            }
+            return;
+        }
+
+        txtColonia.disabled = false;
+        txtColonia.placeholder = 'Buscando colonias del C.P. ' + cp + '...';
+        if (autoMostrar) {
+            mostrarMensajeColonia('Buscando colonias del C.P. ' + cp + '...');
+        }
+
+        fetch('/Empleado/GetColonias?search=' + encodeURIComponent(cp), {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(res => {
+                if (res.success === false || res.Success === false) {
+                    throw new Error(res.message || res.Message || 'No se pudieron obtener las colonias del CP.');
+                }
+
+                listaColoniasCP = obtenerListaColonias(res);
+
+                if (listaColoniasCP.length === 0) {
+                    txtColonia.placeholder = 'No se encontraron colonias para este CP';
+                    if (autoMostrar) {
+                        mostrarMensajeColonia('No se encontraron colonias para el C.P. ' + cp, 'warning');
+                    }
+                } else {
+                    txtColonia.placeholder = `Selecciona tu colonia (${listaColoniasCP.length} disponibles)...`;
+                    if (autoMostrar) {
+                        renderizarSugerenciasColonias(listaColoniasCP);
+                    }
+                    if (listaColoniasCP.length === 1 && (!hdnColoniaId.value || hdnColoniaId.value === '')) {
+                        seleccionarColoniaItem(listaColoniasCP[0]);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Error al cargar colonias por CP:', err);
+                txtColonia.placeholder = 'Error al cargar colonias';
+                if (autoMostrar) {
+                    mostrarMensajeColonia('No se pudieron cargar las colonias: ' + err.message, 'error');
+                }
+            });
+    }
+
+    if (txtCodigoPostal && txtColonia && hdnColoniaId && coloniaSuggestions) {
+        // Inicializar estado del campo Colonia según Código Postal
+        if (!txtCodigoPostal.value || txtCodigoPostal.value.trim().length !== 5) {
+            txtColonia.disabled = true;
+            txtColonia.placeholder = 'Primero coloca el Código Postal';
+        }
+
+        // Evento input en Código Postal: busca automáticamente las colonias al tener 5 dígitos
+        let cpDebounceTimer;
+        txtCodigoPostal.addEventListener('input', function() {
+            // Solo permitir números y máximo 5 dígitos
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
+            const cp = this.value.trim();
+
+            clearTimeout(cpDebounceTimer);
+            if (cp.length < 5) {
+                txtColonia.value = '';
+                hdnColoniaId.value = '';
+                listaColoniasCP = [];
+                txtColonia.disabled = true;
+                txtColonia.placeholder = 'Primero coloca el Código Postal';
                 coloniaSuggestions.innerHTML = '';
                 coloniaSuggestions.style.display = 'none';
                 return;
             }
 
-            mostrarMensajeColonia('Buscando colonias...');
+            cpDebounceTimer = setTimeout(() => {
+                cargarColoniasPorCP(cp, true);
+            }, 200);
+        });
 
-            debounceTimer = setTimeout(() => {
-                fetch('/Empleado/GetColonias?search=' + encodeURIComponent(query), {
-                    headers: { 'Accept': 'application/json' }
-                })
-                    .then(res => {
-                        if (!res.ok) {
-                            throw new Error('HTTP ' + res.status);
-                        }
-                        return res.json();
-                    })
-                    .then(res => {
-                        coloniaSuggestions.innerHTML = '';
-                        if (res.success === false || res.Success === false) {
-                            throw new Error(res.message || res.Message || 'La API no pudo obtener colonias.');
-                        }
+        // Evento focus/click en Colonia: si no hay CP, bloquea y guía al usuario
+        txtColonia.addEventListener('focus', function() {
+            const cp = txtCodigoPostal.value.trim();
+            if (cp.length !== 5) {
+                this.disabled = true;
+                this.placeholder = 'Primero coloca el Código Postal';
+                txtCodigoPostal.focus();
+                mostrarError(txtCodigoPostal, 'Primero coloca el Código Postal para buscar tu colonia.');
+                return;
+            }
 
-                        const colonias = obtenerListaColonias(res);
-                        const sugerencias = colonias
-                            .filter(item => coincideConBusquedaColonia(item, query))
-                            .slice(0, 15);
+            if (listaColoniasCP.length > 0) {
+                const query = this.value.trim();
+                const filtradas = listaColoniasCP.filter(item => coincideConBusquedaColonia(item, query));
+                renderizarSugerenciasColonias(filtradas.length > 0 ? filtradas : listaColoniasCP);
+            } else {
+                cargarColoniasPorCP(cp, true);
+            }
+        });
 
-                        if ((res.success === true || res.Success === true || colonias.length > 0) && sugerencias.length > 0) {
-                            sugerencias.forEach(item => {
-                                const nombreColonia = obtenerValorColonia(item);
-                                const codigoPostal = String(obtenerCodigoPostalColonia(item)).padStart(5, '0');
-                                const div = document.createElement('div');
-                                div.className = 'suggestion-item';
-                                const nombreColoniaItem = decodeUtf8Mojibake(item?.strValor || item?.StrValor || item?.colonia || item?.Colonia || 'Colonia Desconocida');
-                                const estado = decodeUtf8Mojibake(item?.strEstado || item?.StrEstado || 'Estado Desconocido');
-                                const municipio = decodeUtf8Mojibake(item?.strMunicipio || item?.StrMunicipio || 'Municipio Desconocido');
-                                div.innerHTML = `<strong>"${nombreColoniaItem}"</strong>, CP ${codigoPostal}, ${estado}, ${municipio}`;
-                                div.addEventListener('mousedown', (event) => {
-                                    event.preventDefault();
-                                    
-                                    let colTexto = nombreColoniaItem;
-                                    
-                                    if (codigoPostal) {
-                                        colTexto += ', CP ' + codigoPostal;
-                                    }
-                                    if (estado && estado !== 'Estado Desconocido') {
-                                        colTexto += ', ' + estado;
-                                    }
-                                    if (municipio && municipio !== 'Municipio Desconocido') {
-                                        colTexto += ', ' + municipio;
-                                    }
-                                    
-                                    txtColonia.value = colTexto;
-                                    hdnColoniaId.value = obtenerIdColonia(item);
-                                    txtCodigoPostal.value = codigoPostal;
-                                    
-                                    coloniaSuggestions.innerHTML = '';
-                                    coloniaSuggestions.style.display = 'none';
+        // Evento input en Colonia: filtra localmente entre las colonias del CP ingresado
+        txtColonia.addEventListener('input', function() {
+            const cp = txtCodigoPostal.value.trim();
+            if (cp.length !== 5) {
+                this.value = '';
+                this.disabled = true;
+                this.placeholder = 'Primero coloca el Código Postal';
+                txtCodigoPostal.focus();
+                mostrarError(txtCodigoPostal, 'Primero coloca el Código Postal.');
+                return;
+            }
 
-                                    // Marcar inputs como interactuados y disparar validaciones
-                                    txtColonia.dataset.touched = "true";
-                                    txtCodigoPostal.dataset.touched = "true";
-                                    limpiarError(txtColonia);
-                                    limpiarError(txtCodigoPostal);
-                                    actualizarStepperEmpleado();
-                                });
-                                coloniaSuggestions.appendChild(div);
-                            });
-                            coloniaSuggestions.style.display = 'block';
-                        } else {
-                            mostrarMensajeColonia('No se encontraron colonias');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching colonias:', err);
-                        mostrarMensajeColonia('No se pudieron cargar las colonias: ' + err.message, 'error');
-                    });
-            }, 300);
+            hdnColoniaId.value = ''; // Resetear ID si se modifica el texto manual
+            const query = this.value.trim();
+
+            if (listaColoniasCP.length > 0) {
+                const filtradas = listaColoniasCP.filter(item => coincideConBusquedaColonia(item, query));
+                renderizarSugerenciasColonias(filtradas);
+            } else {
+                cargarColoniasPorCP(cp, true);
+            }
         });
 
         // Ocultar sugerencias si se da click fuera del campo
         document.addEventListener('click', function(e) {
-            if (e.target !== txtColonia && e.target !== coloniaSuggestions && !coloniaSuggestions.contains(e.target)) {
+            if (e.target !== txtColonia && e.target !== txtCodigoPostal && e.target !== coloniaSuggestions && !coloniaSuggestions.contains(e.target)) {
                 coloniaSuggestions.innerHTML = '';
                 coloniaSuggestions.style.display = 'none';
             }

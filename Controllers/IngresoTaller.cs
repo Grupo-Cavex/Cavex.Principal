@@ -50,7 +50,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/IngresoTaller/IngresoTaller")]
         public IActionResult IngresoTaller()
         {
-            return View("~/Views/Vehiculos/IngresoTaller.cshtml");
+            return View("~/Views/Vehiculos/Asignaciones/Details.cshtml");
         }
 
         // Pantalla de Agregar responsables de servicio
@@ -58,7 +58,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/IngresoTaller/ResponsableServicio/Index")]
         public IActionResult ResponsableServicio()
         {
-            return View("~/Views/Vehiculos/ResponsableServicio.cshtml");
+            return View("~/Views/Vehiculos/Asignaciones/Index.cshtml");
         }
 
         [HttpGet("/IngresoTaller/GetIngresoTaller")]
@@ -123,7 +123,7 @@ namespace Cavex.Principal.Controllers
 
             try
             {
-                var talRes = await _vehCatTaller.ObtenerTodosAsync(1, 200, null, cancellationToken);
+                var talRes = await _vehCatTaller.ObtenerTodosAsync(1, 200, null, null, cancellationToken);
                 if (talRes?.Success == true && talRes.Data?.Items != null)
                     talMap = talRes.Data.Items.ToDictionary(t => t.Id);
             }
@@ -139,7 +139,7 @@ namespace Cavex.Principal.Controllers
 
             try
             {
-                var respRes = await _vehCatResponsableServicio.ObtenerTodosAsync(cancellationToken);
+                var respRes = await _vehCatResponsableServicio.ObtenerTodosAsync(1, 200, null, null, cancellationToken);
                 if (respRes?.Success == true && respRes.Data?.Items != null)
                     respMap = respRes.Data.Items.ToDictionary(r => r.Id);
             }
@@ -189,7 +189,7 @@ namespace Cavex.Principal.Controllers
         {
             try
             {
-                var talleres      = await _vehCatTaller.ObtenerTodosAsync(1, 100, null, cancellationToken);
+                var talleres      = await _vehCatTaller.ObtenerTodosAsync(1, 100, null, null, cancellationToken);
                 var tiposServicio = await _vehCatTipoServicio.ObtenerTodosAsync(cancellationToken);
                 var formasPago    = await _vehCatFormaPago.ObtenerTodosAsync(cancellationToken);
                 var refacciones   = await _vehCatRefacciones.ObtenerTodosAsync(cancellationToken);
@@ -249,6 +249,10 @@ namespace Cavex.Principal.Controllers
                     model.IdVehCatTipoServicio = 1;
                 if (model.IdVehFormaPago <= 0)
                     model.IdVehFormaPago = 1;
+                if (model.IdVehCatResponsableServicio <= 0)
+                    model.IdVehCatResponsableServicio = 1;
+                if (model.IdVehCatTaller <= 0)
+                    model.IdVehCatTaller = 1;
 
                 // Guardar comprobante si se adjuntó
                 if (ComprobanteArchivo != null && ComprobanteArchivo.Length > 0)

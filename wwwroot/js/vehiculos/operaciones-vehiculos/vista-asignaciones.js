@@ -164,7 +164,10 @@ async function cargarCatalogosAsignacion() {
 
         // Los dropdowns son convertidos automÃ¡ticamente por el componente global custom-select de CAVEX (site.js)
 
-        // Eventos de vinculaciÃ³n bidireccional
+        // Eventos de vinculación bidireccional
+        const selectVeh = document.getElementById("asignacion-idVehDatosGenerales");
+        const selectEmp = document.getElementById("asignacion-idEmpEmpleado");
+
         selectVeh?.addEventListener("change", () => {
             mostrarInfoVehiculo();
             vincularChoferDesdeVehiculo("asignacion-idVehDatosGenerales", "asignacion-idEmpEmpleado");

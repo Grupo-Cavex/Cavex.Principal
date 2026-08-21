@@ -45,6 +45,10 @@ namespace Cavex.Principal.Models.Vehiculo
 
         public VehCatTransmisionDto? VehCatTransmisionDto { get; set; }
 
+        public DateOnly? DteUltimoMantenimiento { get; set; }
+
+        public DateOnly? DteProximoMantenimiento { get; set; }
+
         public string? StrDescripcion { get; set; }
     }
 }

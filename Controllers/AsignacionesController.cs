@@ -19,7 +19,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Vehiculos/Asignaciones")]
         public IActionResult Asignaciones()
         {
-            return View("~/Views/Vehiculos/Asignaciones.cshtml");
+            return View("~/Views/Vehiculos/Asignaciones/Create.cshtml");
         }
 
         [HttpPost("/Asignaciones/SaveAsignacion")]
