@@ -14,9 +14,9 @@ namespace Cavex.Principal.Infrastructure.Policies
                     retryAttempt => TimeSpan.FromMilliseconds(200 * retryAttempt));
         }
 
-        public static IAsyncPolicy<HttpResponseMessage> TimeoutPolicy()
+        public static IAsyncPolicy<HttpResponseMessage> TimeoutPolicy(int seconds = 30)
         {
-            return Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(5));
+            return Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(seconds));
         }
 
         public static IAsyncPolicy<HttpResponseMessage> CircuitBreakerPolicy()
