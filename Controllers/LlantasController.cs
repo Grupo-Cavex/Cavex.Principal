@@ -25,10 +25,11 @@ namespace Cavex.Principal.Controllers
 
         // Pantalla frontend de control de llantas
         [HttpGet("/Llantas")]
+        [HttpGet("/Vehiculos/Llantas")]
         [HttpGet("/Llantas/Llantas")]
         public IActionResult Llantas()
         {
-            return View("~/Views/Vehiculos/Llantas.cshtml");
+            return View("~/Views/Vehiculos/Llantas/Create.cshtml");
         }
 
         [HttpGet("/Llantas/GetLlantas")]
@@ -72,7 +73,7 @@ namespace Cavex.Principal.Controllers
         }
 
         [HttpPost("/Llantas/SaveLlanta")]
-        public async Task<IActionResult> SaveLlanta([FromForm] VehControlLlantaEditDto model, IFormFile? EvidenciaArchivo, CancellationToken cancellationToken)
+        public async Task<IActionResult> SaveLlanta([FromForm] VehControlLlantaEditDto model, IFormFile? EvidenciaArchivo, IFormFile? ComprobanteArchivo, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -82,39 +83,35 @@ namespace Cavex.Principal.Controllers
 
             try
             {
-                if (EvidenciaArchivo != null && EvidenciaArchivo.Length > 0)
+                string brandName = "Desconocida";
+                string modelName = "Desconocido";
+                string plateName = "SinPlaca";
+
+                var vehResponse = await _vehDatosGenerales.ObtenerPorIdAsync(model.IdVehDatosGenerales, cancellationToken);
+                if (vehResponse != null && vehResponse.Success && vehResponse.Data != null)
                 {
-                    // 1. Obtener la marca, modelo y placa del vehículo para estructurar la ruta
-                    string brandName = "Desconocida";
-                    string modelName = "Desconocido";
-                    string plateName = "SinPlaca";
+                    modelName = vehResponse.Data.StrModelo;
+                    plateName = vehResponse.Data.StrPlaca;
 
-                    var vehResponse = await _vehDatosGenerales.ObtenerPorIdAsync(model.IdVehDatosGenerales, cancellationToken);
-                    if (vehResponse != null && vehResponse.Success && vehResponse.Data != null)
+                    var marcaResponse = await _vehCatMarcaVehiculo.ObtenerPorIdAsync(vehResponse.Data.IdVehCatMarcaVehiculo);
+                    if (marcaResponse != null && marcaResponse.Success && marcaResponse.Data != null)
                     {
-                        modelName = vehResponse.Data.StrModelo;
-                        plateName = vehResponse.Data.StrPlaca;
-
-                        var marcaResponse = await _vehCatMarcaVehiculo.ObtenerPorIdAsync(vehResponse.Data.IdVehCatMarcaVehiculo);
-                        if (marcaResponse != null && marcaResponse.Success && marcaResponse.Data != null)
-                        {
-                            brandName = marcaResponse.Data.StrValor;
-                        }
+                        brandName = marcaResponse.Data.StrValor;
                     }
+                }
 
                     // 2. Sanitizar datos de ruta
-                    string cleanBrand = CleanFolderName(brandName);
-                    string cleanModel = CleanFolderName(modelName);
-                    string cleanPlate = CleanFolderName(plateName);
+                string cleanBrand = CleanFolderName(brandName);
+                string cleanModel = CleanFolderName(modelName);
+                string cleanPlate = CleanFolderName(plateName);
 
-                    string relativePath = $"/Vehiculos/{cleanBrand}/{cleanModel}/{cleanPlate}/Llantas";
-                    string physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "Vehiculos", cleanBrand, cleanModel, cleanPlate, "Llantas");
+                string relativePath = $"/Vehiculos/{cleanBrand}/{cleanModel}/{cleanPlate}/Llantas";
+                string physicalPath = Path.Combine(_webHostEnvironment.WebRootPath, "Vehiculos", cleanBrand, cleanModel, cleanPlate, "Llantas");
 
-                    if (!Directory.Exists(physicalPath))
-                    {
-                        Directory.CreateDirectory(physicalPath);
-                    }
-
+                // 1. Procesar archivo de Evidencia
+                if (EvidenciaArchivo != null && EvidenciaArchivo.Length > 0)
+                {
+                    if (!Directory.Exists(physicalPath)) Directory.CreateDirectory(physicalPath);
                     string extension = Path.GetExtension(EvidenciaArchivo.FileName);
                     string uniqueFileName = $"{Guid.NewGuid()}{extension}";
                     string physicalFilePath = Path.Combine(physicalPath, uniqueFileName);
@@ -123,8 +120,38 @@ namespace Cavex.Principal.Controllers
                     {
                         await EvidenciaArchivo.CopyToAsync(stream);
                     }
-
                     model.StrUrlEvidencia = $"{relativePath}/{uniqueFileName}";
+                }
+                else if (model.Id > 0 && string.IsNullOrWhiteSpace(model.StrUrlEvidencia))
+                {
+                    var existingResponse = await _vehControlLlanta.ObtenerPorIdAsync(model.Id, cancellationToken);
+                    if (existingResponse != null && existingResponse.Success && existingResponse.Data != null)
+                    {
+                        model.StrUrlEvidencia = existingResponse.Data.StrUrlEvidencia;
+                    }
+                }
+
+                // 2. Procesar archivo de Comprobante de Pago
+                if (ComprobanteArchivo != null && ComprobanteArchivo.Length > 0)
+                {
+                    if (!Directory.Exists(physicalPath)) Directory.CreateDirectory(physicalPath);
+                    string extension = Path.GetExtension(ComprobanteArchivo.FileName);
+                    string uniqueFileName = $"{Guid.NewGuid()}_comprobante{extension}";
+                    string physicalFilePath = Path.Combine(physicalPath, uniqueFileName);
+
+                    using (var stream = new FileStream(physicalFilePath, FileMode.Create))
+                    {
+                        await ComprobanteArchivo.CopyToAsync(stream);
+                    }
+                    model.StrUrlComprobantePago = $"{relativePath}/{uniqueFileName}";
+                }
+                else if (model.Id > 0 && string.IsNullOrWhiteSpace(model.StrUrlComprobantePago))
+                {
+                    var existingResponse = await _vehControlLlanta.ObtenerPorIdAsync(model.Id, cancellationToken);
+                    if (existingResponse != null && existingResponse.Success && existingResponse.Data != null)
+                    {
+                        model.StrUrlComprobantePago = existingResponse.Data.StrUrlComprobantePago;
+                    }
                 }
 
                 if (model.Id > 0)

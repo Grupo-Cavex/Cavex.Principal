@@ -37,7 +37,7 @@ async function cargarCatalogos() {
                     const option = document.createElement("option");
                     option.value = String(registro.id);
                     option.textContent = registro.strValor || registro.strDescripcion || ("Opción " + registro.id);
-                    option.title = registro.strDescripcion;
+                    option.title = registro.strDescripcion || registro.strValor || "";
                     select.appendChild(option);
                 });
             });
@@ -48,8 +48,9 @@ async function cargarCatalogos() {
 }
 
 function formatNumberWithCommas(value) {
+    if (value === undefined || value === null || value === "") return "";
     let clean = String(value).replace(/[^0-9]/g, "");
-    if (!clean) return "";
+    if (!clean) return "0";
     return Number(clean).toLocaleString("es-MX");
 }
 
@@ -166,6 +167,8 @@ function inicializarRegistroVehiculo() {
         formData.append("VehCatColorDto.Id", parseInt(document.getElementById("idVehCatColor").value));
         formData.append("StrPlaca", document.getElementById("strPlaca").value);
         formData.append("StrNumMotor", document.getElementById("strNumMotor").value);
+        formData.append("DteUltimoMantenimiento", document.getElementById("dteUltimoMantenimiento")?.value || "");
+        formData.append("DteProximoMantenimiento", document.getElementById("dteProximoMantenimiento")?.value || "");
         formData.append("VehCatTipoVehiculo.Id", parseInt(document.getElementById("idVehCatTipoVehiculo").value));
         formData.append("VehCatCapacidad.Id", parseInt(document.getElementById("idVehCatCapacidad").value));
         formData.append("VehCatTipoCombustibleDto.Id", parseInt(document.getElementById("idVehCatTipoCombustible").value));
@@ -393,7 +396,7 @@ function validarCampoImagen() {
 
 function validarFormularioVehiculo(form) {
     const obligatorios = ["strNumSerie", "idVehCatMarcaVehiculo", "strModelo", "intAnio", "idVehCatColor", "strPlaca", "strNumMotor", "idVehCatTipoVehiculo", "idVehCatCapacidad", "idVehCatTipoCombustible", "idVehCatTransmision", "decKilometrajeActual"];
-    const opcionales = ["strVersion", "strObservaciones"];
+    const opcionales = ["strVersion", "strObservaciones", "dteUltimoMantenimiento", "dteProximoMantenimiento"];
     let valido = true;
     [...obligatorios, ...opcionales].forEach(id => {
         const campo = document.getElementById(id);
@@ -442,8 +445,8 @@ function validarCampoVehiculo(campo) {
                 break;
             case "strNumMotor":
                 if (original !== valor) mensaje = "El número de motor no debe iniciar ni terminar con espacios.";
-                else if (!/^[A-Z0-9]+$/.test(valor)) mensaje = "El número de motor solo permite letras y números.";
-                else if (valor.length > 50) mensaje = "El número de motor no debe superar 50 caracteres.";
+                else if (!/^[A-Z0-9-]+$/.test(valor)) mensaje = "El número de motor solo permite letras, números y guiones.";
+                else if (valor.length < 5 || valor.length > 25) mensaje = "El número de motor debe tener entre 5 y 25 caracteres.";
                 break;
             case "decKilometrajeActual": {
                 const rawVal = valor.replace(/,/g, "");
@@ -520,7 +523,7 @@ function validarCampoVehiculoEnTyping(campo) {
                 if (original !== valor || valor.length > 20 || !/^[A-Z0-9-]+$/.test(valor)) mensaje = "Invalido";
                 break;
             case "strNumMotor":
-                if (original !== valor || !/^[A-Z0-9]+$/.test(valor) || valor.length > 50) mensaje = "Invalido";
+                if (original !== valor || !/^[A-Z0-9]+$/.test(valor) || valor.length < 11 || valor.length > 17) mensaje = "Invalido";
                 break;
             case "decKilometrajeActual": {
                 const rawVal = valor.replace(/,/g, "");
@@ -582,10 +585,10 @@ function actualizarVistaPrevia() {
 
 async function cargarDatosVehiculoParaEditar(id) {
     try {
-        const headerTitle = document.querySelector(".header-title") || document.querySelector("h1");
+        const headerTitle = document.querySelector(".header-title") || document.querySelector(".cavex-title") || document.querySelector("h1");
         if (headerTitle) headerTitle.textContent = "Editar vehículo";
         
-        const subtitle = document.querySelector(".header-subtitle");
+        const subtitle = document.querySelector(".header-subtitle") || document.querySelector(".cavex-subtitle");
         if (subtitle) subtitle.textContent = "Modifica los datos del vehículo y guarda los cambios en el sistema.";
 
         const submitBtn = document.querySelector("#vehiculoForm button[type='submit']");
@@ -599,7 +602,7 @@ async function cargarDatosVehiculoParaEditar(id) {
             }
         });
 
-        const response = await fetch(`/Vehiculos/GetVehiculo?id=${id}`);
+        const response = await fetch(`/Vehiculos/GetVehiculoById?id=${id}`);
         const result = await response.json();
         Swal.close();
 
@@ -623,32 +626,49 @@ async function cargarDatosVehiculoParaEditar(id) {
                 if (v[propPascal] !== undefined && v[propPascal] !== null) return String(v[propPascal]);
                 return "";
             };
+
+            const setInputVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el && val !== undefined && val !== null) {
+                    el.value = val;
+                }
+            };
  
             // Asigna los datos a los inputs de texto y texto enriquecido
-            document.getElementById("strNumSerie").value = getVal("strNumSerie", "StrNumSerie");
-            document.getElementById("strModelo").value = getVal("strModelo", "StrModelo");
-            document.getElementById("intAnio").value = getVal("intAnio", "IntAnio");
-            document.getElementById("strVersion").value = getVal("strVersion", "StrVersion");
-            document.getElementById("strPlaca").value = getVal("strPlaca", "StrPlaca");
-            document.getElementById("strNumMotor").value = getVal("strNumMotor", "StrNumMotor") || getVal("strMotor", "StrMotor");
-            document.getElementById("decKilometrajeActual").value = formatNumberWithCommas(getVal("decKilometrajeActual", "DecKilometrajeActual") || 0);
-            document.getElementById("strObservaciones").value = getVal("strObservaciones", "StrObservaciones");
+            setInputVal("strNumSerie", getVal("strNumSerie", "StrNumSerie"));
+            setInputVal("strModelo", getVal("strModelo", "StrModelo"));
+            setInputVal("intAnio", getVal("intAnio", "IntAnio"));
+            setInputVal("strVersion", getVal("strVersion", "StrVersion"));
+            setInputVal("strPlaca", getVal("strPlaca", "StrPlaca"));
+            setInputVal("strNumMotor", getVal("strNumMotor", "StrNumMotor") || getVal("strMotor", "StrMotor"));
+            
+            const ultMant = getVal("dteUltimoMantenimiento", "DteUltimoMantenimiento");
+            if (ultMant) setInputVal("dteUltimoMantenimiento", ultMant.split("T")[0]);
+            
+            const proxMant = getVal("dteProximoMantenimiento", "DteProximoMantenimiento");
+            if (proxMant) setInputVal("dteProximoMantenimiento", proxMant.split("T")[0]);
+            
+            const kmRaw = getVal("decKilometrajeActual", "DecKilometrajeActual");
+            setInputVal("decKilometrajeActual", formatNumberWithCommas(kmRaw !== "" ? kmRaw : 0));
+            setInputVal("strObservaciones", getVal("strObservaciones", "StrObservaciones"));
  
             // Restaura y selecciona correctamente las opciones de los dropdowns usando fallbacks de propiedades
-            document.getElementById("idVehCatMarcaVehiculo").value = getVal("idVehCatMarcaVehiculo", "IdVehCatMarcaVehiculo");
-            document.getElementById("idVehCatColor").value = getVal("idVehCatColor", "IdVehCatColor");
-            document.getElementById("idVehCatTipoVehiculo").value = getVal("idVehCatTipoVehiculo", "IdVehCatTipoVehiculo");
-            document.getElementById("idVehCatCapacidad").value = getVal("idVehCatCapacidad", "IdVehCatCapacidad");
-            document.getElementById("idVehCatTipoCombustible").value = getVal("idVehCatTipoCombustible", "IdVehCatTipoCombustible");
-            document.getElementById("idVehCatTransmision").value = getVal("idVehCatTransmision", "IdVehCatTransmision");
+            setInputVal("idVehCatMarcaVehiculo", getVal("idVehCatMarcaVehiculo", "IdVehCatMarcaVehiculo"));
+            setInputVal("idVehCatColor", getVal("idVehCatColor", "IdVehCatColor"));
+            setInputVal("idVehCatTipoVehiculo", getVal("idVehCatTipoVehiculo", "IdVehCatTipoVehiculo"));
+            setInputVal("idVehCatCapacidad", getVal("idVehCatCapacidad", "IdVehCatCapacidad"));
+            setInputVal("idVehCatTipoCombustible", getVal("idVehCatTipoCombustible", "IdVehCatTipoCombustible"));
+            setInputVal("idVehCatTransmision", getVal("idVehCatTransmision", "IdVehCatTransmision"));
 
-            if (v.dteFechaRegistro) {
+            const fechaRegVal = getVal("dteFechaAsignacion", "DteFechaAsignacion") || getVal("dteFechaRegistro", "DteFechaRegistro");
+            if (fechaRegVal) {
                 const fechaInput = document.getElementById("dteFechaRegistro");
                 const fechaVisual = document.getElementById("fechaRegistroVisual");
                 
-                fechaInput.value = v.dteFechaRegistro;
+                const cleanDate = fechaRegVal.split("T")[0];
+                if (fechaInput) fechaInput.value = cleanDate;
                 
-                const parts = v.dteFechaRegistro.split("-");
+                const parts = cleanDate.split("-");
                 if (parts.length === 3) {
                     const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };

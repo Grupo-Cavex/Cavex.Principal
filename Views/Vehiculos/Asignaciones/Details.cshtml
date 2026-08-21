@@ -1,7 +1,7 @@
 @{
-    ViewData["Title"] = "Registro de Ingreso a Taller";
-    ViewData["HeaderEyebrow"] = "Gestión vehicular";
-    ViewData["HeaderSubtitle"] = "Registra la entrada de una unidad al taller mecánico y gestiona su reporte de servicio.";
+    ViewBag.Title = "Registro de Ingreso a Taller";
+    ViewBag.HeaderEyebrow = "Gestión vehicular";
+    ViewBag.HeaderSubtitle = "Registra la entrada de una unidad al taller mecánico y gestiona su reporte de servicio.";
 }
 
 @section Head {
@@ -12,6 +12,7 @@
 
 <!-- ─── Tarjeta 1: Datos del Ingreso a Taller ───────────────────────────── -->
 <form id="formIngresoTaller" class="vehiculo-create-form vehiculo-module-form" novalidate>
+    <input type="hidden" id="mant-id" name="id" value="0" />
 
     <section class="cavex-card form-section-card vehiculo-section-card mant-card" id="card1">
         <h3 class="form-section-title">
@@ -47,20 +48,11 @@
                 <div class="invalid-feedback">Selecciona el encargado que autorizó el envío.</div>
             </div>
 
-            <!-- Fecha de Generación -->
-            <div class="col-md-6 col-xl-3">
-                <label class="form-label" for="mant-dteFechaServicio">Fecha de Generación</label>
+            <!-- Fecha de Ingreso -->
+            <div class="col-md-6 col-xl-4">
+                <label class="form-label" for="mant-dteFechaServicio">Fecha de Ingreso</label>
                 <input type="date" id="mant-dteFechaServicio" name="dteFechaServicio" class="form-control" required />
                 <div class="invalid-feedback">Selecciona una fecha válida.</div>
-            </div>
-
-            <!-- Tipo de Servicio / Motivo -->
-            <div class="col-md-6 col-xl-5">
-                <label class="form-label" for="mant-idVehCatTipoServicio">Tipo de Servicio / Motivo</label>
-                <select id="mant-idVehCatTipoServicio" name="idVehCatTipoServicio" class="form-select" required>
-                    <option value="">Seleccionar...</option>
-                </select>
-                <div class="invalid-feedback">Selecciona el tipo de servicio.</div>
             </div>
 
             <!-- Taller de Destino -->
@@ -73,7 +65,7 @@
             </div>
 
             <!-- Kilometraje Actual -->
-            <div class="col-md-6 col-xl-3">
+            <div class="col-md-6 col-xl-4">
                 <label class="form-label" for="mant-decKilometrajeActual">Kilometraje Actual</label>
                 <div class="input-group">
                     <input type="text" id="mant-decKilometrajeActual" name="decKilometrajeActual" maxlength="15" class="form-control" placeholder="0" required />
@@ -82,10 +74,10 @@
                 <div class="invalid-feedback">Captura el kilometraje actual.</div>
             </div>
 
-            <!-- Descripción / Observaciones generales (opcional) -->
+            <!-- Descripción / Observaciones generales -->
             <div class="col-12">
-                <label class="form-label" for="mant-strDescripcion">Observaciones (Opcional)</label>
-                <textarea id="mant-strDescripcion" name="strDescripcion" class="form-control" rows="2" maxlength="500" placeholder="Describe brevemente el problema o motivo de ingreso..."></textarea>
+                <label class="form-label" for="mant-strDescripcion">Observaciones de Ingreso (Opcional)</label>
+                <textarea id="mant-strDescripcion" name="strDescripcion" class="form-control" rows="2" maxlength="500" placeholder="Describe brevemente el problema o motivo de ingreso..." style="resize: none;"></textarea>
             </div>
         </div>
     </section>
@@ -111,26 +103,80 @@
     <section class="cavex-card form-section-card vehiculo-section-card mant-card" id="card2" style="display: none;">
         <h3 class="form-section-title">
             <span class="form-section-number">2</span>
-            Reporte de Taller
+            Reporte de Taller y Salida
         </h3>
 
         <div class="row g-3">
+            <!-- Tipo de Servicio / Motivo (Movido a Sección 2) -->
+            <div class="col-md-6">
+                <label class="form-label" for="mant-idVehCatTipoServicio">Tipo de Mantenimiento</label>
+                <select id="mant-idVehCatTipoServicio" name="idVehCatTipoServicio" class="form-select" disabled>
+                    <option value="">Seleccionar...</option>
+                </select>
+                <div class="invalid-feedback">Selecciona el tipo de mantenimiento.</div>
+            </div>
+
+            <!-- Fecha y Hora de Salida -->
+            <div class="col-md-6">
+                <label class="form-label" for="mant-dteFechaSalida">Fecha y Hora de Salida</label>
+                <input type="datetime-local" id="mant-dteFechaSalida" name="dteFechaSalida" class="form-control" step="60" disabled />
+                <div class="invalid-feedback">Selecciona una fecha y hora de salida.</div>
+            </div>
+
+            <!-- Observaciones de Salida -->
+            <div class="col-12">
+                <label class="form-label" for="mant-strObservacionesSalida">Observaciones / Notas de Salida</label>
+                <textarea id="mant-strObservacionesSalida" name="strObservacionesSalida" class="form-control" rows="2" maxlength="500" placeholder="Detalles de la entrega del vehículo o del servicio completado..." style="resize: none;" disabled></textarea>
+            </div>
+
+            <!-- ─── Desglose de Refacciones ─────────────────────────────────────────── -->
+            <div class="col-12 mt-3">
+                <label class="form-label fw-bold" style="color: var(--azul-cavex); font-size: 1rem;">Refacciones Utilizadas</label>
+                
+                <div class="row g-2 align-items-end mb-2">
+                    <div class="col-6 cavex-autocomplete-container">
+                        <label class="form-label small fw-semibold" for="mant-refaccionNombre">Nombre de la refacción</label>
+                        <input type="text" id="mant-refaccionNombre" class="form-control form-control-sm" placeholder="Escribe o selecciona refacción..." disabled autocomplete="off" />
+                        <div id="cavexRefaccionesDropdown" class="cavex-autocomplete-dropdown"></div>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small fw-semibold" for="mant-refaccionPrecio">Precio</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">$</span>
+                            <input type="text" id="mant-refaccionPrecio" class="form-control" placeholder="0.00" disabled />
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button type="button" id="btnAgregarRefaccion" class="btn btn-sm w-100 fw-bold d-flex align-items-center justify-content-center" disabled style="height: 31px; font-size: 1.1rem; line-height: 1; border-radius: 8px; background: #E6F7F8; color: var(--teal-cavex); border: 1px dashed var(--teal-cavex);" title="Agregar refacción">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Listado Dinámico de Refacciones Agregadas (SIN TABLA) -->
+                <div id="listaRefaccionesAgregadas" class="d-flex flex-column gap-2 mb-3 mt-2">
+                    <div class="text-muted small py-2 px-3 text-center" id="refaccionesVaciasPrompt" style="background: #F8FAFC; border: 1px dashed var(--borde-cavex); border-radius: 10px;">
+                        No hay refacciones agregadas a este reporte.
+                    </div>
+                </div>
+            </div>
+
             <!-- Costos financieros -->
-            <div class="col-md-4">
+            <div class="col-md-4 mt-3">
                 <label class="form-label" for="mant-mnyCostoManoObra">Mano de Obra ($)</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
                     <input type="text" id="mant-mnyCostoManoObra" name="mnyCostoManoObra" class="form-control" placeholder="0.00" value="" disabled />
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 mt-3">
                 <label class="form-label" for="mant-mnyCostoRefacciones">Refacciones ($)</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="text" id="mant-mnyCostoRefacciones" name="mnyCostoRefacciones" class="form-control" placeholder="0.00" value="" disabled />
+                    <input type="text" id="mant-mnyCostoRefacciones" name="mnyCostoRefacciones" class="form-control" placeholder="0.00" value="" readonly disabled />
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 mt-3">
                 <label class="form-label" for="mant-mnyCostoTotal">TOTAL GENERAL ($)</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
@@ -175,34 +221,39 @@
         </div>
     </section>
 
-    <!-- ─── Barra de acción ────────────────────────────────────────────────── -->
-    <div class="form-action-bar vehiculo-action-bar">
-        <a class="btn btn-outline-cavex" asp-controller="Vehiculos" asp-action="Index">Cancelar / Volver</a>
-        <button type="submit" id="btnGuardarIngresoTaller" class="btn btn-cavex">
+    <!-- ─── Botón de guardado general ─────────────────────────────────────────── -->
+    <div class="mant-form-actions form-action-bar vehiculo-action-bar">
+        <a class="btn btn-outline-cavex px-4" asp-controller="Vehiculos" asp-action="Index">Cancelar / Volver</a>
+        <button type="button" class="btn btn-outline-cavex px-4" id="btnCancelarEdicion" onclick="resetForm()" style="display: none;">Cancelar edición</button>
+        <button type="submit" class="btn btn-cavex px-4" id="btnGuardarIngresoTaller">
             <span id="btnGuardarLabel">Guardar ingreso a taller</span>
         </button>
     </div>
 </form>
 
-<!-- ─── Tabla de historial ─────────────────────────────────────────────────── -->
-<div class="cavex-card table-module vehiculo-module-table mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-        <h3 class="form-section-title m-0">Historial de Ingresos a Taller</h3>
-        <div class="table-search-box position-relative" style="max-width: 260px;">
-            <input type="text" id="tableSearch" class="form-control form-control-sm" placeholder="Buscar en el historial..." />
+<!-- ─── Historial de ingresos a taller ───────────────────────────────────── -->
+<div class="cavex-card mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0 text-dark">Historial de Ingresos a Taller</h4>
+        <div class="d-flex gap-2">
+            <input type="text" id="tableSearch" class="form-control form-control-sm" placeholder="Buscar en historial..." style="width: 250px;" />
         </div>
     </div>
 
-    <div class="table-filter-bar mb-3">
-        <div class="custom-tabs-container" id="statusTabs">
-            <button type="button" class="tab-item active" data-status-filter="todos">
-                Todos <span class="tab-count count-all" id="countTodos">0</span>
+    <!-- Pestañas de estado -->
+    <div class="status-tabs-container mb-3" id="statusTabs">
+        <div class="status-tabs">
+            <button type="button" class="status-tab active" data-status-filter="todos">
+                <span>Todos</span>
+                <span class="status-tab-count" id="countTodos">0</span>
             </button>
-            <button type="button" class="tab-item" data-status-filter="incompletos">
-                Tickets Incompletos <span class="tab-count count-inactive" id="countIncompletos">0</span>
+            <button type="button" class="status-tab" data-status-filter="incompletos">
+                <span>Tickets Incompletos</span>
+                <span class="status-tab-count" id="countIncompletos">0</span>
             </button>
-            <button type="button" class="tab-item" data-status-filter="completos">
-                Reportes Completos <span class="tab-count count-active" id="countCompletos">0</span>
+            <button type="button" class="status-tab" data-status-filter="completos">
+                <span>Reportes Completos</span>
+                <span class="status-tab-count" id="countCompletos">0</span>
             </button>
         </div>
     </div>
@@ -228,6 +279,34 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- ─── Modal para Registrar Nueva Refacción en Catálogo ────────────────── -->
+<div class="modal fade" id="modalNuevaRefaccion" tabindex="-1" aria-labelledby="modalNuevaRefaccionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark" id="modalNuevaRefaccionLabel" style="color: var(--azul-cavex)!important;">
+                    Registrar Nueva Refacción al Catálogo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <div class="mb-3">
+                    <label for="newRefaccionNombre" class="form-label small fw-semibold">Nombre de la Refacción <span class="text-danger">*</span></label>
+                    <input type="text" id="newRefaccionNombre" class="form-control" placeholder="Ej. Balatas Delanteras, Filtro de Aceite..." maxlength="100" />
+                </div>
+                <div class="mb-3">
+                    <label for="newRefaccionDescripcion" class="form-label small fw-semibold">Descripción (Opcional)</label>
+                    <textarea id="newRefaccionDescripcion" class="form-control" rows="2" placeholder="Detalles de la refacción o especificación técnica..." maxlength="500"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-cavex btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarNuevaRefaccionModal" class="btn btn-cavex btn-sm px-4">Guardar en catálogo</button>
+            </div>
+        </div>
     </div>
 </div>
 

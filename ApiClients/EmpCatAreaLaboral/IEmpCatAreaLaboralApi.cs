@@ -11,6 +11,7 @@ namespace Cavex.Principal.ApiClients.EmpCatAreaLaboral
             [Query] int? pageIndex = null,
             [Query] int? pageSize = null,
             [Query] string? search = null,
+            [Query] int? status = null,
             CancellationToken cancellationToken = default);
 
         [Get("/api/v1/EmpCatAreaLaboral/{id}")]
@@ -33,7 +34,6 @@ namespace Cavex.Principal.ApiClients.EmpCatAreaLaboral
         [Delete("/api/v1/EmpCatAreaLaboral/{id}")]
         Task<ResponseWrapper<bool>> DeleteAsync(
             int id,
-            [Body] RequestWrapper<int> request,
             CancellationToken cancellationToken = default);
     }
 }

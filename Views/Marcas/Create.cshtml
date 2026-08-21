@@ -1,4 +1,4 @@
-﻿@model Cavex.Principal.Models.VehCatMarcaLlanta.VehCatMarcaLlantaSaveDto;
+@model Cavex.Principal.Models.VehCatMarcaLlanta.VehCatMarcaLlantaSaveDto;
 @{
     ViewBag.Title = "Nueva Marca de Llanta";
     ViewBag.HeaderEyebrow = "Configuracion";
@@ -6,12 +6,12 @@
 
     ViewBag.TableTitle = "Listado de marcas de llantas";
     ViewBag.TableSubtitle = "Catalogo de marcas de llantas registradas y sus descripciones.";
-    ViewBag.TableCount = 0;
     ViewBag.TableCountLabel = "marcas";
 }
 
 @section Head {
     <link rel="stylesheet" href="~/css/vista-marcas-llantas.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/vista-servicios.css" asp-append-version="true" />
 }
 
 <partial name="_PageHeader" />

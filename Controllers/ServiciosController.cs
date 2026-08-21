@@ -137,6 +137,7 @@ namespace Cavex.Principal.Controllers
                 return Json(new { success = false, message = response.Message });
             }
 
+            ClearCountsCache();
             return Json(new { success = true, data = response.Data });
         }
 
@@ -164,6 +165,7 @@ namespace Cavex.Principal.Controllers
                 return Json(new { success = false, message = response.Message });
             }
 
+            ClearCountsCache();
             return Json(new { success = true, data = response.Data });
         }
 
@@ -176,7 +178,14 @@ namespace Cavex.Principal.Controllers
                 return Json(new { success = false, message = response.Message });
             }
 
+            ClearCountsCache();
             return Json(new { success = true, data = response.Data });
+        }
+
+        private void ClearCountsCache()
+        {
+            _cache.Remove("servicios_counts_null");
+            _cache.Remove("servicios_counts_");
         }
 
         private string GetModelStateErrors()

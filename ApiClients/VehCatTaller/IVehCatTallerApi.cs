@@ -11,6 +11,7 @@ namespace Cavex.Principal.ApiClients.VehCatTaller
             [Query] int? pageIndex = null,
             [Query] int? pageSize = null,
             [Query] string? search = null,
+            [Query] int? status = null,
             CancellationToken cancellationToken = default);
 
         [Get("/api/v1/VehCatTaller/{id}")]

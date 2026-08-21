@@ -1,125 +1,205 @@
-let talleres = [];
-let editingId = null;
+"use strict";
 
-// Variables de paginación y filtros
+let talleres = [];
+let statusCatalog = [];
+let editingId = null;
 let currentPage = 1;
 let pageSize = 10;
-let searchQuery = '';
+let statusFilter = "";
+let searchQuery = "";
 
-// Renderizado inicial de la tabla cargando datos del servidor
-document.addEventListener('DOMContentLoaded', () => {
-    loadTalleresFromServer();
-    
-    // Aplicación en tiempo real utilizando las funciones globales de site.js
-    const nombreInput = document.getElementById('strNombre');
-    const descInput = document.getElementById('strDescripcion');
-    
-    if (nombreInput) {
-        registerSanitizer(nombreInput, sanitizeGeneralText);
-        nombreInput.addEventListener('input', () => {
-            nombreInput.classList.remove('is-invalid', 'is-valid');
-        });
-    }
-    
-    if (descInput) {
-        registerSanitizer(descInput, sanitizeGeneralText);
-        descInput.addEventListener('input', () => {
-            descInput.classList.remove('is-invalid', 'is-valid');
-        });
-    }
+document.addEventListener("DOMContentLoaded", async () => {
+    wireFormInputs();
+    await loadStatusOptions();
+    await loadTalleresFromServer();
+    resetForm();
 });
 
-function loadTalleresFromServer() {
-    const url = `/Talleres/GetTalleres?pagina=${currentPage}&search=${encodeURIComponent(searchQuery)}`;
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("HTTP error " + response.status);
-            }
-            return response.json();
-        })
-        .then(result => {
-            console.log("Respuesta de GetTalleres:", result);
-            if (result.success) {
-                if (result.data && Array.isArray(result.data)) {
-                    talleres = result.data.map(item => ({
-                        id: item.id ?? item.Id,
-                        nombre: item.strValor ?? item.StrValor ?? '',
-                        descripcion: item.strDescripcion ?? item.StrDescripcion ?? ''
-                    }));
-                } else {
-                    talleres = [];
-                }
-                const totalCount = result.totalCount ?? 0;
-                renderTalleres(totalCount);
-            } else {
-                console.error("Error al cargar talleres desde base de datos:", result.message);
-                Swal.fire({
-                    icon: 'error',
-                    title: '¡Ups!',
-                    text: 'No se pudieron obtener los datos de los talleres. ¡Intenta de nuevo!',
-                    confirmButtonColor: 'var(--teal-cavex)'
-                });
-                talleres = [];
-                renderTalleres(0);
-            }
-        })
-        .catch(err => {
-            console.error("Error en petición:", err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de conexión',
-                text: 'No se pudieron obtener los datos. ¡Intenta de nuevo!',
-                confirmButtonColor: 'var(--teal-cavex)'
-            });
-            talleres = [];
-            renderTalleres(0);
+async function loadStatusOptions() {
+    const statusField = document.getElementById("intIdStatusTaller");
+    if (statusField) {
+        statusField.innerHTML = '<option value="">-- Seleccionar Estado --</option>';
+    }
+
+    try {
+        const response = await fetch("/Talleres/GetStatus", {
+            method: "GET",
+            headers: { "Accept": "application/json" }
         });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showError(result.message || "No fue posible cargar los estatus.");
+            renderStatusTabs();
+            return;
+        }
+
+        statusCatalog = (result.data || []).map(status => ({
+            id: status.id,
+            nombre: status.strValor || status.StrValor || `Estatus ${status.id}`,
+            descripcion: status.strDescripcion || status.StrDescripcion || ""
+        }));
+
+        if (statusField) {
+            statusCatalog.forEach(status => {
+                const option = document.createElement("option");
+                option.value = String(status.id);
+                option.textContent = status.nombre;
+                statusField.appendChild(option);
+            });
+        }
+
+        renderStatusTabs();
+    } catch (error) {
+        console.error(error);
+        showError("Ocurrió un error al cargar los estatus.");
+        renderStatusTabs();
+    }
 }
 
-// Función para renderizar los talleres
-function renderTalleres(totalCount) {
-    const tbody = document.getElementById('talleresTableBody');
+async function loadTalleresFromServer() {
+    try {
+        const response = await fetch("/Talleres/GetTalleres", {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showError(result.message || "No fue posible cargar los talleres.");
+            return;
+        }
+
+        talleres = (result.data || []).map(item => {
+            const idCatStatus = item.idCatStatus ?? item.idVehCatStatus ?? item.IdCatStatus ?? item.IdVehCatStatus;
+            const strStatus = item.strVehCatStatus || item.strCatStatus || item.StrVehCatStatus || item.StrCatStatus || "";
+
+            return {
+                id: item.id,
+                nombre: item.strValor || item.StrValor || "",
+                descripcion: item.strDescripcion || item.StrDescripcion || "",
+                idCatStatus: (idCatStatus === null || idCatStatus === undefined || idCatStatus === 0 || idCatStatus === "0") ? "1" : String(idCatStatus),
+                strCatStatus: strStatus
+            };
+        });
+
+        renderStatusTabs();
+        renderTalleres();
+    } catch (error) {
+        console.error(error);
+        showError("Ocurrió un error al cargar los talleres.");
+    }
+}
+
+function wireFormInputs() {
+    const nombreInput = document.getElementById("strNombre");
+    const descInput = document.getElementById("strDescripcion");
+    const statusField = document.getElementById("intIdStatusTaller");
+
+    if (nombreInput) {
+        if (typeof registerSanitizer === "function" && typeof sanitizeGeneralText === "function") {
+            registerSanitizer(nombreInput, sanitizeGeneralText);
+        }
+        nombreInput.addEventListener("input", () => {
+            nombreInput.classList.remove("is-invalid", "is-valid");
+        });
+    }
+
+    if (descInput) {
+        if (typeof registerSanitizer === "function" && typeof sanitizeGeneralText === "function") {
+            registerSanitizer(descInput, sanitizeGeneralText);
+        }
+        descInput.addEventListener("input", () => {
+            descInput.classList.remove("is-invalid", "is-valid");
+        });
+    }
+
+    if (statusField) {
+        statusField.addEventListener("change", () => {
+            statusField.classList.remove("is-invalid", "is-valid");
+        });
+    }
+}
+
+function renderStatusTabs() {
+    const tabsContainer = document.getElementById("statusTabs");
+    if (!tabsContainer) return;
+
+    tabsContainer.innerHTML = "";
+    tabsContainer.appendChild(createStatusTab("", "Todos", talleres.length));
+
+    statusCatalog.forEach(status => {
+        const count = talleres.filter(t => t.idCatStatus === String(status.id)).length;
+        tabsContainer.appendChild(createStatusTab(String(status.id), status.nombre, count));
+    });
+}
+
+function createStatusTab(value, text, count) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `tab-item ${statusFilter === value ? "active" : ""}`;
+    button.onclick = () => setStatusFilter(value);
+    button.innerHTML = `${escapeHtml(text)} <span class="tab-count count-all">${count}</span>`;
+    return button;
+}
+
+function renderTalleres() {
+    const tbody = document.getElementById("talleresTableBody");
     if (!tbody) return;
-    tbody.innerHTML = '';
 
-    const totalPages = Math.ceil(totalCount / pageSize) || 1;
-    
-    if (currentPage > totalPages) {
-        currentPage = totalPages;
-    }
-    if (currentPage < 1) {
-        currentPage = 1;
-    }
+    tbody.innerHTML = "";
 
-    if (talleres.length === 0) {
+    const filtered = talleres.filter(t => {
+        if (statusFilter && t.idCatStatus !== statusFilter) return false;
+
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            return t.nombre.toLowerCase().includes(query)
+                || (t.descripcion || "").toLowerCase().includes(query)
+                || getStatusName(t).toLowerCase().includes(query);
+        }
+
+        return true;
+    });
+
+    const totalRecords = filtered.length;
+    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalRecords);
+    const pagedList = filtered.slice(startIndex, endIndex);
+
+    if (pagedList.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="3" class="text-center py-5">
+                <td colspan="4" class="text-center py-5">
                     <div class="text-muted">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-2 opacity-50"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                         <p class="m-0 font-weight-700">No se encontraron talleres</p>
                         <small>Prueba ajustando los filtros o la búsqueda</small>
                     </div>
                 </td>
-            </tr>
-        `;
+            </tr>`;
     } else {
-        talleres.forEach(t => {
-            const tr = document.createElement('tr');
-            
-            const descText = t.descripcion || 'Sin descripción';
-            const truncatedDesc = t.descripcion && t.descripcion.length > 50 
-                ? t.descripcion.substring(0, 50) + '...' 
-                : descText;
-            const descTitle = t.descripcion ? `title="${escapeHtml(t.descripcion)}"` : '';
+        pagedList.forEach(t => {
+            const tr = document.createElement("tr");
+            const statusName = getStatusName(t);
+            const descText = t.descripcion || "Sin descripción";
+            const truncatedDesc = descText.length > 60 ? `${descText.substring(0, 60)}...` : descText;
 
             tr.innerHTML = `
                 <td>
                     <div class="cotizacion-main-text">${escapeHtml(t.nombre)}</div>
                 </td>
                 <td>
-                    <div class="description-text" ${descTitle}>${escapeHtml(truncatedDesc)}</div>
+                    <div class="description-text" title="${escapeHtml(descText)}">${escapeHtml(truncatedDesc)}</div>
+                </td>
+                <td>
+                    <span class="${getStatusBadgeClass(statusName)}">${escapeHtml(statusName)}</span>
                 </td>
                 <td class="text-end">
                     <div class="dropdown actions-dropdown d-inline-block">
@@ -135,6 +215,12 @@ function renderTalleres(totalCount) {
                                 </button>
                             </li>
                             <li>
+                                <button class="dropdown-item d-flex align-items-center ${t.idCatStatus !== '2' ? 'text-danger' : 'text-success'}" type="button" onclick="toggleStatusTaller(${t.id})">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 ${t.idCatStatus !== '2' ? 'text-danger' : 'text-success'}"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                                    ${t.idCatStatus !== '2' ? 'Dar de baja' : 'Activar'}
+                                </button>
+                            </li>
+                            <li>
                                 <button class="dropdown-item d-flex align-items-center text-danger" type="button" onclick="deleteTaller(${t.id})">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 text-danger"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                     <span>Eliminar</span>
@@ -142,34 +228,26 @@ function renderTalleres(totalCount) {
                             </li>
                         </ul>
                     </div>
-                </td>
-            `;
+                </td>`;
+
             tbody.appendChild(tr);
         });
     }
 
-    // Actualizar contadores e información en barra inferior
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = Math.min(startIndex + talleres.length, totalCount);
-    const infoText = totalCount > 0 
-        ? `Mostrando ${startIndex + 1}-${endIndex} de ${totalCount} registros`
-        : `Mostrando 0-0 de 0 registros`;
-    const infoEl = document.getElementById('paginationInfo');
-    if (infoEl) infoEl.textContent = infoText;
+    setText(
+        "paginationInfo",
+        totalRecords > 0
+            ? `Mostrando ${startIndex + 1}-${endIndex} de ${totalRecords} registros`
+            : "Mostrando 0-0 de 0 registros"
+    );
 
-    // Renderizar botones de paginación
+    const countPill = document.querySelector(".table-module .records-pill");
+    if (countPill) countPill.textContent = `${totalRecords} talleres`;
+
+    const extraPill = document.querySelector(".table-module .records-pill-soft");
+    if (extraPill) extraPill.textContent = `Página ${currentPage} de ${totalPages}`;
+
     renderPagination(totalPages);
-
-    // Actualizar contadores en la cabecera de la tabla
-    const countPill = document.querySelector('.table-module .records-pill');
-    if (countPill) {
-        countPill.textContent = `${totalCount} talleres`;
-    }
-
-    const extraPill = document.querySelector('.table-module .records-pill-soft');
-    if (extraPill) {
-        extraPill.textContent = `Página ${currentPage} de ${totalPages}`;
-    }
 
     // Inicializar dropdowns de acciones con estrategia 'fixed' para prevenir recortes
     document.querySelectorAll('#talleresTableBody .btn-action-trigger').forEach(el => {
@@ -184,57 +262,17 @@ function renderTalleres(totalCount) {
     });
 }
 
-// Función para renderizar los números de página
 function renderPagination(totalPages) {
-    const paginationList = document.getElementById('paginationList');
+    const paginationList = document.getElementById("paginationList");
     if (!paginationList) return;
-    paginationList.innerHTML = '';
 
+    paginationList.innerHTML = "";
     if (totalPages <= 1) return;
 
     paginationList.appendChild(createPageItem("Anterior", currentPage - 1, currentPage === 1));
 
-    if (totalPages <= 10) {
-        for (let i = 1; i <= totalPages; i++) {
-            paginationList.appendChild(createPageItem(String(i), i, false, currentPage === i));
-        }
-    } else {
-        // dynamic sliding window for pages 11 to N
-        let startPage = 1;
-        let endPage = 10;
-
-        if (currentPage > 10) {
-            startPage = currentPage - 5;
-            endPage = currentPage + 4;
-            if (endPage > totalPages) {
-                endPage = totalPages;
-                startPage = totalPages - 9;
-            }
-        }
-
-        if (startPage > 1) {
-            paginationList.appendChild(createPageItem("1", 1, false, currentPage === 1));
-            if (startPage > 2) {
-                const li = document.createElement("li");
-                li.className = "page-item disabled";
-                li.innerHTML = '<span class="page-link">...</span>';
-                paginationList.appendChild(li);
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            paginationList.appendChild(createPageItem(String(i), i, false, currentPage === i));
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                const li = document.createElement("li");
-                li.className = "page-item disabled";
-                li.innerHTML = '<span class="page-link">...</span>';
-                paginationList.appendChild(li);
-            }
-            paginationList.appendChild(createPageItem(String(totalPages), totalPages, false, currentPage === totalPages));
-        }
+    for (let i = 1; i <= totalPages; i++) {
+        paginationList.appendChild(createPageItem(String(i), i, false, currentPage === i));
     }
 
     paginationList.appendChild(createPageItem("Siguiente", currentPage + 1, currentPage === totalPages));
@@ -243,7 +281,7 @@ function renderPagination(totalPages) {
 function createPageItem(text, page, disabled, active) {
     const li = document.createElement("li");
     li.className = `page-item ${disabled ? "disabled" : ""} ${active ? "active" : ""}`;
-    
+
     let innerContent = text;
     let ariaLabel = "";
     if (text === "Anterior") {
@@ -253,245 +291,271 @@ function createPageItem(text, page, disabled, active) {
         innerContent = `<span aria-hidden="true">&raquo;</span>`;
         ariaLabel = `aria-label="Siguiente"`;
     }
-    
+
     li.innerHTML = `<a class="page-link" href="#" onclick="changePage(event, ${page})" ${ariaLabel}>${innerContent}</a>`;
     return li;
 }
 
-// Cambiar página
 function changePage(event, page) {
     if (event) event.preventDefault();
-    if (page < 1) return;
     currentPage = page;
-    loadTalleresFromServer();
+    renderTalleres();
 }
 
-// Manejar búsqueda de texto
-function handleSearch(query) {
-    searchQuery = query;
+function setStatusFilter(statusId) {
+    statusFilter = statusId || "";
     currentPage = 1;
-    loadTalleresFromServer();
+    renderStatusTabs();
+    renderTalleres();
 }
 
-// Limpiar errores de validación
-function clearValidation() {
-    const nombreInput = document.getElementById('strNombre');
-    if (nombreInput) {
-        nombreInput.classList.remove('is-invalid', 'is-valid');
-    }
-    const descInput = document.getElementById('strDescripcion');
-    if (descInput) {
-        descInput.classList.remove('is-invalid', 'is-valid');
-    }
+function handleSearch(query) {
+    searchQuery = query || "";
+    currentPage = 1;
+    renderTalleres();
 }
 
-// Manejar el submit del formulario (Guardar o Actualizar)
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
     e.preventDefault();
-    const nombreInput = document.getElementById('strNombre');
-    const descInput = document.getElementById('strDescripcion');
+
+    const nombreInput = document.getElementById("strNombre");
+    const descInput = document.getElementById("strDescripcion");
+    const statusField = document.getElementById("intIdStatusTaller");
+
+    if (!nombreInput) return;
 
     const nombre = nombreInput.value.trim();
-    const descripcion = descInput.value.trim();
+    const descripcion = descInput ? descInput.value.trim() : "";
+    const statusVal = statusField ? statusField.value : "";
 
     if (!nombre) {
-        nombreInput.classList.add('is-invalid');
-        nombreInput.classList.remove('is-valid');
-        const feedback = document.getElementById('nombreFeedback');
-        if (feedback) {
-            feedback.textContent = 'El nombre del taller es obligatorio.';
-        }
-        Swal.fire({ icon: "warning", title: "Campo requerido", text: "El nombre del taller es obligatorio.", confirmButtonColor: "var(--teal-cavex)" });
+        nombreInput.classList.add("is-invalid");
+        nombreInput.classList.remove("is-valid");
+        const feedback = document.getElementById("nombreFeedback");
+        if (feedback) feedback.textContent = "El nombre del taller es obligatorio.";
         nombreInput.focus();
         return;
     }
 
-    if (nombre.length < 3) {
-        nombreInput.classList.add('is-invalid');
-        nombreInput.classList.remove('is-valid');
-        const feedback = document.getElementById('nombreFeedback');
-        if (feedback) {
-            feedback.textContent = 'El nombre del taller debe tener al menos 3 caracteres.';
-        }
-        Swal.fire({ icon: "warning", title: "Longitud insuficiente", text: "El nombre del taller debe tener al menos 3 caracteres.", confirmButtonColor: "var(--teal-cavex)" });
-        nombreInput.focus();
+    if (editingId !== null && !statusVal) {
+        statusField.classList.add("is-invalid");
+        const feedback = document.getElementById("statusFeedback");
+        if (feedback) feedback.textContent = "Selecciona un estatus.";
+        statusField.focus();
         return;
     }
 
-    // Validar expresión regular que permite letras, números y caracteres de dirección comunes
-    const regexAlphanumeric = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ#.,_()\/\-\s]+$/;
-    const regexHasLetter = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/;
-    if (!regexAlphanumeric.test(nombre) || !regexHasLetter.test(nombre)) {
-        nombreInput.classList.add('is-invalid');
-        nombreInput.classList.remove('is-valid');
-        const feedback = document.getElementById('nombreFeedback');
-        if (feedback) {
-            feedback.textContent = 'El nombre contiene caracteres no válidos o no contiene letras.';
-        }
-        Swal.fire({ icon: "warning", title: "Caracteres no válidos", text: "El nombre contiene caracteres no válidos o no contiene letras.", confirmButtonColor: "var(--teal-cavex)" });
-        nombreInput.focus();
-        return;
-    }
-
-    // Validar si ya existe otro taller con el mismo nombre (ignora mayúsculas/minúsculas)
     const nombreLower = nombre.toLowerCase().trim();
     const existeDuplicado = talleres.some(t => t.nombre.toLowerCase().trim() === nombreLower && t.id !== editingId);
-    
+
     if (existeDuplicado) {
-        nombreInput.classList.add('is-invalid');
-        nombreInput.classList.remove('is-valid');
-        const feedback = document.getElementById('nombreFeedback');
-        if (feedback) {
-            feedback.textContent = 'El nombre del taller ya existe.';
-        }
-        Swal.fire({ icon: "error", title: "Registro duplicado", text: "El nombre del taller ya existe.", confirmButtonColor: "var(--teal-cavex)" });
+        nombreInput.classList.add("is-invalid");
+        nombreInput.classList.remove("is-valid");
+        const feedback = document.getElementById("nombreFeedback");
+        if (feedback) feedback.textContent = "El nombre del taller ya existe.";
         nombreInput.focus();
         return;
     }
 
-    // Si todo es válido
-    nombreInput.classList.add('is-valid');
-    if (descripcion) {
-        descInput.classList.add('is-valid');
-    }
-
-    const url = editingId === null ? '/Talleres/SaveTaller' : '/Talleres/UpdateTaller';
-
     const payload = {
-        Id: editingId || 0,
-        StrValor: nombre,
-        StrDescripcion: descripcion
+        strValor: nombre,
+        strDescripcion: descripcion,
+        idCatStatus: editingId === null ? 1 : Number.parseInt(statusVal, 10)
     };
 
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: editingId === null ? '¡Registro exitoso!' : '¡Actualización exitosa!',
-                text: editingId === null ? 'Taller agregado exitosamente.' : 'Taller actualizado exitosamente.',
-                confirmButtonColor: 'var(--teal-cavex)'
-            });
-            resetForm();
-            loadTalleresFromServer();
-        } else {
-            nombreInput.classList.add('is-invalid');
-            nombreInput.classList.remove('is-valid');
-            const feedback = document.getElementById('nombreFeedback');
-            if (feedback) {
-                feedback.textContent = result.message || 'Error al guardar el taller.';
-            }
+    if (editingId !== null) {
+        payload.id = editingId;
+    }
 
-            let errorText = result.message || "";
-            const isTechnicalError = errorText.toLowerCase().includes("database") || 
-                                     errorText.toLowerCase().includes("db") || 
-                                     errorText.toLowerCase().includes("sql") || 
-                                     errorText.toLowerCase().includes("conexion") || 
-                                     errorText.toLowerCase().includes("connection");
+    const url = editingId === null
+        ? "/Talleres/SaveTaller"
+        : "/Talleres/UpdateTaller";
 
-            if (!errorText || isTechnicalError) {
-                errorText = editingId === null 
-                    ? 'El taller no se pudo agregar exitosamente.' 
-                    : 'El taller no se pudo actualizar exitosamente.';
-            }
-
-            Swal.fire({
-                icon: 'error',
-                title: 'No se pudo guardar',
-                text: errorText,
-                confirmButtonColor: 'var(--teal-cavex)'
-            });
-        }
-    })
-    .catch(err => {
-        console.error("Error al guardar el taller:", err);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de conexión',
-            text: editingId === null 
-                ? 'El taller no se pudo agregar exitosamente. ¡Intenta de nuevo!' 
-                : 'El taller no se pudo actualizar exitosamente. ¡Intenta de nuevo!',
-            confirmButtonColor: 'var(--teal-cavex)'
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
         });
-    });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showError(result.message || "No fue posible guardar el taller.");
+            return;
+        }
+
+        Swal.fire({
+            icon: "success",
+            title: editingId === null ? "Registro exitoso" : "Actualización exitosa",
+            text: editingId === null ? "Taller agregado exitosamente." : "Taller actualizado exitosamente.",
+            confirmButtonColor: "var(--teal-cavex)"
+        });
+
+        resetForm();
+        await loadTalleresFromServer();
+    } catch (error) {
+        console.error(error);
+        showError("Ocurrió un error al guardar el taller.");
+    }
 }
 
-// Cargar datos en el formulario para edición
+function getDefaultStatusName(idCatStatus) {
+    if (String(idCatStatus) === "2") return "Inactivo";
+    return "Activo";
+}
+
+function ensureStatusOption(select, idCatStatus, statusName) {
+    if (!select || !idCatStatus) return;
+
+    const value = String(idCatStatus);
+    const exists = Array.from(select.options).some(option => option.value === value);
+    if (exists) return;
+
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = statusName || getDefaultStatusName(value);
+    select.appendChild(option);
+}
+
 function editTaller(id) {
     const taller = talleres.find(t => t.id === id);
     if (!taller) return;
 
     clearValidation();
     editingId = id;
-    document.getElementById('strNombre').value = taller.nombre;
-    document.getElementById('strDescripcion').value = taller.descripcion || '';
 
-    // Cambiar estados del formulario
-    document.getElementById('formTitle').textContent = 'Editar taller';
-    document.getElementById('formSubtitle').textContent = 'Modifica los detalles del taller seleccionado.';
-    document.getElementById('btnSubmit').textContent = 'Guardar cambios';
-    document.getElementById('btnCancel').style.display = 'inline-block';
+    document.getElementById("strNombre").value = taller.nombre;
 
-    // Desplazar suavemente al formulario y enfocar el campo principal
-    document.querySelector('.filter-card').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('strNombre').focus();
+    const descInput = document.getElementById("strDescripcion");
+    if (descInput) descInput.value = taller.descripcion || "";
+
+    const statusContainer = document.getElementById("statusContainer");
+    if (statusContainer) statusContainer.style.display = "block";
+
+    const statusField = document.getElementById("intIdStatusTaller");
+    if (statusField) {
+        ensureStatusOption(statusField, taller.idCatStatus, getStatusName(taller));
+        statusField.value = taller.idCatStatus || "1";
+        statusField.dispatchEvent(new Event("change"));
+    }
+
+    setText("formTitle", "Editar taller");
+    setText("formSubtitle", "Modifica los detalles del taller seleccionado.");
+    setText("btnSubmit", "Guardar cambios");
+
+    const btnCancel = document.getElementById("btnCancel");
+    if (btnCancel) btnCancel.style.display = "inline-block";
+
+    const formCard = document.querySelector(".filter-card");
+    if (formCard) formCard.scrollIntoView({ behavior: "smooth" });
+
+    document.getElementById("strNombre").focus();
+}
+
+function toggleStatusTaller(id) {
+    const taller = talleres.find(t => t.id === id);
+    if (!taller) return;
+
+    const isActive = taller.idCatStatus !== '2';
+    const actionText = isActive ? 'dar de baja' : 'activar';
+    const confirmButtonText = isActive ? 'Sí, dar de baja' : 'Sí, activar';
+    const confirmButtonColor = isActive ? '#ef4444' : '#10b981';
+
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: `El estado del taller cambiará a ${isActive ? 'Inactivo' : 'Activo'}.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: "Cancelar"
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+
+        const payload = {
+            id: taller.id,
+            strValor: taller.nombre,
+            strDescripcion: taller.descripcion,
+            idCatStatus: isActive ? 2 : 1
+        };
+
+        try {
+            const response = await fetch("/Talleres/UpdateTaller", {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.message || `No fue posible ${actionText} el taller.`);
+                return;
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: isActive ? "Dado de baja" : "Activado",
+                text: `El taller ha sido ${isActive ? 'dado de baja' : 'activado'} exitosamente.`,
+                confirmButtonColor: "var(--teal-cavex)"
+            });
+
+            if (editingId === id) resetForm();
+            await loadTalleresFromServer();
+        } catch (error) {
+            console.error(error);
+            showError(`Ocurrió un error al ${actionText} el taller.`);
+        }
+    });
 }
 
 // Eliminar taller
 function deleteTaller(id) {
     Swal.fire({
-        title: '¿Estás seguro?',
+        title: "¿Estás seguro?",
         text: "¡No podrás revertir esta acción!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch('/Talleres/DeleteTaller?id=' + id, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Eliminado!',
-                        text: 'El taller ha sido eliminado exitosamente.',
-                        confirmButtonColor: 'var(--teal-cavex)'
-                    });
-                    if (editingId === id) {
-                        resetForm();
-                    }
-                    loadTalleresFromServer();
-                } else {
-                    let errorText = result.message || 'Inténtalo de nuevo más tarde.';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'No se pudo eliminar',
-                        text: errorText,
-                        confirmButtonColor: 'var(--teal-cavex)'
-                    });
-                }
-            })
-            .catch(err => {
-                console.error("Error al eliminar el taller:", err);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de conexión',
-                    text: 'No se pudo procesar la solicitud. ¡Intenta de nuevo!',
-                    confirmButtonColor: 'var(--teal-cavex)'
-                });
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+    }).then(async result => {
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await fetch(`/Talleres/DeleteTaller?id=${id}`, {
+                method: "POST",
+                headers: { "Accept": "application/json" }
             });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.message || "No fue posible eliminar el taller.");
+                return;
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "Eliminado",
+                text: "El taller ha sido eliminado exitosamente.",
+                confirmButtonColor: "var(--teal-cavex)"
+            });
+
+            if (editingId === id) resetForm();
+            await loadTalleresFromServer();
+        } catch (error) {
+            console.error(error);
+            showError("Ocurrió un error al eliminar el taller.");
         }
     });
 }
@@ -500,19 +564,62 @@ function deleteTaller(id) {
 function resetForm() {
     editingId = null;
     clearValidation();
-    document.getElementById('formTaller').reset();
 
-    // Restaurar textos originales
-    document.getElementById('formTitle').textContent = 'Registrar taller';
-    document.getElementById('formSubtitle').textContent = 'Ingresa el nombre y la descripción del taller.';
-    document.getElementById('btnSubmit').textContent = 'Guardar taller';
-    document.getElementById('btnCancel').style.display = 'none';
+    const form = document.getElementById("formTaller");
+    if (form) form.reset();
+
+    setText("formTitle", "Registrar taller");
+    setText("formSubtitle", "Ingresa el nombre y la descripción para registrar el taller.");
+    setText("btnSubmit", "Guardar taller");
+
+    const btnCancel = document.getElementById("btnCancel");
+    if (btnCancel) btnCancel.style.display = "none";
+
+    const statusContainer = document.getElementById("statusContainer");
+    if (statusContainer) statusContainer.style.display = "none";
 }
 
-// Escape de caracteres HTML para seguridad
+function clearValidation() {
+    document.getElementById("strNombre")?.classList.remove("is-invalid", "is-valid");
+    document.getElementById("strDescripcion")?.classList.remove("is-invalid", "is-valid");
+    document.getElementById("intIdStatusTaller")?.classList.remove("is-invalid", "is-valid");
+}
+
+function getStatusName(taller) {
+    if (taller.strCatStatus) return taller.strCatStatus;
+
+    const statusId = String(taller.idCatStatus || "1");
+    const status = statusCatalog.find(item => String(item.id) === statusId);
+    if (status) return status.nombre || status.strValor || status.strDescripcion;
+
+    if (statusId === "2") return "Inactivo";
+    return "Activo";
+}
+
+function getStatusBadgeClass(statusName) {
+    const normalized = (statusName || "").toLowerCase();
+    return normalized.includes("baja") || normalized.includes("inactivo") || normalized.includes("cancel")
+        ? "badge-danger"
+        : "badge-active";
+}
+
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: message,
+        confirmButtonColor: "var(--teal-cavex)"
+    });
+}
+
 function escapeHtml(text) {
-    if (!text) return '';
-    return text
+    if (text === null || text === undefined) return "";
+    return String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")

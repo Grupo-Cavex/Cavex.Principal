@@ -32,7 +32,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Danios/DaniosAccidentes")]
         public IActionResult DaniosAccidentes()
         {
-            return View("~/Views/Vehiculos/DaniosAccidentes.cshtml");
+            return View("~/Views/Vehiculos/DaniosAccidentes/Create.cshtml");
         }
 
         [HttpGet("/Danios/GetDanios")]
@@ -165,7 +165,22 @@ namespace Cavex.Principal.Controllers
                     }
                 }
 
-                model.StrUrlEvidencia = string.Join(";", urlFotosList);
+                if (model.Id > 0 && urlFotosList.Count == 0)
+                {
+                    var existingResponse = await _vehDaniosAccidentes.ObtenerPorIdAsync(model.Id, cancellationToken);
+                    if (existingResponse != null && existingResponse.Success && existingResponse.Data != null && !string.IsNullOrWhiteSpace(existingResponse.Data.StrUrlEvidencia))
+                    {
+                        model.StrUrlEvidencia = existingResponse.Data.StrUrlEvidencia;
+                    }
+                    else
+                    {
+                        model.StrUrlEvidencia = string.Join(";", urlFotosList);
+                    }
+                }
+                else
+                {
+                    model.StrUrlEvidencia = string.Join(";", urlFotosList);
+                }
 
                 if (model.Id > 0)
                 {

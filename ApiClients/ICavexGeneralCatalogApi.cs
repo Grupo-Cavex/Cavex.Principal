@@ -2,6 +2,7 @@ using Cavex.Principal.Common;
 using Cavex.Principal.Models.EmpCatGenero;
 using Cavex.Principal.Models.EmpCatEstadoCivil;
 using Cavex.Principal.Models.EmpCatNacionalidad;
+using Cavex.Principal.Models.EmpCatTipoContratacion;
 using Refit;
 
 namespace Cavex.Principal.ApiClients
@@ -16,5 +17,8 @@ namespace Cavex.Principal.ApiClients
 
         [Get("/api/v1/EmpCatNacionalidad")]
         Task<ResponseWrapper<PagedResponse<EmpCatNacionalidadDto>>> GetNacionalidadesAsync([Query] int pageIndex, [Query] int pageSize, CancellationToken cancellationToken = default);
+
+        [Get("/api/v1/EmpCatTipoContratacion")]
+        Task<ResponseWrapper<PagedResponse<EmpCatTipoContratacionDto>>> GetTiposContratacionAsync([Query] int pageIndex, [Query] int pageSize, CancellationToken cancellationToken = default);
     }
 }

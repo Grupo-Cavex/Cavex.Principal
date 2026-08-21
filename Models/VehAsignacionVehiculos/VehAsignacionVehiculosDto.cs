@@ -18,6 +18,8 @@ namespace Cavex.Principal.Models.VehAsignacionVehiculos
 
         [Display(Name = "Fecha de asignacion")]
         public DateTime DteFechaAsigncion { get; set; }
+        [Display(Name = "Fecha de finalizacion")]
+        public DateTime? DteFechaFinalizacion { get; set; }
 
         [Display(Name = "Kilometraje inicial")]
         public decimal DecKilometrajeInicial { get; set; }

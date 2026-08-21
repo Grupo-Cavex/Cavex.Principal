@@ -1,7 +1,7 @@
 @{
-    ViewData["Title"] = "Infracciones del vehículo";
-    ViewData["HeaderEyebrow"] = "Control vehicular";
-    ViewData["HeaderSubtitle"] = "Registra multas, pagos, comprobantes y observaciones relacionadas con cada unidad.";
+    ViewBag.Title = "Infracciones del vehículo";
+    ViewBag.HeaderEyebrow = "Control vehicular";
+    ViewBag.HeaderSubtitle = "Registra multas, pagos, comprobantes y observaciones relacionadas con cada unidad.";
 }
 
 @section Head {
@@ -35,9 +35,9 @@
                         <div class="invalid-feedback" id="infraccion-idEmpEmpleadoError">Selecciona un empleado.</div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" for="infraccion-dteFechaInfraccion">Fecha de infracción</label>
-                        <input id="infraccion-dteFechaInfraccion" name="dteFechaInfraccion" type="date" class="form-control" required />
-                        <div class="invalid-feedback" id="infraccion-dteFechaInfraccionError">Captura una fecha válida.</div>
+                        <label class="form-label" for="infraccion-dteFechaInfraccion">Fecha y hora de infracción</label>
+                        <input id="infraccion-dteFechaInfraccion" name="dteFechaInfraccion" type="datetime-local" class="form-control" step="60" required />
+                        <div class="invalid-feedback" id="infraccion-dteFechaInfraccionError">Captura una fecha y hora válida.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label" for="infraccion-idVehCatStatus">Estatus</label>
@@ -112,9 +112,37 @@
                 </div>
             </section>
 
+            <!-- Evidencias: fotografías o archivos probatorios de la infracción. -->
+            <section class="cavex-card form-section-card vehiculo-section-card">
+                <h3 class="form-section-title"><span class="form-section-number">3</span>Evidencias</h3>
+                <label class="form-label" for="infraccionEvidenciaArchivo">Archivo de evidencia</label>
+                <div id="infraccionEvidenciaArea" class="vehiculo-upload-area infraccion-evidencia-area" role="button" tabindex="0">
+                    <input id="infraccionEvidenciaArchivo" type="file" class="vehiculo-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" />
+                    <input id="infraccion-strUrlEvidencia" name="strUrlEvidencia" type="hidden" value="" />
+                    <div id="infraccionEvidenciaPrompt" class="vehiculo-upload-prompt infraccion-evidencia-prompt">
+                        <span class="vehiculo-upload-icon" aria-hidden="true">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                        </span>
+                        <strong>Arrastra la evidencia aquí</strong>
+                        <span>o haz clic para seleccionar</span>
+                        <small>PDF, JPG, JPEG, PNG o WEBP · máximo 5 MB</small>
+                    </div>
+                    <div class="vehiculo-file-preview" id="infraccionEvidenciaFilePreview" style="display: none;">
+                        <div class="vehiculo-file-meta">
+                            <strong id="infraccionEvidenciaFileName">Evidencia seleccionada</strong>
+                            <small id="infraccionEvidenciaFileSize"></small>
+                        </div>
+                        <div class="vehiculo-file-actions infraccion-file-actions">
+                            <button id="btnQuitarEvidenciaInfraccion" type="button" class="btn btn-outline-cavex btn-sm">Quitar</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="infraccionEvidenciaArchivoError" class="invalid-feedback infraccion-upload-error"></div>
+            </section>
+
             <!-- Observaciones: campo NULL independiente del motivo obligatorio. -->
             <section class="cavex-card form-section-card vehiculo-section-card">
-                <h3 class="form-section-title"><span class="form-section-number">3</span>Observaciones</h3>
+                <h3 class="form-section-title"><span class="form-section-number">4</span>Observaciones</h3>
                 <label class="form-label" for="infraccion-strObservaciones">Observaciones</label>
                 <textarea id="infraccion-strObservaciones" name="strObservaciones" maxlength="500" rows="4" class="form-control" placeholder="Notas administrativas, seguimiento o aclaraciones." style="resize: none;"></textarea>
                 <div class="invalid-feedback" id="infraccion-strObservacionesError">Las observaciones no deben superar 500 caracteres.</div>

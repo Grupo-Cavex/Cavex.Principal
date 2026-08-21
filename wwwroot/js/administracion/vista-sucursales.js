@@ -96,7 +96,7 @@ function wireFormInputs() {
     const statusField = document.getElementById("intIdStatusSucursal");
 
     if (nombreInput) {
-        registerSanitizer(nombreInput, sanitizeLettersOnly);
+        registerSanitizer(nombreInput, sanitizeGeneralText);
         nombreInput.addEventListener("input", () => {
             nombreInput.classList.remove("is-invalid", "is-valid");
         });
@@ -608,7 +608,7 @@ function showError(message) {
 }
 
 function escapeHtml(text) {
-    if (!text) return "";
+    if (text === null || text === undefined) return "";
     return String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")

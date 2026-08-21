@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Promesas paralelas para obtener el empleado y mapear catálogos directamente de base de datos
     Promise.all([
-        fetch('/Empleado/GetEmpleado?id=' + empleadoId).then(res => res.json()),
-        fetch('/Empleado/GetGeneros').then(res => res.json()),
-        fetch('/Empleado/GetEstadosCiviles').then(res => res.json()),
-        fetch('/Empleado/GetNacionalidades').then(res => res.json()),
-        fetch('/AreaLaboral/GetAreas').then(res => res.json())
+        fetch('/Empleado/GetEmpleado?id=' + empleadoId).then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/Empleado/GetGeneros').then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/Empleado/GetEstadosCiviles').then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/Empleado/GetNacionalidades').then(res => res.json()).catch(() => ({ success: false })),
+        fetch('/AreaLaboral/GetAreas').then(res => res.json()).catch(() => ({ success: false }))
     ])
     .then(([empRes, generosRes, estadosRes, nacsRes, areasRes]) => {
         Swal.close();
@@ -84,11 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Fallback dinámico robusto para la foto del empleado
             const avatarContainer = document.getElementById('avatarContainer');
-            const fileDocs = emp.empDocumentosLaborales;
-            if (fileDocs && fileDocs.strUrlFotoEmp && fileDocs.strUrlFotoEmp !== 'N/D' && fileDocs.strUrlFotoEmp !== 'Foto Empleado') {
+            const fileDocs = emp.empDocumentosLaborales || emp.EmpDocumentosLaborales || emp.documentosLaborales;
+            const photoUrl = (fileDocs && (fileDocs.strUrlFotoEmp || fileDocs.StrUrlFotoEmp)) || emp.strUrlFotoEmp || emp.StrUrlFotoEmp || '';
+
+            if (photoUrl && photoUrl !== 'N/D' && photoUrl !== 'Foto Empleado') {
                 const img = document.createElement('img');
-                img.src = fileDocs.strUrlFotoEmp;
+                img.src = photoUrl;
                 img.alt = 'Foto Empleado';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '12px';
                 img.onerror = () => {
                     avatarContainer.innerHTML = `<img src="/svg/vista-empleados/avatar.svg" alt="Avatar predeterminado" style="opacity: 0.5; width: 48px; height: 48px;" />`;
                 };
@@ -98,9 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarContainer.innerHTML = `<img src="/svg/vista-empleados/avatar.svg" alt="Avatar predeterminado" style="opacity: 0.5; width: 48px; height: 48px;" />`;
             }
 
-            document.getElementById('valCurp').textContent = emp.strCurp || '—';
-            document.getElementById('valRfc').textContent = emp.strRfc || '—';
-            document.getElementById('valNss').textContent = emp.bigNss || emp.intNss || '—';
+            document.getElementById('valCurp').textContent = emp.strCurp || emp.StrCurp || '—';
+            document.getElementById('valRfc').textContent = emp.strRfc || emp.StrRfc || '—';
+            
+            const rawNss = emp.bigNss || emp.BigNss || '';
+            document.getElementById('valNss').textContent = (rawNss && rawNss !== 0 && rawNss !== '0') ? String(rawNss).padStart(11, '0') : '—';
             document.getElementById('valEdad').textContent = emp.intEdad || '—';
             
             if (emp.dteFechaNacimiento) {
@@ -117,8 +125,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const nacOpt = nacsRes.success && nacsRes.data ? nacsRes.data.find(x => x.id === emp.idEmpCatNacionalidad) : null;
             document.getElementById('valNacionalidad').textContent = nacOpt ? toTitleCase(nacOpt.strValor) : '—';
             
-            document.getElementById('valTelCelular').textContent = (emp.empTelefonos && emp.empTelefonos[0]) ? (emp.empTelefonos[0].bigNumeroCelular || emp.empTelefonos[0].strNumeroCelular || '—') : '—';
-            document.getElementById('valTelFijo').textContent = (emp.empTelefonos && emp.empTelefonos[0]) ? (emp.empTelefonos[0].bigNumeroFijo || emp.empTelefonos[0].strNumeroFijo || '—') : '—';
+            if (emp.empTelefonos && emp.empTelefonos.length > 0) {
+                const mainTel = emp.empTelefonos[0];
+                const rawCel = mainTel.bigNumeroCelular || mainTel.strNumeroCelular || mainTel.intNumeroCelular || '';
+                const rawFijo = mainTel.bigNumeroFijo || mainTel.strNumeroFijo || mainTel.intNumeroFijo || '';
+                document.getElementById('valTelCelular').textContent = (rawCel && rawCel !== 0 && rawCel !== '0') ? String(rawCel).padStart(10, '0') : '—';
+                document.getElementById('valTelFijo').textContent = (rawFijo && rawFijo !== 0 && rawFijo !== '0') ? String(rawFijo).padStart(10, '0') : '—';
+            } else {
+                document.getElementById('valTelCelular').textContent = '—';
+                document.getElementById('valTelFijo').textContent = '—';
+            }
             document.getElementById('valCorreo').textContent = emp.strCorreoElectronico || '—';
 
             if (emp.empDireccion) {
@@ -181,9 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 lblPuesto.textContent = toTitleCase(emp.strEmpCatTipoContratacion || 'Sin Tipo de Contratación');
             }
             
-            const histAreaId = (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) ? emp.empHistorialAreas[0].idEmpCatAreaLaboral : null;
+            let histAreaId = emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null;
+            if (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) {
+                const sortedAreas = [...emp.empHistorialAreas].sort((a, b) => (b.id || 0) - (a.id || 0));
+                histAreaId = sortedAreas[0].idEmpCatAreaLaboral || histAreaId;
+            }
             const areaOpt = histAreaId && areasRes.success && areasRes.data ? areasRes.data.find(x => x.id === histAreaId) : null;
-            const areaNameText = areaOpt ? toTitleCase(areaOpt.strValor || areaOpt.strDescripcion) : toTitleCase(emp.strEmpCondicionesLaborales || 'Sin Condiciones Laborales');
+            const areaNameText = areaOpt ? toTitleCase(areaOpt.strValor || areaOpt.strDescripcion) : toTitleCase(emp.strAreaLaboral || emp.strEmpCondicionesLaborales || 'Sin Área Asignada');
             document.getElementById('lblArea').textContent = areaNameText;
 
             // Experiencias (Timeline minimalista)
@@ -215,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Referencias (Rediseño Estilo Contact Cards)
             const refContainer = document.getElementById('referenciasPreviewContainer');
-            const references = emp.empReferenciasPersonales || [];
+            const references = emp.empReferenciasPersonales || emp.referencias || emp.empReferencias || [];
             if (references.length === 0) {
                 refContainer.innerHTML = '<div class="text-muted small text-center py-2">Sin referencias personales registradas</div>';
             } else {
@@ -247,6 +267,80 @@ document.addEventListener('DOMContentLoaded', () => {
                 setupVerDocButton('btnVerCv', 'docNameCv', emp.empDocumentosLaborales.strUrlCurriculumVitae, 'Curriculum Vitae (CV)');
                 setupVerDocButton('btnVerContrato', 'docNameContrato', emp.empDocumentosLaborales.strUrlContrato, 'Contrato Laboral');
             }
+
+            // Configurar modal de Historial de Documentos Personales
+            const btnHistorial = document.getElementById('btnShowHistorialDocs');
+            if (btnHistorial) {
+                btnHistorial.onclick = () => {
+                    Swal.fire({
+                        title: 'Consultando historial...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch('/Empleado/GetHistorialDocumentos?id=' + empleadoId)
+                        .then(res => res.json())
+                        .then(res => {
+                            Swal.close();
+                            if (res.success && res.data && res.data.length >= 2) {
+                                let html = '<div class="d-flex flex-column gap-2">';
+                                res.data.forEach(doc => {
+                                    const badgeHtml = doc.esActual 
+                                        ? '<span class="badge bg-success-subtle text-success border border-success me-2" style="font-size: 0.75rem;">Versión Actual / Más Reciente</span>' 
+                                        : '<span class="badge bg-secondary-subtle text-secondary border me-2" style="font-size: 0.75rem;">Versión Anterior</span>';
+                                    
+                                    html += `
+                                        <div class="card p-3 border rounded-3 shadow-sm d-flex flex-row align-items-center justify-content-between flex-wrap gap-2">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="p-2 rounded bg-light text-teal-cavex">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-dark d-flex align-items-center flex-wrap gap-1">
+                                                        ${escapeHtml(doc.tipo)}
+                                                        ${badgeHtml}
+                                                    </div>
+                                                    <div class="text-muted small">${escapeHtml(doc.nombreArchivo)}</div>
+                                                    <div class="text-muted extra-small" style="font-size: 0.75rem;">
+                                                        Modificado: ${doc.fecha} • Tamaño: ${doc.tamanoMb}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-cavex d-flex align-items-center gap-1" onclick="verDocumentoHistorial('${doc.url}', '${escapeHtml(doc.tipo)} - ${escapeHtml(doc.nombreArchivo)}')">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                Ver Documento
+                                            </button>
+                                        </div>
+                                    `;
+                                });
+                                html += '</div>';
+                                const modalBody = document.getElementById('modalHistorialDocsBody');
+                                modalBody.innerHTML = html;
+                                const modal = new bootstrap.Modal(document.getElementById('modalHistorialDocs'));
+                                modal.show();
+                            } else {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Historial de Documentos',
+                                    text: 'Este empleado debe contar con al menos dos documentos o versiones de documentos registrados para consultar su historial.',
+                                    confirmButtonColor: 'var(--teal-cavex)'
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            Swal.close();
+                            console.error("Error al cargar historial:", err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de servidor',
+                                text: 'No se pudo consultar el historial de documentos.',
+                                confirmButtonColor: 'var(--teal-cavex)'
+                            });
+                        });
+                };
+            }
         } else {
             Swal.fire({
                 icon: 'error',
@@ -266,6 +360,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+window.verDocumentoHistorial = function(url, docTitle) {
+    document.getElementById('modalDocumentoViewerLabel').textContent = 'Visualizando: ' + docTitle;
+    document.getElementById('iframeDocumentoViewer').src = url;
+    const modalViewer = new bootstrap.Modal(document.getElementById('modalDocumentoViewer'));
+    modalViewer.show();
+};
 
 function createExperienceHtmlItem(exp) {
     const container = document.createElement('div');
@@ -293,10 +394,11 @@ function createReferenceHtmlItem(ref) {
     const card = document.createElement('div');
     card.className = 'reference-contact-card';
     
-    const fullName = toTitleCase(ref.strNombreCompleto);
+    const fullName = toTitleCase(ref.strNombreCompleto || ref.nombreCompleto || ref.strNombre || '—');
     const firstLetter = fullName && fullName !== '—' ? fullName.charAt(0).toUpperCase() : 'R';
-    const relationship = toTitleCase(ref.strParentezco || ref.strParentesco || 'Referencia');
-    const phone = ref.bigTelefono || ref.intTelefono || ref.intTelefonoCellular || ref.intTelefonoCelular || '—';
+    const relationship = toTitleCase(ref.strParentezco || ref.strParentesco || ref.parentezco || 'Referencia');
+    const rawTel = ref.bigTelefono || ref.BigTelefono || '';
+    const phone = (rawTel && rawTel !== 0 && rawTel !== '0') ? String(rawTel).padStart(10, '0') : '—';
     
     card.innerHTML = `
         <div class="reference-avatar">${firstLetter}</div>
@@ -305,10 +407,10 @@ function createReferenceHtmlItem(ref) {
             <div class="reference-meta-row">
                 <span class="reference-relationship">${relationship}</span>
                 <span class="text-muted">•</span>
-                <a href="tel:${phone}" class="reference-phone-link">
+                ${phone !== '—' ? `<a href="tel:${phone}" class="reference-phone-link">
                     <img src="/svg/vista-empleados/phone.svg" alt="" />
                     ${phone}
-                </a>
+                </a>` : `<span class="text-muted small"><img src="/svg/vista-empleados/phone.svg" alt="" style="opacity: 0.4;" /> —</span>`}
             </div>
         </div>
     `;

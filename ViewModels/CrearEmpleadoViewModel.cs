@@ -208,6 +208,9 @@ namespace Cavex.Principal.ViewModels
         [Required(ErrorMessage = "El área laboral es obligatoria.")]
         public string AreaLaboral { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "El tipo de contrato es obligatorio.")]
+        public string TipoContratacion { get; set; } = string.Empty;
+
         public bool ViveEnLugarDeTrabajo { get; set; }
 
         public bool DisponibilidadDeViaje { get; set; }

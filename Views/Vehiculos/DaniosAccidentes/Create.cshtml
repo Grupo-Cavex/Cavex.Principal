@@ -1,7 +1,7 @@
 @{
-    ViewData["Title"] = "Daños y accidentes";
-    ViewData["HeaderEyebrow"] = "Historial vehicular";
-    ViewData["HeaderSubtitle"] = "Registra eventos, daños, reparaciones, seguros, evidencias y seguimiento por unidad.";
+    ViewBag.Title = "Daños y accidentes";
+    ViewBag.HeaderEyebrow = "Historial vehicular";
+    ViewBag.HeaderSubtitle = "Registra eventos, daños, reparaciones, seguros, evidencias y seguimiento por unidad.";
 }
 
 @section Head {
@@ -52,8 +52,8 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label" for="danio-dteFechaEvento">Fecha del evento</label>
-                        <input id="danio-dteFechaEvento" name="dteFechaEvento" type="date" class="form-control" required />
-                        <div class="invalid-feedback" id="danio-dteFechaEventoError">Captura una fecha válida.</div>
+                        <input id="danio-dteFechaEvento" name="dteFechaEvento" type="datetime-local" class="form-control" step="60" required />
+                        <div class="invalid-feedback" id="danio-dteFechaEventoError">Captura una fecha y hora válida.</div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label" for="danio-idVehCatStatus">Estatus</label>
@@ -78,19 +78,11 @@
                 </div>
             </section>
 
-            <!-- Reparación y seguro: idVehSeguro se vuelve obligatorio solo cuando aplica cobertura. -->
+            <!-- Cobertura y seguro: idVehSeguro se vuelve obligatorio solo cuando aplica cobertura. -->
             <section class="cavex-card form-section-card vehiculo-section-card danio-seguro-card">
-                <h3 class="form-section-title"><span class="form-section-number">3</span>Reparación y seguro</h3>
+                <h3 class="form-section-title"><span class="form-section-number">3</span>Seguro y Cobertura</h3>
                 <div class="row g-3 align-items-center">
-                    <div class="col-md-5">
-                        <label class="form-label" for="danio-mnyMontoReparacion">Monto de reparación</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input id="danio-mnyMontoReparacion" name="mnyMontoReparacion" type="text" class="form-control" placeholder="0.00" />
-                        </div>
-                        <div class="invalid-feedback" id="danio-mnyMontoReparacionError">Captura un monto entre $0.00 y $999,999.00.</div>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Cubierto por seguro</label>
                         <label class="danio-switch-card" for="danioSeguroSwitch">
                             <span class="danio-switch-card__text" id="danioSeguroSwitchLabel">No</span>
@@ -101,7 +93,7 @@
                         <!-- El hidden conserva siempre el valor booleano NOT NULL para el backend futuro. -->
                         <input id="danio-bitCubiertoPorSeguro" name="bitCubiertoPorSeguro" type="hidden" value="false" />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <label class="form-label" for="danio-idVehSeguro">Póliza</label>
                         <select id="danio-idVehSeguro" name="idVehSeguro" class="form-select" disabled>
                             <option value="">No aplica</option>

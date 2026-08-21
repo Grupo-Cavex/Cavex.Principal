@@ -115,10 +115,11 @@ namespace Cavex.Principal.Controllers
             return Json(new { success = true, data = response.Data });
         }
 
+        [HttpGet("/MarcaLlanta")]
         [HttpGet("/Marcas/MarcaLlanta")]
         public IActionResult MarcaLlanta()
         {
-            return View();
+            return View("~/Views/Marcas/Create.cshtml");
         }
 
         [HttpGet("/Marcas/MarcasLlantas/GetMarcas")]

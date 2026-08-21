@@ -1,13 +1,12 @@
 
 @{
-    ViewData["Title"] = "Listado de Empleados";
-    ViewData["HeaderEyebrow"] = "Administración";
-    ViewData["HeaderSubtitle"] = "Administra y configura el personal registrado en la plataforma.";
+    ViewBag.Title = "Listado de Empleados";
+    ViewBag.HeaderEyebrow = "Administración";
+    ViewBag.HeaderSubtitle = "Administra y configura el personal registrado en la plataforma.";
 
-    ViewData["TableTitle"] = "Listado de empleados";
-    ViewData["TableSubtitle"] = "Catálogo de asesores, roles y su estado actual.";
-    ViewData["TableCount"] = 0;
-    ViewData["TableCountLabel"] = "empleados";
+    ViewBag.TableTitle = "Listado de empleados";
+    ViewBag.TableSubtitle = "Catálogo de asesores, roles y su estado actual.";
+    ViewBag.TableCountLabel = "empleados";
 }
 
 @section Head {
@@ -19,8 +18,8 @@
 <div class="cavex-card table-module">
     <!-- Toolbar superior de visualización -->
     <div class="table-toolbar p-4 border-bottom">
-        <h4 class="m-0 font-weight-850">@ViewData["TableTitle"]</h4>
-        <small class="text-muted">@ViewData["TableSubtitle"]</small>
+        <h4 class="m-0 font-weight-850">@ViewBag.TableTitle</h4>
+        <small class="text-muted">@ViewBag.TableSubtitle</small>
     </div>
 
     <!-- Barra de Búsqueda y Pestañas de Estado -->

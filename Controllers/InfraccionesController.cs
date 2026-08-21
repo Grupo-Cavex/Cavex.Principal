@@ -28,7 +28,7 @@ namespace Cavex.Principal.Controllers
         [HttpGet("/Infracciones/Infracciones")]
         public IActionResult Infracciones()
         {
-            return View("~/Views/Vehiculos/Infracciones.cshtml");
+            return View("~/Views/Vehiculos/Infracciones/Create.cshtml");
         }
 
         [HttpGet("/Infracciones/GetInfracciones")]
@@ -124,6 +124,14 @@ namespace Cavex.Principal.Controllers
                     }
 
                     model.StrUrlComprobantePago = $"{relativePath}/{uniqueFileName}";
+                }
+                else if (model.Id > 0 && string.IsNullOrWhiteSpace(model.StrUrlComprobantePago))
+                {
+                    var existingResponse = await _vehInfracciones.ObtenerPorIdAsync(model.Id, cancellationToken);
+                    if (existingResponse != null && existingResponse.Success && existingResponse.Data != null)
+                    {
+                        model.StrUrlComprobantePago = existingResponse.Data.StrUrlComprobantePago;
+                    }
                 }
 
                 if (model.Id > 0)

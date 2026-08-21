@@ -5,7 +5,7 @@ namespace Cavex.Principal.Services.Interfaces
 {
     public interface IVehCatTallerService
     {
-        Task<ResponseWrapper<PagedResponse<VehCatTallerDto>>> ObtenerTodosAsync(int pageIndex = 1, int pageSize = 10, string? search = null, CancellationToken cancellationToken = default);
+        Task<ResponseWrapper<PagedResponse<VehCatTallerDto>>> ObtenerTodosAsync(int pageIndex = 1, int pageSize = 10, string? search = null, int? status = null, CancellationToken cancellationToken = default);
 
         Task<bool> ExistePorNombreAsync(string nombre, int? excludeId = null, CancellationToken cancellationToken = default);
 

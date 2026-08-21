@@ -906,11 +906,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const nom = item.querySelector('.txtRefNombre').value;
                     const par = item.querySelector('.txtRefParentesco').value;
                     const tel = item.querySelector('.txtRefTelefono').value;
+                    const telDigits = (tel || '').replace(/[^0-9]/g, '');
+                    const telNum = telDigits ? parseInt(telDigits, 10) : 0;
                     referencias.push({
                         strNombreCompleto: nom,
                         strParentezco: par,
-                        bigTelefono: parseInt(tel) || 0,
-                        intTelefono: parseInt(tel) || 0
+                        bigTelefono: telNum,
+                        intTelefono: telNum
                     });
                 });
 
@@ -939,6 +941,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isEdit = !!empleadoId;
                 const requestUrl = isEdit ? '/Empleado/UpdateEmpleado?id=' + empleadoId : '/Empleado/SaveEmpleado';
 
+                const nssDigits = (document.getElementById('txtNSS').value || '').replace(/[^0-9]/g, '');
+                const nssNum = nssDigits ? parseInt(nssDigits, 10) : 0;
+                const telFijoDigits = (document.getElementById('txtTelefonoFijo').value || '').replace(/[^0-9]/g, '');
+                const telCelDigits = (document.getElementById('txtTelefonoCelular').value || '').replace(/[^0-9]/g, '');
+
                 const payload = {
                     strNombre: document.getElementById('txtNombre').value,
                     strApellidoPaterno: document.getElementById('txtApellidoPaterno').value,
@@ -948,12 +955,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     strCurp: document.getElementById('txtCURP').value,
                     intEdad: parseInt(document.getElementById('txtEdad').value),
                     strCorreoElectronico: document.getElementById('txtCorreo').value,
-                    bigNss: parseInt(document.getElementById('txtNSS').value) || 0,
-                    intNss: parseInt(document.getElementById('txtNSS').value) || 0,
+                    bigNss: nssNum,
                     idEmpCatGenero: parseInt(document.getElementById('idGenero').value),
                     idEmpCatEstadoCivil: parseInt(document.getElementById('ddlEstadoCivil').value),
                     idEmpCatNacionalidad: parseInt(document.getElementById('ddlNacionalidad').value),
-                    idEmpCatTipoContratacion: 1,
+                    idEmpCatTipoContratacion: parseInt(document.getElementById('ddlTipoContratacion')?.value || '1', 10),
                     idCatStatus: 1,
                     idEmpCatAreaLaboral: parseInt(document.getElementById('ddlAreaLaboral').value),
                     direccion: {
@@ -972,22 +978,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     documentosLaborales: {
                         strUrlIdentificacionOficial: document.getElementById('file-identificacion').files[0]?.name 
                             ? "/uploads/" + document.getElementById('file-identificacion').files[0].name 
-                            : (window.existingDocumentUrls?.identificacion || "/uploads/identificacion.pdf"),
+                            : (window.existingDocumentUrls?.identificacion || ""),
                         strUrlComprobanteDomicilio: document.getElementById('file-comprobante').files[0]?.name 
                             ? "/uploads/" + document.getElementById('file-comprobante').files[0].name 
-                            : (window.existingDocumentUrls?.comprobante || "/uploads/comprobante.pdf"),
+                            : (window.existingDocumentUrls?.comprobante || ""),
                         strUrlCurriculumVitae: document.getElementById('file-cv').files[0]?.name 
                             ? "/uploads/" + document.getElementById('file-cv').files[0].name 
-                            : (window.existingDocumentUrls?.cv || "/uploads/cv.pdf"),
+                            : (window.existingDocumentUrls?.cv || ""),
                         strUrlContrato: document.getElementById('file-contrato').files[0]?.name 
                             ? "/uploads/" + document.getElementById('file-contrato').files[0].name 
-                            : (window.existingDocumentUrls?.contrato || "/uploads/contrato.pdf"),
+                            : (window.existingDocumentUrls?.contrato || ""),
                         strUrlLicencia: document.getElementById('file-licencia').files[0]?.name 
                             ? "/uploads/" + document.getElementById('file-licencia').files[0].name 
-                            : (window.existingDocumentUrls?.licencia || "/uploads/licencia.pdf"),
+                            : (window.existingDocumentUrls?.licencia || ""),
                         strUrlFotoEmp: document.getElementById('file-fotoEmpleado').files[0]?.name
                             ? "/uploads/" + document.getElementById('file-fotoEmpleado').files[0].name
-                            : (window.existingDocumentUrls?.fotoEmpleado || null)
+                            : (window.existingDocumentUrls?.fotoEmpleado || "")
                     },
                     condicionesLaborales: {
                         bitCercaniaVivienda: document.getElementById('chkVivienda').checked,
@@ -1001,10 +1007,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     experienciaLaboral: experienciaLaboral,
                     telefonos: [
                         {
-                            bigNumeroFijo: parseInt(document.getElementById('txtTelefonoFijo').value) || 0,
-                            bigNumeroCelular: parseInt(document.getElementById('txtTelefonoCelular').value) || null,
+                            bigNumeroFijo: telFijoDigits ? parseInt(telFijoDigits, 10) : 0,
+                            bigNumeroCelular: telCelDigits ? parseInt(telCelDigits, 10) : 0,
                             strNumeroFijo: document.getElementById('txtTelefonoFijo').value || "",
-                            strNumeroCelular: document.getElementById('txtTelefonoCelular').value
+                            strNumeroCelular: document.getElementById('txtTelefonoCelular').value || ""
                         }
                     ]
                 };
@@ -1173,7 +1179,26 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => console.error('[AreaLaboral] ERROR:', err));
 
-        return Promise.all([p1, p2, p3, p4]);
+        // ── TIPO DE CONTRATO ──
+        const p5 = fetch('/Empleado/GetTiposContratacion')
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    const select = document.getElementById('ddlTipoContratacion');
+                    if (select) {
+                        select.innerHTML = '<option value="" disabled selected>Seleccionar tipo de contrato</option>';
+                        res.data.forEach(item => {
+                            const opt = document.createElement('option');
+                            opt.value = item.id;
+                            opt.textContent = item.strValor;
+                            select.appendChild(opt);
+                        });
+                    }
+                }
+            })
+            .catch(err => console.error('[TipoContratacion] ERROR:', err));
+
+        return Promise.all([p1, p2, p3, p4, p5]);
     }
 
     window.existingDocumentUrls = {};
@@ -1194,21 +1219,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (result.success && result.data) {
                     const emp = result.data;
 
+                    // Guardar URLs de documentos existentes para preservarlos al guardar edicion
+                    const existingDocs = emp.empDocumentosLaborales || emp.EmpDocumentosLaborales || {};
+                    window.existingDocumentUrls = {
+                        identificacion: existingDocs.strUrlIdentificacionOficial || existingDocs.StrUrlIdentificacionOficial || '',
+                        comprobante: existingDocs.strUrlComprobanteDomicilio || existingDocs.StrUrlComprobanteDomicilio || '',
+                        cv: existingDocs.strUrlCurriculumVitae || existingDocs.StrUrlCurriculumVitae || '',
+                        contrato: existingDocs.strUrlContrato || existingDocs.StrUrlContrato || '',
+                        licencia: existingDocs.strUrlLicencia || existingDocs.StrUrlLicencia || '',
+                        fotoEmpleado: existingDocs.strUrlFotoEmp || existingDocs.StrUrlFotoEmp || ''
+                    };
+
                     // Mapear campos básicos
-                    document.getElementById('txtNombre').value = emp.strNombre;
-                    document.getElementById('txtApellidoPaterno').value = emp.strApellidoPaterno;
-                    document.getElementById('txtApellidoMaterno').value = emp.strApellidoMaterno || '';
+                    document.getElementById('txtNombre').value = emp.strNombre || emp.StrNombre || '';
+                    document.getElementById('txtApellidoPaterno').value = emp.strApellidoPaterno || emp.StrApellidoPaterno || '';
+                    document.getElementById('txtApellidoMaterno').value = emp.strApellidoMaterno || emp.StrApellidoMaterno || '';
                     
-                    if (emp.dteFechaNacimiento) {
-                        const fechaStr = emp.dteFechaNacimiento.split('T')[0];
+                    if (emp.dteFechaNacimiento || emp.DteFechaNacimiento) {
+                        const rawFecha = emp.dteFechaNacimiento || emp.DteFechaNacimiento;
+                        const fechaStr = String(rawFecha).split('T')[0];
                         document.getElementById('txtFechaNacimiento').value = fechaStr;
                         document.getElementById('txtFechaNacimiento').dispatchEvent(new Event('change'));
                     }
 
-                    document.getElementById('txtRFC').value = emp.strRfc;
-                    document.getElementById('txtCURP').value = emp.strCurp;
-                    document.getElementById('txtCorreo').value = emp.strCorreoElectronico;
-                    document.getElementById('txtNSS').value = emp.bigNss || emp.intNss || '';
+                    document.getElementById('txtRFC').value = emp.strRfc || emp.StrRfc || '';
+                    document.getElementById('txtCURP').value = emp.strCurp || emp.StrCurp || '';
+                    document.getElementById('txtCorreo').value = emp.strCorreoElectronico || emp.StrCorreoElectronico || '';
+                    
+                    const rawNss = emp.bigNss || emp.BigNss || '';
+                    if (rawNss && rawNss !== 0 && rawNss !== '0') {
+                        document.getElementById('txtNSS').value = String(rawNss).padStart(11, '0');
+                    } else {
+                        document.getElementById('txtNSS').value = '';
+                    }
 
                     document.getElementById('idGenero').value = emp.idEmpCatGenero;
                     document.getElementById('idGenero').dispatchEvent(new Event('change'));
@@ -1245,7 +1288,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                              colTexto += ', ' + municipio;
                                          }
                                          document.getElementById('txtColonia').value = colTexto;
+                                         document.getElementById('txtColonia').disabled = false;
                                          document.getElementById('txtCodigoPostal').value = cp;
+                                         if (typeof cargarColoniasPorCP === 'function') {
+                                             cargarColoniasPorCP(cp, false);
+                                         }
                                      }
                                 });
                         }
@@ -1278,14 +1325,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Mapear Teléfonos
                     if (emp.empTelefonos && emp.empTelefonos.length > 0) {
                         const telefono = emp.empTelefonos[0];
-                        document.getElementById('txtTelefonoFijo').value = telefono.bigNumeroFijo || telefono.strNumeroFijo || '';
-                        document.getElementById('txtTelefonoCelular').value = telefono.bigNumeroCelular || telefono.strNumeroCelular || '';
+                        const rawFijo = telefono.bigNumeroFijo || telefono.strNumeroFijo || telefono.intNumeroFijo || '';
+                        const rawCel = telefono.bigNumeroCelular || telefono.strNumeroCelular || telefono.intNumeroCelular || '';
+                        document.getElementById('txtTelefonoFijo').value = (rawFijo && rawFijo !== 0 && rawFijo !== '0') ? String(rawFijo).padStart(10, '0') : '';
+                        document.getElementById('txtTelefonoCelular').value = (rawCel && rawCel !== 0 && rawCel !== '0') ? String(rawCel).padStart(10, '0') : '';
                     }
 
-                    // Mapear Área Laboral
+                    // Mapear Área Laboral y Tipo de Contrato
+                    let idAreaLaboral = emp.idEmpCatAreaLaboral || emp.IdEmpCatAreaLaboral || null;
                     if (emp.empHistorialAreas && emp.empHistorialAreas.length > 0) {
-                        document.getElementById('ddlAreaLaboral').value = emp.empHistorialAreas[0].idEmpCatAreaLaboral;
-                        document.getElementById('ddlAreaLaboral').dispatchEvent(new Event('change'));
+                        const sortedAreas = [...emp.empHistorialAreas].sort((a, b) => (b.id || 0) - (a.id || 0));
+                        idAreaLaboral = sortedAreas[0].idEmpCatAreaLaboral || idAreaLaboral;
+                    }
+
+                    if (idAreaLaboral) {
+                        const ddlArea = document.getElementById('ddlAreaLaboral');
+                        if (ddlArea) {
+                            ddlArea.value = idAreaLaboral;
+                            ddlArea.dispatchEvent(new Event('change'));
+                        }
+                    }
+
+                    const idTipoContrato = emp.idEmpCatTipoContratacion || emp.IdEmpCatTipoContratacion;
+                    if (idTipoContrato) {
+                        const ddlTipo = document.getElementById('ddlTipoContratacion');
+                        if (ddlTipo) {
+                            ddlTipo.value = idTipoContrato;
+                            ddlTipo.dispatchEvent(new Event('change'));
+                        }
                     }
 
                     // Mapear Experiencias Laborales
@@ -1312,18 +1379,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     // Mapear Referencias Personales
-                    if (emp.empReferenciasPersonales && emp.empReferenciasPersonales.length > 0) {
+                    const refs = emp.empReferenciasPersonales || emp.referencias || emp.empReferencias || emp.EmpReferenciasPersonales || [];
+                    if (refs && refs.length > 0) {
                         const container = document.getElementById('referencias-container');
-                        const template = container.querySelector('.referencia-item');
+                        const template = container ? container.querySelector('.referencia-item') : null;
                         if (container && template) {
+                            const itemTemplate = template.cloneNode(true);
                             container.innerHTML = '';
-                            emp.empReferenciasPersonales.forEach((ref) => {
-                                const item = template.cloneNode(true);
+                            refs.forEach((ref) => {
+                                const item = itemTemplate.cloneNode(true);
                                 container.appendChild(item);
                                 if (item) {
-                                    item.querySelector('.txtRefNombre').value = ref.strNombreCompleto;
-                                    item.querySelector('.txtRefParentesco').value = ref.strParentezco;
-                                    item.querySelector('.txtRefTelefono').value = ref.bigTelefono || ref.intTelefono || '';
+                                    const nomEl = item.querySelector('.txtRefNombre');
+                                    if (nomEl) nomEl.value = ref.strNombreCompleto || ref.nombreCompleto || ref.strNombre || ref.StrNombreCompleto || '';
+                                    
+                                    const parEl = item.querySelector('.txtRefParentesco');
+                                    if (parEl) parEl.value = ref.strParentezco || ref.strParentesco || ref.parentezco || ref.StrParentezco || '';
+                                    
+                                    const telEl = item.querySelector('.txtRefTelefono');
+                                    if (telEl) {
+                                        const rawRefTel = ref.bigTelefono || ref.BigTelefono || '';
+                                        if (rawRefTel && rawRefTel !== 0 && rawRefTel !== '0') {
+                                            telEl.value = String(rawRefTel).padStart(10, '0');
+                                        } else {
+                                            telEl.value = '';
+                                        }
+                                    }
                                 }
                             });
                             actualizarNombresDinamicos();
@@ -1394,11 +1475,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Autocompletado de Colonias con Sugerencias y CP Automático
+    // Autocompletado de Colonias filtradas obligatoriamente por Código Postal
     const txtColonia = document.getElementById('txtColonia');
     const hdnColoniaId = document.getElementById('hdnColoniaId');
     const coloniaSuggestions = document.getElementById('colonia-suggestions');
-
+    let listaColoniasCP = [];
 
     function normalizarTextoBusqueda(valor) {
         return String(valor || '')
@@ -1431,14 +1512,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function coincideConBusquedaColonia(item, query) {
+        if (!query) return true;
         const valor = normalizarTextoBusqueda(obtenerValorColonia(item));
         const busqueda = normalizarTextoBusqueda(query);
         const palabras = busqueda.split(/\s+/).filter(Boolean);
-
         return palabras.length > 0 && palabras.every(palabra => valor.includes(palabra));
     }
 
     function mostrarMensajeColonia(mensaje, tipo = 'info') {
+        if (!coloniaSuggestions) return;
         coloniaSuggestions.innerHTML = '';
         const div = document.createElement('div');
         div.className = tipo === 'error' ? 'suggestion-no-results suggestion-error' : 'suggestion-no-results';
@@ -1447,98 +1529,205 @@ document.addEventListener('DOMContentLoaded', function() {
         coloniaSuggestions.style.display = 'block';
     }
 
-    let debounceTimer;
-    if (txtColonia && hdnColoniaId && coloniaSuggestions) {
-        txtColonia.addEventListener('input', function() {
-            const query = txtColonia.value.trim();
-            hdnColoniaId.value = ''; // Resetear el ID si se modifica el texto
+    function seleccionarColoniaItem(item) {
+        const nombreColoniaItem = decodeUtf8Mojibake(item?.strValor || item?.StrValor || item?.colonia || item?.Colonia || 'Colonia Desconocida');
+        const estado = decodeUtf8Mojibake(item?.empCatMunicipio?.empCatEntidadFederativa?.strValor || item?.EmpCatMunicipio?.EmpCatEntidadFederativa?.StrValor || item?.strEstado || item?.StrEstado || '');
+        const municipio = decodeUtf8Mojibake(item?.empCatMunicipio?.strValor || item?.EmpCatMunicipio?.StrValor || item?.strMunicipio || item?.StrMunicipio || '');
+        const codigoPostal = String(obtenerCodigoPostalColonia(item) || txtCodigoPostal.value || '').padStart(5, '0');
 
-            clearTimeout(debounceTimer);
-            if (query.length < 3) {
+        let colTexto = nombreColoniaItem;
+        if (codigoPostal && codigoPostal !== '00000') {
+            colTexto += ', CP ' + codigoPostal;
+        }
+        if (estado && estado !== 'Estado Desconocido') {
+            colTexto += ', ' + estado;
+        }
+        if (municipio && municipio !== 'Municipio Desconocido') {
+            colTexto += ', ' + municipio;
+        }
+
+        txtColonia.value = colTexto;
+        hdnColoniaId.value = obtenerIdColonia(item);
+        if (codigoPostal && codigoPostal !== '00000') {
+            txtCodigoPostal.value = codigoPostal;
+        }
+
+        coloniaSuggestions.innerHTML = '';
+        coloniaSuggestions.style.display = 'none';
+
+        txtColonia.dataset.touched = "true";
+        txtCodigoPostal.dataset.touched = "true";
+        limpiarError(txtColonia);
+        limpiarError(txtCodigoPostal);
+        actualizarStepperEmpleado();
+    }
+
+    function renderizarSugerenciasColonias(colonias) {
+        if (!coloniaSuggestions) return;
+        coloniaSuggestions.innerHTML = '';
+
+        if (!colonias || colonias.length === 0) {
+            mostrarMensajeColonia('No se encontraron colonias para este Código Postal.', 'warning');
+            return;
+        }
+
+        colonias.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+
+            const nombreColoniaItem = decodeUtf8Mojibake(item?.strValor || item?.StrValor || item?.colonia || item?.Colonia || 'Colonia Desconocida');
+            const estado = decodeUtf8Mojibake(item?.empCatMunicipio?.empCatEntidadFederativa?.strValor || item?.EmpCatMunicipio?.EmpCatEntidadFederativa?.StrValor || item?.strEstado || item?.StrEstado || '');
+            const municipio = decodeUtf8Mojibake(item?.empCatMunicipio?.strValor || item?.EmpCatMunicipio?.StrValor || item?.strMunicipio || item?.StrMunicipio || '');
+            const codigoPostal = String(obtenerCodigoPostalColonia(item) || txtCodigoPostal.value || '').padStart(5, '0');
+
+            div.innerHTML = `<strong>"${nombreColoniaItem}"</strong>, CP ${codigoPostal}${estado ? ', ' + estado : ''}${municipio ? ', ' + municipio : ''}`;
+
+            div.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                seleccionarColoniaItem(item);
+            });
+
+            coloniaSuggestions.appendChild(div);
+        });
+
+        coloniaSuggestions.style.display = 'block';
+    }
+
+    function cargarColoniasPorCP(cp, autoMostrar = true) {
+        if (!cp || cp.length !== 5) {
+            listaColoniasCP = [];
+            txtColonia.value = '';
+            hdnColoniaId.value = '';
+            txtColonia.disabled = true;
+            txtColonia.placeholder = 'Primero coloca el Código Postal';
+            if (coloniaSuggestions) {
+                coloniaSuggestions.innerHTML = '';
+                coloniaSuggestions.style.display = 'none';
+            }
+            return;
+        }
+
+        txtColonia.disabled = false;
+        txtColonia.placeholder = 'Buscando colonias del C.P. ' + cp + '...';
+        if (autoMostrar) {
+            mostrarMensajeColonia('Buscando colonias del C.P. ' + cp + '...');
+        }
+
+        fetch('/Empleado/GetColonias?search=' + encodeURIComponent(cp), {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(res => {
+                if (res.success === false || res.Success === false) {
+                    throw new Error(res.message || res.Message || 'No se pudieron obtener las colonias del CP.');
+                }
+
+                listaColoniasCP = obtenerListaColonias(res);
+
+                if (listaColoniasCP.length === 0) {
+                    txtColonia.placeholder = 'No se encontraron colonias para este CP';
+                    if (autoMostrar) {
+                        mostrarMensajeColonia('No se encontraron colonias para el C.P. ' + cp, 'warning');
+                    }
+                } else {
+                    txtColonia.placeholder = `Selecciona tu colonia (${listaColoniasCP.length} disponibles)...`;
+                    if (autoMostrar) {
+                        renderizarSugerenciasColonias(listaColoniasCP);
+                    }
+                    if (listaColoniasCP.length === 1 && (!hdnColoniaId.value || hdnColoniaId.value === '')) {
+                        seleccionarColoniaItem(listaColoniasCP[0]);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Error al cargar colonias por CP:', err);
+                txtColonia.placeholder = 'Error al cargar colonias';
+                if (autoMostrar) {
+                    mostrarMensajeColonia('No se pudieron cargar las colonias: ' + err.message, 'error');
+                }
+            });
+    }
+
+    if (txtCodigoPostal && txtColonia && hdnColoniaId && coloniaSuggestions) {
+        // Inicializar estado del campo Colonia según Código Postal
+        if (!txtCodigoPostal.value || txtCodigoPostal.value.trim().length !== 5) {
+            txtColonia.disabled = true;
+            txtColonia.placeholder = 'Primero coloca el Código Postal';
+        }
+
+        // Evento input en Código Postal: busca automáticamente las colonias al tener 5 dígitos
+        let cpDebounceTimer;
+        txtCodigoPostal.addEventListener('input', function() {
+            // Solo permitir números y máximo 5 dígitos
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
+            const cp = this.value.trim();
+
+            clearTimeout(cpDebounceTimer);
+            if (cp.length < 5) {
+                txtColonia.value = '';
+                hdnColoniaId.value = '';
+                listaColoniasCP = [];
+                txtColonia.disabled = true;
+                txtColonia.placeholder = 'Primero coloca el Código Postal';
                 coloniaSuggestions.innerHTML = '';
                 coloniaSuggestions.style.display = 'none';
                 return;
             }
 
-            mostrarMensajeColonia('Buscando colonias...');
+            cpDebounceTimer = setTimeout(() => {
+                cargarColoniasPorCP(cp, true);
+            }, 200);
+        });
 
-            debounceTimer = setTimeout(() => {
-                fetch('/Empleado/GetColonias?search=' + encodeURIComponent(query), {
-                    headers: { 'Accept': 'application/json' }
-                })
-                    .then(res => {
-                        if (!res.ok) {
-                            throw new Error('HTTP ' + res.status);
-                        }
-                        return res.json();
-                    })
-                    .then(res => {
-                        coloniaSuggestions.innerHTML = '';
-                        if (res.success === false || res.Success === false) {
-                            throw new Error(res.message || res.Message || 'La API no pudo obtener colonias.');
-                        }
+        // Evento focus/click en Colonia: si no hay CP, bloquea y guía al usuario
+        txtColonia.addEventListener('focus', function() {
+            const cp = txtCodigoPostal.value.trim();
+            if (cp.length !== 5) {
+                this.disabled = true;
+                this.placeholder = 'Primero coloca el Código Postal';
+                txtCodigoPostal.focus();
+                mostrarError(txtCodigoPostal, 'Primero coloca el Código Postal para buscar tu colonia.');
+                return;
+            }
 
-                        const colonias = obtenerListaColonias(res);
-                        const sugerencias = colonias
-                            .filter(item => coincideConBusquedaColonia(item, query))
-                            .slice(0, 15);
+            if (listaColoniasCP.length > 0) {
+                const query = this.value.trim();
+                const filtradas = listaColoniasCP.filter(item => coincideConBusquedaColonia(item, query));
+                renderizarSugerenciasColonias(filtradas.length > 0 ? filtradas : listaColoniasCP);
+            } else {
+                cargarColoniasPorCP(cp, true);
+            }
+        });
 
-                        if ((res.success === true || res.Success === true || colonias.length > 0) && sugerencias.length > 0) {
-                            sugerencias.forEach(item => {
-                                const nombreColonia = obtenerValorColonia(item);
-                                const codigoPostal = String(obtenerCodigoPostalColonia(item)).padStart(5, '0');
-                                const div = document.createElement('div');
-                                div.className = 'suggestion-item';
-                                const nombreColoniaItem = decodeUtf8Mojibake(item?.strValor || item?.StrValor || item?.colonia || item?.Colonia || 'Colonia Desconocida');
-                                const estado = decodeUtf8Mojibake(item?.strEstado || item?.StrEstado || 'Estado Desconocido');
-                                const municipio = decodeUtf8Mojibake(item?.strMunicipio || item?.StrMunicipio || 'Municipio Desconocido');
-                                div.innerHTML = `<strong>"${nombreColoniaItem}"</strong>, CP ${codigoPostal}, ${estado}, ${municipio}`;
-                                div.addEventListener('mousedown', (event) => {
-                                    event.preventDefault();
-                                    
-                                    let colTexto = nombreColoniaItem;
-                                    
-                                    if (codigoPostal) {
-                                        colTexto += ', CP ' + codigoPostal;
-                                    }
-                                    if (estado && estado !== 'Estado Desconocido') {
-                                        colTexto += ', ' + estado;
-                                    }
-                                    if (municipio && municipio !== 'Municipio Desconocido') {
-                                        colTexto += ', ' + municipio;
-                                    }
-                                    
-                                    txtColonia.value = colTexto;
-                                    hdnColoniaId.value = obtenerIdColonia(item);
-                                    txtCodigoPostal.value = codigoPostal;
-                                    
-                                    coloniaSuggestions.innerHTML = '';
-                                    coloniaSuggestions.style.display = 'none';
+        // Evento input en Colonia: filtra localmente entre las colonias del CP ingresado
+        txtColonia.addEventListener('input', function() {
+            const cp = txtCodigoPostal.value.trim();
+            if (cp.length !== 5) {
+                this.value = '';
+                this.disabled = true;
+                this.placeholder = 'Primero coloca el Código Postal';
+                txtCodigoPostal.focus();
+                mostrarError(txtCodigoPostal, 'Primero coloca el Código Postal.');
+                return;
+            }
 
-                                    // Marcar inputs como interactuados y disparar validaciones
-                                    txtColonia.dataset.touched = "true";
-                                    txtCodigoPostal.dataset.touched = "true";
-                                    limpiarError(txtColonia);
-                                    limpiarError(txtCodigoPostal);
-                                    actualizarStepperEmpleado();
-                                });
-                                coloniaSuggestions.appendChild(div);
-                            });
-                            coloniaSuggestions.style.display = 'block';
-                        } else {
-                            mostrarMensajeColonia('No se encontraron colonias');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching colonias:', err);
-                        mostrarMensajeColonia('No se pudieron cargar las colonias: ' + err.message, 'error');
-                    });
-            }, 300);
+            hdnColoniaId.value = ''; // Resetear ID si se modifica el texto manual
+            const query = this.value.trim();
+
+            if (listaColoniasCP.length > 0) {
+                const filtradas = listaColoniasCP.filter(item => coincideConBusquedaColonia(item, query));
+                renderizarSugerenciasColonias(filtradas);
+            } else {
+                cargarColoniasPorCP(cp, true);
+            }
         });
 
         // Ocultar sugerencias si se da click fuera del campo
         document.addEventListener('click', function(e) {
-            if (e.target !== txtColonia && e.target !== coloniaSuggestions && !coloniaSuggestions.contains(e.target)) {
+            if (e.target !== txtColonia && e.target !== txtCodigoPostal && e.target !== coloniaSuggestions && !coloniaSuggestions.contains(e.target)) {
                 coloniaSuggestions.innerHTML = '';
                 coloniaSuggestions.style.display = 'none';
             }
@@ -1798,62 +1987,4 @@ function actualizarNombresDinamicos() {
     });
 }
 
-// ─── Lógica de Carga para Edición de Empleado ───
-let editModeEmpleadoId = null;
-
-async function verificarEdicionEmpleado() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const idParam = urlParams.get('id');
-    if (!idParam) return;
-
-    editModeEmpleadoId = parseInt(idParam, 10);
-    if (isNaN(editModeEmpleadoId) || editModeEmpleadoId <= 0) return;
-
-    try {
-        const response = await fetch('/Empleado/GetEmpleado?id=' + editModeEmpleadoId);
-        const result = await response.json();
-        if (result && result.success && result.data) {
-            const emp = result.data;
-            
-            const setVal = (id, val) => {
-                const el = document.getElementById(id);
-                if (el && val != null) el.value = val;
-            };
-
-            setVal('txtNombre', emp.strNombre || emp.StrNombre);
-            setVal('txtApellidoPaterno', emp.strApellidoPaterno || emp.StrApellidoPaterno);
-            setVal('txtApellidoMaterno', emp.strApellidoMaterno || emp.StrApellidoMaterno);
-            setVal('txtCurp', emp.strCurp || emp.StrCurp);
-            setVal('txtRfc', emp.strRfc || emp.StrRfc);
-            setVal('txtNss', emp.bigNss || emp.BigNss);
-            setVal('txtCorreo', emp.strCorreoElectronico || emp.StrCorreoElectronico);
-            if (emp.dteFechaNacimiento || emp.DteFechaNacimiento) {
-                setVal('txtFechaNacimiento', emp.dteFechaNacimiento || emp.DteFechaNacimiento);
-            }
-            if (emp.idEmpCatGenero || emp.IdEmpCatGenero) {
-                setVal('ddlGenero', emp.idEmpCatGenero || emp.IdEmpCatGenero);
-            }
-            if (emp.idEmpCatEstadoCivil || emp.IdEmpCatEstadoCivil) {
-                setVal('ddlEstadoCivil', emp.idEmpCatEstadoCivil || emp.IdEmpCatEstadoCivil);
-            }
-            if (emp.empTelefonos && emp.empTelefonos.length > 0) {
-                setVal('txtTelefono', emp.empTelefonos[0].strTelefono || emp.empTelefonos[0].StrTelefono);
-            }
-
-            // Actualizar header visual
-            const headerTitle = document.querySelector('.header-title');
-            if (headerTitle) headerTitle.textContent = `Editar empleado: ${emp.strNombre || ''} ${emp.strApellidoPaterno || ''}`;
-
-            const form = document.getElementById('form-empleado');
-            if (form) {
-                form.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        }
-    } catch (err) {
-        console.error("Error al cargar datos del empleado para edicion:", err);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    verificarEdicionEmpleado();
-});
+// ─── Fin de Lógica de Edición de Empleado ───

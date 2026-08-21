@@ -17,7 +17,7 @@ namespace Cavex.Principal.Models.VehDaniosAccidentes
         public string StrEmpEmpleado { get; set; } = string.Empty;
 
         [Display(Name = "Fecha del evento")]
-        public DateOnly DteFechaEvento { get; set; }
+        public DateTime DteFechaEvento { get; set; }
 
         [Display(Name = "Descripcion")]
         public string StrDescripcion { get; set; } = string.Empty;

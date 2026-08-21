@@ -12,7 +12,6 @@ namespace Cavex.Principal.Controllers
         private readonly IEmpCatAreaLaboralService _serviceAreaLaboral;
         private readonly ICatStatusService _catStatusService;
         private readonly IMemoryCache _cache;
-        private const string CacheKey = "areas_list";
         private const string StatusCacheKey = "status_list";
 
         public AreaLaboralController(IEmpCatAreaLaboralService serviceAreaLaboral, ICatStatusService catStatusService, IMemoryCache cache)
@@ -23,9 +22,10 @@ namespace Cavex.Principal.Controllers
         }
 
         // Muestra la vista principal del catálogo
-        public IActionResult Index()
+        public IActionResult Index(int pagina = 1)
         {
-            return View();
+            ViewBag.PaginaActual = pagina;
+            return View(new EmpCatAreaLaboralSaveDto());
         }
 
         [HttpGet]
@@ -40,11 +40,7 @@ namespace Cavex.Principal.Controllers
             var response = await _catStatusService.ObtenerTodosAsync(cancellationToken);
             if (!response.Success || response.Data?.Items == null || !response.Data.Items.Any())
             {
-                statusItems = new[]
-                {
-                    new { id = 1, strValor = "Activo", strDescripcion = "Activo" },
-                    new { id = 2, strValor = "Inactivo", strDescripcion = "Inactivo" }
-                };
+                statusItems = GetDefaultStatusItems();
                 _cache.Set(StatusCacheKey, statusItems, TimeSpan.FromSeconds(30));
                 return Json(new { success = true, data = statusItems });
             }
@@ -55,36 +51,87 @@ namespace Cavex.Principal.Controllers
             return Json(new { success = true, data = statusItems });
         }
 
+        [HttpGet("/AreaLaboral/GetAreas")]
+        public async Task<JsonResult> GetAreas(CancellationToken cancellationToken)
+        {
+            var response = await _serviceAreaLaboral.ObtenerTodosAsync(1, 1000, null, 1, cancellationToken);
+            if (!response.Success || response.Data?.Items == null)
+            {
+                return Json(new { success = false, message = response?.Message ?? "Sin áreas laborales.", data = new object[0] });
+            }
+            return Json(new { success = true, data = response.Data.Items });
+        }
+
         // Obtiene las áreas laborales paginadas con opción de filtrado/búsqueda
         [HttpGet]
-        public async Task<JsonResult> GetAreas(int pagina, string? search = null, int pageSize = 10, CancellationToken cancellationToken = default)
+        public async Task<JsonResult> GetAreasLaborales(int pagina, string? search, string? status, CancellationToken cancellationToken)
         {
             if (pagina < 1) pagina = 1;
-            if (pageSize < 1) pageSize = 10;
+            int? statusVal = null;
+            if (int.TryParse(status, out var parsedStatus))
+            {
+                statusVal = parsedStatus;
+            }
 
-            var response = await _serviceAreaLaboral.ObtenerTodosAsync(pagina, pageSize, search, cancellationToken);
+            var countsCacheKey = $"areaslaborales_counts_{search}";
+            if (!_cache.TryGetValue(countsCacheKey, out Dictionary<string, int>? statusCounts))
+            {
+                var allCountResponse = await _serviceAreaLaboral.ObtenerTodosAsync(1, 1, search, null, cancellationToken);
+                int totalAllCount = allCountResponse.Success ? (allCountResponse.Data?.TotalCount ?? 0) : 0;
+
+                var activeCountResponse = await _serviceAreaLaboral.ObtenerTodosAsync(1, 1, search, 1, cancellationToken);
+                int activeCount = activeCountResponse.Success ? (activeCountResponse.Data?.TotalCount ?? 0) : 0;
+
+                var inactiveCountResponse = await _serviceAreaLaboral.ObtenerTodosAsync(1, 1, search, 2, cancellationToken);
+                int inactiveCount = inactiveCountResponse.Success ? (inactiveCountResponse.Data?.TotalCount ?? 0) : 0;
+
+                statusCounts = new Dictionary<string, int>
+                {
+                    { "1", activeCount },
+                    { "2", inactiveCount },
+                    { "total", totalAllCount }
+                };
+
+                _cache.Set(countsCacheKey, statusCounts, TimeSpan.FromSeconds(10));
+            }
+
+            int totalAllCountVal = statusCounts["total"];
+
+            var response = await _serviceAreaLaboral.ObtenerTodosAsync(pagina, 10, search, statusVal, cancellationToken);
             if (!response.Success)
             {
                 return Json(new { success = false, message = response.Message });
             }
 
             var items = response.Data?.Items?.ToList() ?? new List<EmpCatAreaLaboralDto>();
-            var totalCount = response.Data?.TotalCount ?? 0;
+            int totalCount = response.Data?.TotalCount ?? 0;
 
-            return Json(new { success = true, data = items, totalCount = totalCount });
+            return Json(new { 
+                success = true, 
+                data = items, 
+                totalCount = totalCount,
+                pageIndex = pagina,
+                pageSize = 10,
+                statusCounts = statusCounts,
+                totalAllCount = totalAllCountVal
+            });
         }
+
+        private static object[] GetDefaultStatusItems() =>
+        [
+            new { id = 1, strValor = "Activo", strDescripcion = "Activo" },
+            new { id = 2, strValor = "Inactivo", strDescripcion = "Inactivo" }
+        ];
 
         // Registra una nueva área laboral verificando primero que el nombre no esté duplicado
         [HttpPost]
-        public async Task<JsonResult> SaveArea([FromBody] EmpCatAreaLaboralSaveDto model, CancellationToken cancellationToken)
+        public async Task<JsonResult> SaveAreaLaboral([FromBody] EmpCatAreaLaboralSaveDto model, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return Json(new { success = false, message = string.Join(" ", errors) });
+                return Json(new { success = false, message = GetModelStateErrors() });
             }
 
-            // Valida duplicidad del nombre a nivel general
             var exists = await _serviceAreaLaboral.ExistePorNombreAsync(
                 model.StrValor.Trim(),
                 null,
@@ -101,20 +148,19 @@ namespace Cavex.Principal.Controllers
                 return Json(new { success = false, message = response.Message });
             }
 
+            ClearCountsCache();
             return Json(new { success = true, data = response.Data });
         }
 
         // Actualiza un área laboral existente validando duplicidad con otros registros distintos del actual
         [HttpPost]
-        public async Task<JsonResult> UpdateArea([FromBody] EmpCatAreaLaboralEditDto model, CancellationToken cancellationToken)
+        public async Task<JsonResult> UpdateAreaLaboral([FromBody] EmpCatAreaLaboralEditDto model, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return Json(new { success = false, message = string.Join(" ", errors) });
+                return Json(new { success = false, message = GetModelStateErrors() });
             }
 
-            // Valida duplicidad del nombre excluyendo el registro actual (ID)
             var exists = await _serviceAreaLaboral.ExistePorNombreAsync(
                 model.StrValor.Trim(),
                 model.Id,
@@ -138,12 +184,13 @@ namespace Cavex.Principal.Controllers
                 return Json(new { success = false, message = response.Message });
             }
 
+            ClearCountsCache();
             return Json(new { success = true, data = response.Data });
         }
 
         // Elimina lógicamente/físicamente el área por ID y limpia la caché asociada
         [HttpPost]
-        public async Task<JsonResult> DeleteArea(int id, CancellationToken cancellationToken)
+        public async Task<JsonResult> DeleteAreaLaboral(int id, CancellationToken cancellationToken)
         {
             var response = await _serviceAreaLaboral.EliminarAsync(id, cancellationToken);
             if (!response.Success)
@@ -151,10 +198,19 @@ namespace Cavex.Principal.Controllers
                 return Json(new { success = false, message = response.Message });
             }
 
-            // Invalida la lista en caché al haber modificaciones
-            _cache.Remove(CacheKey);
-
+            ClearCountsCache();
             return Json(new { success = true, data = response.Data });
+        }
+
+        private string GetModelStateErrors()
+        {
+            return string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+        }
+
+        private void ClearCountsCache()
+        {
+            _cache.Remove("areaslaborales_counts_null");
+            _cache.Remove("areaslaborales_counts_");
         }
     }
 }

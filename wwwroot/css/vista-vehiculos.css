@@ -1475,3 +1475,139 @@ select.cavex-select-hidden {
     color: #008c95;
 }
 
+/* Custom CAVEX Autocomplete Dropdown */
+.cavex-autocomplete-container {
+    position: relative;
+}
+
+.cavex-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: #ffffff;
+    border: 1.5px solid rgba(0, 140, 149, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(6, 27, 58, 0.14);
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+    padding: 6px;
+    animation: cavexDropdownFadeIn 0.15s ease;
+}
+
+.cavex-autocomplete-dropdown.is-open {
+    display: block;
+}
+
+.cavex-autocomplete-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--azul-cavex, #061b3a);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    margin-bottom: 2px;
+}
+
+.cavex-autocomplete-item:hover,
+.cavex-autocomplete-item.is-highlighted {
+    background: #F0F8F8;
+    color: var(--teal-cavex, #008C95);
+}
+
+.cavex-autocomplete-item .item-price {
+    font-weight: 700;
+    color: #047857;
+    background: #D1FAE5;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+}
+
+/* Status Tabs & Filter Pills */
+.status-tabs-container {
+    background: #F8FAFC;
+    border: 1px solid var(--borde-cavex, #E2E8F0);
+    border-radius: 14px;
+    padding: 6px;
+    display: inline-flex;
+    max-width: 100%;
+}
+
+.status-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.status-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--texto-cavex, #64748b);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.status-tab:hover {
+    background: #FFFFFF;
+    color: var(--azul-cavex, #061b3a);
+    box-shadow: 0 2px 6px rgba(6, 27, 58, 0.04);
+}
+
+.status-tab.active {
+    background: #FFFFFF;
+    color: var(--teal-cavex, #008C95);
+    box-shadow: 0 4px 12px rgba(6, 27, 58, 0.08);
+}
+
+.status-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #E2E8F0;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 800;
+    transition: all 0.2s ease;
+}
+
+.status-tab.active .status-tab-count {
+    background: #E6F7F8;
+    color: var(--teal-cavex, #008C95);
+}
+
+/* Form Actions Bar (Cancelar / Guardar) */
+.mant-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    background: rgba(246, 248, 251, 0.94);
+    border-top: 1px solid var(--borde-cavex, #E2E8F0);
+    padding: 16px 24px;
+    margin-top: 24px;
+    border-radius: 0 0 16px 16px;
+    backdrop-filter: blur(8px);
+}
+
+

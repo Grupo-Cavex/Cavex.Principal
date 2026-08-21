@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Cavex.Principal.Models.VehDatosGenerales
 {
@@ -36,7 +36,7 @@ namespace Cavex.Principal.Models.VehDatosGenerales
         public string StrPlaca { get; set; } = string.Empty;
 
 
-        [StringLength(50, ErrorMessage = "El valor no puede superar los 50 caracteres.")]
+        [StringLength(17, MinimumLength = 11, ErrorMessage = "El número de motor debe tener entre 11 y 17 caracteres.")]
         [Display(Name = "Numero de motor")]
         public string? StrNumMotor { get; set; }
 
@@ -67,6 +67,9 @@ namespace Cavex.Principal.Models.VehDatosGenerales
         [Display(Name = "Fecha de asignación")]
         public DateOnly DteFechaAsignacion { get; set; } 
 
+        [Display(Name = "Fecha de registro")]
+        public DateOnly DteFechaRegistro { get => DteFechaAsignacion; set => DteFechaAsignacion = value; } 
+
         [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
         [Display(Name = "Observaciones")]
         public string? StrObservaciones { get; set; }
@@ -74,6 +77,12 @@ namespace Cavex.Principal.Models.VehDatosGenerales
         [StringLength(500, ErrorMessage = "El valor no puede superar los 500 caracteres.")]
         [Display(Name = "Motor")]
         public string? StrMotor { get; set; }
+
+        [Display(Name = "Último mantenimiento")]
+        public DateOnly? DteUltimoMantenimiento { get; set; }
+
+        [Display(Name = "Próximo mantenimiento")]
+        public DateOnly? DteProximoMantenimiento { get; set; }
 
         [Required(ErrorMessage = "La transmision es obligatoria.")]
         [Display(Name = "Tipo de Transmision")]
